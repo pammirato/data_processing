@@ -66,4 +66,6 @@ end
 
 
 
-scatter3(xs,ys,zs);%5,rgbs,'filled');
+scatter3(xs,ys,zs,10,rgbs/255.0,'filled');
+axis equal;
+axis([-30 30 -1 3 -30 30]);
