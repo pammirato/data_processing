@@ -62,6 +62,10 @@ cur_vec = zeros(1,3);
 vec1 = [0;0;1;1];
 vec2 = [0;0;0;1];
 
+dir_segs_x = -ones(1,length(images)*3);
+dir_segs_y = -ones(1,length(images)*3);
+dir_segs_z = -ones(1,length(images)*3);
+
 
 
 
@@ -89,14 +93,26 @@ for i=1:length(images)
   dY(i) = worldpos(2) + cur_vec(2);
   dZ(i) = worldpos(3) + cur_vec(3);
 
+  index = ((i-1)*3) +1;
+  dir_segs_x(index) = X(i);
+  dir_segs_x(index+1) = dX(i);
+  dir_segs_x(index+2) = NaN;
+  
+  dir_segs_y(index) = Y(i);
+  dir_segs_y(index+1) = dY(i);
+  dir_segs_y(index+2) = NaN;
 
+  dir_segs_z(index) = Z(i);
+  dir_segs_z(index+1) = dZ(i);
+  dir_segs_z(index+2) = NaN;
 
 end%for i 
 
 plotfig = figure;
 scatter3(X,Y,Z,'r.'); %plot camera positions in X and Z
 hold on;
-scatter3(dX,dY,dZ,'b.');%plot camera directions
+plot3(dir_segs_x, dir_segs_y, dir_segs_z);
+%scatter3(dX,dY,dZ,'b.');%plot camera directions
 axis equal;
 % allow user to click on camera positions to see the picture
 

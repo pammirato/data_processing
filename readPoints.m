@@ -35,11 +35,11 @@ while 1
     pts(1,k) = xi;
     pts(2,k) = yi;
 
-      if xold
-          plot([xold xi], [yold yi], 'go-');  % draw as we go
-      else
-          plot(xi, yi, 'go');         % first point on its own
-      end
+      %if xold
+      %    plot([xold xi], [yold yi], 'go-');  % draw as we go
+      %else
+          %plot(xi, yi, 'go');         % first point on its own
+      %end
 
       if isequal(k, n)
           break
@@ -47,6 +47,7 @@ while 1
       xold = xi;
       yold = yi;
   end
+
 
 hold off;
 if k < size(pts,2)
