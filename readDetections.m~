@@ -1,0 +1,126 @@
+
+
+room_name = 'KitchenLiving12';
+
+class_name = 'monitor';
+label_name = 'monitor1';
+
+base_path =['/home/ammirato/Data/' room_name];
+
+rgb_images_path = [base_path 'rgb/'];
+mapping_label_path = [base_path '/labeling/labeled_mapping.txt'];
+
+detections_path = [base_path '/recognition_results/detections/matFiles/'];
+detections_suffix = '.p.mat';
+
+
+
+%%%%
+%first find all image names that with the object labeled
+
+
+fid_map_label = fopen(mapping_label_path);
+
+labeled_images = cell(1,1);
+counter = 1;
+
+%skip header
+for i=1:11
+    line = fgetl(fid_map_label);
+end
+
+
+%get hand labeled point
+line = fgetl(fid_map_label);
+while(ischar(line))
+    line =strsplit(line);
+    
+    rgb_filename = line{1};
+    x = str2num(line{2});
+    y = str2num(line{3});
+
+    label = fgetl(fid_map_label);
+    if(strcmp(label,label_name))
+        
+        %save this image as one that hsa the object
+        labeled_images{counter} = {rgb_filename,x,y};
+        counter = counter +1;
+        
+        %get the dashed line
+        line = fgetl(fid_map_label);
+        
+        %get line with image or error
+        line = fgetl(fid_map_label);
+        while(length(line) > 4)
+        
+       
+            line =strsplit(line);
+
+            rgb_filename = line{1};
+
+            %see what's up
+            if(strcmp(rgb_filename,'ERROR:'))
+                line = fgetl(fid_map_label);
+                break;
+            end
+
+            x = str2num(line{2});
+            y = str2num(line{3});
+            
+            %save the data
+            labeled_images{counter} = {rgb_filename,x,y};
+            counter = counter +1;
+
+            %get next line
+            line = fgetl(fid_map_label);
+
+        end %while >4
+    else
+        %read dashed
+        line = fgetl(fid_map_label);
+        
+        %read the rest of lines for this object
+        line = fgetl(fid_map_label);
+        while(length(line) > 4)
+
+            %get next line
+            line = fgetl(fid_map_label);
+
+        end %while >4
+    end%if labels match
+    
+    
+    
+    
+        
+    line = fgetl(fid_map_label);
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%mat_files = dir([detections_path object_name '/']);
+%mat_files = mat_files(3:end);
+detections = zeros(length( labeled_images),5));
+
+
+
+
+
+try
+    test = load([detections_path object_name '/' 'rgb9459K3' detections_suffix]);
+catch
+    disp('could not load file');
+end

@@ -10,12 +10,14 @@ TZ = 8;
 CAMERA_ID = 9;
 NAME = 10;
 
+room_name = 'KitchenLiving12';
 
 %path = '/home/ammirato/Documents/kitchenette2/result/';
-path = '/home/ammirato/Documents/results/shared-intrinsics-fisheye/';
-image_path = '/home/ammirato/Documents/kitchenette1/rgb/';
+%path = '/home/ammirato/Documents/results/shared-intrinsics-fisheye/';
+%image_path = '/home/ammirato/Documents/kitchenette1/rgb/';
+positions_path =[ '/home/ammirato/Data/' room_name '/reconstruction_results/'];
 
-fid_images = fopen([path 'images.txt']); 
+fid_images = fopen([positions_path 'images.txt']); 
 
 fgetl(fid_images); 
 fgetl(fid_images); 
@@ -110,9 +112,12 @@ end%for i
 
 plotfig = figure;
 scatter3(X,Y,Z,'r.'); %plot camera positions in X and Z
+
+
+figure, scatter3(X,Y,Z,'r.');
 hold on;
-plot3(dir_segs_x, dir_segs_y, dir_segs_z);
-%scatter3(dX,dY,dZ,'b.');%plot camera directions
+plot3(dir_segs_x, dir_segs_y, dir_segs_z,'k-');
+scatter3(dX,dY,dZ,'b.');%plot camera directions
 axis equal;
 % allow user to click on camera positions to see the picture
 

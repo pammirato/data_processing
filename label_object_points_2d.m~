@@ -4,7 +4,7 @@
 
 
 %this would hange for evey object
-room_name = 'Bathroom1';
+room_name = 'KitchenLiving12';
 step_size = int16(1);%dont make this a multiple of 3 or 24 or 25
 
 
@@ -57,10 +57,10 @@ image_counter = 1;
 point_counter = 1;
 while image_counter <= length(image_names)
   rgb_name =  image_names{image_counter};
-  suffix_index = strfind(rgb_name,'b') + 1;
+  str
   
   rgb_image = imread([images_path 'rgb/' rgb_name]);
-  depth_image = imread([images_path 'raw_depth/raw_depth' rgb_name(suffix_index:end) ]);
+  depth_image = imread([images_path 'raw_depth/' ]);
     
   %get one point from the user clicking on the image
   %points{point_counter} = readPoints(rgb_images{image_counter},1);
@@ -74,7 +74,7 @@ while image_counter <= length(image_names)
 
   [xi, yi, but] = ginput(1);
   points{point_counter} = [xi yi];
-  hold off;
+  
   
   images_used{point_counter} = image_names{image_counter};
   labels{point_counter} = input(['Enter object label(' num2str(image_counter) '/' total_images '):'], 's');
@@ -162,14 +162,12 @@ for i=1:length(points)
   if(length(cur_point) <2)%something wrong with point
       continue;
   end
-  
-  %TODO  MAKE 4 DIGITS PAST DECIMAL
   fprintf(fid, [images_used{i} ' ' ... 
                 num2str(cur_point(1)) ' ' ...
                 num2str(cur_point(2)) '\n' ... 
                  labels{i} '\n']);
 end%for i points
-fprintf(fid, '\n');
+
 fclose(fid);
 
 
