@@ -10,7 +10,7 @@ TZ = 8;
 CAMERA_ID = 9;
 NAME = 10;
 
-room_name = 'FB341_2';
+room_name = 'Bathroom1';
 
 %path = '/home/ammirato/Documents/kitchenette2/result/';
 %path = '/home/ammirato/Documents/results/shared-intrinsics-fisheye/';

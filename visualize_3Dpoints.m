@@ -7,9 +7,12 @@ G = 6;
 B = 7;
 ERROR = 8;
 
+room_name = 'Room51';
+
+base_path = '/home/ammirato/Data/';
 
 %where to read points from
-points_path = '/home/ammirato/results1/shared-intrinsics-fisheye/';
+points_path = [base_path room_name '/reconstruction_results/'];
 
 fid_points = fopen([points_path 'points3D.txt']);
 
@@ -34,7 +37,9 @@ while(ischar(line))
 
   %info is space separated
   line = strsplit(line);
-
+  if(length(line) < B)
+      break;
+  end
   cur_point = str2double(line(1:B));
   points{i} = cur_point; 
   
