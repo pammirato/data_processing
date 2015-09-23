@@ -1,0 +1,9 @@
+dirs = {...
+        'FB341_2' ...
+         'Room41' ...
+         'KitchenLiving12'};
+     
+     
+for i=1:length(dirs)
+    compress(dirs{i});
+end

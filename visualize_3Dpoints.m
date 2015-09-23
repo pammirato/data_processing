@@ -7,7 +7,7 @@ G = 6;
 B = 7;
 ERROR = 8;
 
-room_name = 'Room51';
+room_name = 'kitchenette2';
 
 base_path = '/home/ammirato/Data/';
 

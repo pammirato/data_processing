@@ -1,0 +1,18 @@
+dirs = {'Room13' ...
+        'Room21' ...
+        'Room22' ...
+        'Room31' ...
+        'KitchenLiving1'
+        'KitchenLiving12'
+        'kitchenette2'
+        'SN208'
+        'SN252'
+        'SN349'
+        'SN
+         'Room41'};
+     
+     
+     
+for i=1:length(dirs)
+    compress(dirs{i});
+end
