@@ -24,17 +24,23 @@ unreg_depth_dir = unreg_depth_dir(3:end);
 
 
 
-
-for i=1:length(rgb_dir)
-  img = imread([rgb_image_path rgb_dir(i).name]);
-  imwrite(img, [rgb_save_path rgb_dir(i).name]);
-end
-
-
-for i=1:length(unreg_depth_dir)
-  img = imread([unreg_depth_image_path unreg_depth_dir(i).name]);
-  imwrite(img, [unreg_depth_save_path unreg_depth_dir(i).name]);
-end
+% 
+% for i=1:length(rgb_dir)
+%     i
+%     try
+%   img = imread([rgb_image_path rgb_dir(i).name]);
+%   imwrite(img, [rgb_save_path rgb_dir(i).name]);
+%     catch
+%         disp ('phil wake up');
+%     end
+% end
+% 
+% 
+% for i=1:length(unreg_depth_dir)
+%     i
+%   img = imread([unreg_depth_image_path unreg_depth_dir(i).name]);
+%   imwrite(img, [unreg_depth_save_path unreg_depth_dir(i).name]);
+% end
 
 
 try
@@ -42,6 +48,7 @@ try
 raw_depth_dir = dir(raw_depth_image_path);
 raw_depth_dir = raw_depth_dir(3:end);
 for i=1:length(raw_depth_dir)
+    i
   img = imread([raw_depth_image_path raw_depth_dir(i).name]);
   imwrite(img, [raw_depth_save_path raw_depth_dir(i).name]);
 end

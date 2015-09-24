@@ -1,0 +1,68 @@
+#!/bin/bash
+
+ALL_DATA_PATH="/home/ammirato/Data_Compressed/"
+
+RGB="/rgb/"
+UNREG="/unreg_depth/"
+RAW="/raw_depth/"
+
+RGB_DELIM='b'
+#RGB_INDEX=2
+DEPTH_DELIM='h'
+#DEPTH_INDEX=3
+
+RGB_FILENAME="/rgb_indices.txt"
+UNREG_FILENAME="/unreg_indices.txt"
+RAW_FILENAME="/raw_indices.txt"
+
+function write_out {
+  #for each filename get the index and write it to a text file
+  for j in $(ls $1); do
+    index=`echo $j | cut -d$3 -f'2' `
+    echo $index >> $2
+  done
+}
+
+
+
+#for each room
+for i in $(ls $ALL_DATA_PATH); do
+
+
+  #write all the indices to files for rgb,unreg,raw
+  write_out $ALL_DATA_PATH$i$RGB $ALL_DATA_PATH$i$RGB_FILENAME $RGB_DELIM 
+
+  write_out $ALL_DATA_PATH$i$UNREG $ALL_DATA_PATH$i$UNREG_FILENAME $DEPTH_DELIM 
+
+  write_out $ALL_DATA_PATH$i$RAW $ALL_DATA_PATH$i$RAW_FILENAME $DEPTH_DELIM 
+
+
+
+  diffa=`diff -q $ALL_DATA_PATH$i$RGB_FILENAME $ALL_DATA_PATH$i$UNREG_FILENAME `
+  diffb=`diff -q $ALL_DATA_PATH$i$RGB_FILENAME $ALL_DATA_PATH$i$RAW_FILENAME `
+  diffc=`diff -q $ALL_DATA_PATH$i$RAW_FILENAME $ALL_DATA_PATH$i$UNREG_FILENAME `
+
+
+  if [ ! "$diffa" = "" ]; then
+    echo $ALL_DATA_PATH$i  
+  elif [ ! "$diffb" = "" ]; then
+    echo $ALL_DATA_PATH$i  
+  elif [ ! "$diffc" = "" ]; then
+    echo $ALL_DATA_PATH$i 
+  fi
+ 
+done
+
+
+
+
+  test="rgb102K3.png"
+  output=`echo $test | cut -d 'b' -f'2' `
+  echo $output
+
+
+
+#  echo $output >> test.txt
+#  echo $output >> test.txt
+
+

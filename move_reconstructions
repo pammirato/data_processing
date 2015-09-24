@@ -1,0 +1,14 @@
+#!/bin/bash
+
+
+
+DESTINATION_PATH="/home/ammirato/Data_Compressed/"
+SOURCE_PATH="/home/ammirato/Data/"
+TO_COPY_PATH="/reconstruction_results/"
+
+
+for i in $(ls $DESTINATION_PATH); do
+  cp -r $SOURCE_PATH$i$TO_COPY_PATH $DESTINATION_PATH$i$TO_COPY_PATH
+done
+
+
