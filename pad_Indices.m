@@ -1,7 +1,9 @@
+%make all indices same length(pad with leading zeros)
+desired_index_length = 6;
 
 
 %this would hange for evey object
-room_name = 'KitchenLiving12';
+room_name = 'Kitc';
 
 %where to get the images from
 images_path = ['/home/ammirato/Data/' room_name '/'];
@@ -52,7 +54,7 @@ for i=1:length(rgb_files)
     %end
     
     counter_string = org_stamp;
-    if(length(counter_string) < 6)
+    if(length(counter_string) < desired_index_length )
         pad = '';
         for i=1:(5-length(counter_string))
             pad = [pad '0'];

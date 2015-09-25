@@ -1,3 +1,7 @@
+%plot just the 3D reconstructed points, with rgb
+
+
+
 POINT_ID  = 1;
 X = 2;
 Y = 3;

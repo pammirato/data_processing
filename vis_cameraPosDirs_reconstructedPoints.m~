@@ -1,10 +1,10 @@
+%display all the reconstructed points, with rgb, and camera positions and directions for a scene
 
 
 
 
 
-
-
+%%%%%%%%%%%%%%%%%%  plot reconstructed points
 
 POINT_ID  = 1;
 X = 2;
@@ -98,7 +98,7 @@ axis([-30 30 -1 3 -30 30]);
 
 
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
@@ -124,8 +124,7 @@ hold on;
 
 
 
-
-
+%%%%%%%%%%%%%%%%%%  plot camera positions and directions
 
 
 

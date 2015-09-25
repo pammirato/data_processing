@@ -1,6 +1,4 @@
-%convert a quarterntion to a matrix, from wikipedia?
-
-function [R] = quaternion_to_matrix(quat)
+function [R] = quaternion_to_matrix2(quat)
 
     w = quat(1);
     x = quat(2);

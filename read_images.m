@@ -1,3 +1,8 @@
+%returns a cell array of every ith image in the given dir, where 
+% i = step_size
+
+%THE DIRECTORY MUST CONTAIN ONLY IMAGES!!
+
 function [images image_names] = readImages(images_path, step_size)
 
 files = dir([images_path]);

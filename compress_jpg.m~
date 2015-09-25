@@ -1,6 +1,4 @@
-%room_name = 'Room1';
-
-function compress(room_name)
+room_name = 'Room15';
 
 rgb_image_path = ['/home/ammirato/Data/' room_name '/rgb/'];
 unreg_depth_image_path = ['/home/ammirato/Data/' room_name '/unreg_depth/'];
@@ -24,40 +22,11 @@ unreg_depth_dir = unreg_depth_dir(3:end);
 
 
 
-
-for i=1:length(rgb_dir)
-    i
-    try
+  old_name = rgb_dir(i).name;
+  prefix = old_name(1:strfind(old_name, '.'));
   img = imread([rgb_image_path rgb_dir(i).name]);
-  imwrite(img, [rgb_save_path rgb_dir(i).name]);
-    catch
-        disp ('phil wake up');
-    end
-end
-
-
-for i=1:length(unreg_depth_dir)
-    i
-  img = imread([unreg_depth_image_path unreg_depth_dir(i).name]);
-  imwrite(img, [unreg_depth_save_path unreg_depth_dir(i).name]);
-end
-
-
-try
-
-raw_depth_dir = dir(raw_depth_image_path);
-raw_depth_dir = raw_depth_dir(3:end);
-for i=1:length(raw_depth_dir)
-    i
-  img = imread([raw_depth_image_path raw_depth_dir(i).name]);
-  imwrite(img, [raw_depth_save_path raw_depth_dir(i).name]);
-end
-
-catch
-    disp('no raw depth');
-    room_name
-end
-
-
-end
-
+  imwrite(img, [rgb_save_path prefix 'jpg']);
+  
+  img2 = imread([rgh_save_path prefix 'jpg']);
+  
+  max(max(abs(img - im

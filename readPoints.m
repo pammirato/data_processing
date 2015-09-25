@@ -1,4 +1,4 @@
-
+%%%%COPIED FROM ONLINE POST
 
 
 function pts = readPoints(image, n)
