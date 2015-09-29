@@ -10,7 +10,7 @@ TZ = 8;
 CAMERA_ID = 9;
 NAME = 10;
 
-room_name = 'KitchenLiving12';
+room_name = 'Room15';
 
 %path = '/home/ammirato/Documents/results/shared-intrinsics-fisheye/';
 reconstruction_path = ['/home/ammirato/Data/' room_name '/reconstruction_results/'];

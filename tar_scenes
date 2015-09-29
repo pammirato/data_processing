@@ -1,19 +1,19 @@
 #!/bin/bash
 
-ALL_DATA_PATH="/home/ammirato/Data_Compressed/"
+ALL_DATA_PATH="/home/ammirato/jpg_Data/"
 
 RGB="/rgb"
 UNREG="/unreg_depth"
 RAW="/raw_depth"
 
-RGB_FILENAME="/rgb.tar.gz"
-UNREG_FILENAME="/unreg.tar.gz"
-RAW_FILENAME="/raw.tar.gz"
+RGB_FILENAME="/rgb_jpg.tar"
+UNREG_FILENAME="/unreg_jpg.tar"
+RAW_FILENAME="/raw_jpg.tar"
 
 function tar_dir {
-  tar -cvzf $1$RGB_FILENAME $1$RGB
-  tar -cvzf $1$UNREG_FILENAME $1$UNREG
-  tar -cvzf $1$RAW_FILENAME $1$RAW
+  tar -cvf $1$RGB_FILENAME $1$RGB
+#  tar -cvf $1$UNREG_FILENAME $1$UNREG
+#  tar -cvf $1$RAW_FILENAME $1$RAW
   
   #echo $1$RGB_FILENAME
   #echo $1$RGB

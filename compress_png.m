@@ -1,12 +1,13 @@
-%room_name = 'Room1';
+%losselss compression rgb, unreg_depth, raw_depth 
 
-function compress(room_name)
+
+function compress_png(room_name)
 
 rgb_image_path = ['/home/ammirato/Data/' room_name '/rgb/'];
 unreg_depth_image_path = ['/home/ammirato/Data/' room_name '/unreg_depth/'];
 raw_depth_image_path = ['/home/ammirato/Data/' room_name '/raw_depth/'];
 
-base_save_path = ['/home/ammirato/Data_Compressed/' room_name]
+base_save_path = ['/home/ammirato/png_compressed_Data/' room_name]
 rgb_save_path = [base_save_path '/rgb/'];
 unreg_depth_save_path = [base_save_path '/unreg_depth/'];
 raw_depth_save_path = [base_save_path '/raw_depth/'];

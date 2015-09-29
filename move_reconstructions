@@ -2,13 +2,14 @@
 
 
 
-DESTINATION_PATH="/home/ammirato/Data_Compressed/"
-SOURCE_PATH="/home/ammirato/Data/"
-TO_COPY_PATH="/reconstruction_results/"
+DESTINATION_PATH="/home/ammirato/Data/"
+SOURCE_PATH="/home/ammirato/jpg_Data/"
+TO_COPY_PATH="/rgb_jpg.tar"
 
+TAR="/tar_files/rgb_jpg.tar"
 
 for i in $(ls $DESTINATION_PATH); do
-  cp -r $SOURCE_PATH$i$TO_COPY_PATH $DESTINATION_PATH$i$TO_COPY_PATH
+  cp -r $SOURCE_PATH$i$TO_COPY_PATH $DESTINATION_PATH$i$TAR
 done
 
 

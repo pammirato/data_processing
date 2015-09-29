@@ -1,96 +1,57 @@
 
-IMAGE_ID = 1;
-QW = 2;
-QX = 3;
-QY = 4;
-QZ = 5;
-TX = 6;
-TY = 7;
-TZ = 8;
-CAMERA_ID = 9;
-NAME = 10;
+
+base_path = '/home/ammirato/Data/';
 
 
-%path = '/home/ammirato/Documents/results/shared-intrinsics-fisheye/';
-reconstruction_path = '/home/ammirato/Data/Bathroom1/reconstruction_results/0/';
-image_path = '/home/ammirato/Data/Bathroom1/rgb/';
 
-fid_images = fopen([reconstruction_path 'images.txt']); 
 
-fgetl(fid_images); 
-fgetl(fid_images); 
-line = fgetl(fid_images); 
+room_name = 'Room11';
+view_directions = 1;
 
-images = cell(1,1); 
-names = cell(1,1); 
 
-cur_image = zeros(1,CAMERA_ID); 
 
-i = 1;
 
-while(ischar(line))
+%%%allow user to set variables before running script
+% flag = exist('room_name','var' );
+% 
+% if(flag ~=1)
+%     room_name = 'Room11';
+% end
+% 
+% 
+% flag = exist ('view_directions','var');
+% if( flag~=1)
+%     view_directions = 0;
+% end
 
-  %get image info
-  line = fgetl(fid_images);
-  line = strsplit(line);
 
-  names{i} = line{end}; 
-  cur_image = str2double(line(1:end-1)); 
-  images{i} = cur_image; 
-  
-  %get Points2D 
-  line =fgetl(fid_images); 
+disp(room_name);
+disp(view_directions);
 
-  i = i+1;
-end
- 
 
-images = images(1:end-1);
-X = zeros(1,length(images)); 
-Y = zeros(1,length(images));
-Z = zeros(1,length(images));
+%load a map from image name to camera data
+%camera data is an arraywith the camera position and a point along is orientation vector
+% [CAM_X CAM_Y CAM_Z DIR_X DIR_Y DIR_Z]
+camera_data_map = load(fullfile(base_path, room_name, 'reconstruction_results/camera_data_map.mat'));
+camera_data_map = camera_data_map.camera_data_map;
 
-for i=1:length(images)
 
-  cur_image = images{i};
-  t = [cur_image(TX); cur_image(TY); cur_image(TZ)];
-  quat = [cur_image(QW); cur_image(QX); cur_image(QY); cur_image(QZ)];
-  R = quaternion_to_matrix(quat); % get rotation matrix from quaternion orientation
-  %world camera positions = -(R)^T t (rotation matrix from quaternion(QX...) and t = TX, ...
-  worldpos = -R' * t;
 
-  X(i) = worldpos(1); 
-  Y(i) = worldpos(2); 
-  Z(i) = worldpos(3); 
+%get all the camera_data, gives only a 1D matrix :(
+values = cell2mat(camera_data_map.values);
 
-end%for i 
+%each image has a data vector 6 long, so index every 6
 
-plotfig = figure;
-scatter(X,Z,'r.'); %plot camera positions in X and Z
+%plot the camera positions
+plot3(values(1:6:end-5), values(2:6:end-4), values(3:6:end-3), '.r');
 
-% allow user to click on camera positions to see the picture
-imfig = figure;
-figure(plotfig);
-while 1
-  if gcf == plotfig
-    [xi, zi, but] = ginput(1)      % get a point
 
-    pt = [xi zi];
-    xz_worldpos = [X' Z'];
-    [distance, index] = pdist2(xz_worldpos,pt,'euclidean','Smallest',1); % find position closest to click
+if(view_directions)
+    hold on;
     
-    figure(imfig);
-    imshow(strcat(image_path, names{index})); % show image camera took at that position
-    figure(plotfig);
-    names{index}
-  end
+    hold off;
 end
-
-
-
-
-
-
+    
 
 
 
