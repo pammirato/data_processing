@@ -1,4 +1,4 @@
-
+%adds labels back to file that holds all images that see a point
 
 base_path = '/home/ammirato/Data/KitchenLiving12/labeling/';
 mapping_path = [base_path 'mapping.txt'];

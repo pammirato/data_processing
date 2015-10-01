@@ -4,8 +4,12 @@
 %							orientation
 %
 
+%initialize contants, paths and file names, etc. 
+init;
 
 
+
+%some constants that correspond to an index in each line the data is
 IMAGE_ID = 1;
 QW = 2;
 QX = 3;
@@ -19,31 +23,40 @@ NAME = 10;
 
 
 
+scene_name = 'SN208';  %make this = 'all' to run all scenes
 
-
-d = dir('/home/ammirato/Data/');
+%get the names of all the scenes
+d = dir(BASE_PATH);
 d = d(3:end);
 
-for qqq=1:length(d)
+%determine if just one or all scenes are being processed
+if(strcmp(scene_name,'all'))
+    num_scenes = length(d);
+else
+    num_scenes = 1;
+end
+
+for i=1:num_scenes
     
-    room_name = d(qqq).name
+    %if we are processing all scenes
+    if(num_scenes >1)
+        scene_name = d(i).name();
+    end
+
+    scene_path =fullfile(BASE_PATH, scene_name);
 
 
-
-    base_path =['/home/ammirato/Data/' room_name]
-
-
-    positions_path =[ base_path '/reconstruction_results/'];
+    positions_path =fullfile( scene_path, RECONSTRUCTION_DIR);
     %get the camera positions and orientations for the given images
 
-    fid_images = fopen([positions_path 'images.txt']); 
+    fid_images = fopen(fullfile(positions_path, IMAGES_RECONSTRUCTION)); 
 
     if(fid_images == -1)
         continue;
     end
     
     
-    num_total_rgb_images = length(dir([base_path '/rgb/'])) - 2;
+    num_total_rgb_images = length(dir(fullfile(scene_path,RGB_IMAGES_DIR))) - 2;
 
     %skip header
     fgetl(fid_images); 
@@ -86,9 +99,12 @@ for qqq=1:length(d)
 
       cur_vec = (proj * vec1) - (proj*vec2);
 
-      dX =-( worldpos(1) + cur_vec(1) );
-      dY =-( worldpos(2) + cur_vec(2) );
-      dZ =-( worldpos(3) + cur_vec(3) );
+%       dX =-( worldpos(1) + cur_vec(1) );
+%       dY =-( worldpos(2) + cur_vec(2) );
+%       dZ =-( worldpos(3) + cur_vec(3) );
+      dX = -cur_vec(1);
+      dY = -cur_vec(2);
+      dZ = -cur_vec(3);
 
 
       camera_data{i} = [worldpos(1) worldpos(2) worldpos(3) dX dY dZ];
@@ -104,8 +120,8 @@ for qqq=1:length(d)
     names = names(1:i-1);
 
 
-    camera_data_map = containers.Map(names, camera_data);
+    name_to_pos_dirs_map = containers.Map(names, camera_data);
 
-    save([base_path '/reconstruction_results/' 'camera_data_map.mat'], 'camera_data_map' );
+    save(fullfile(scene_path, RECONSTRUCTION_DIR, NAME_TO_POS_DIRS_MAT_FILE), NAME_TO_POS_DIRS);
 
 end

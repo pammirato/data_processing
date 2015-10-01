@@ -1,5 +1,7 @@
 
-images_per_room = 2;
+images_per_room = 101;
+room_name = 'SN208';  %make this = 'all' to go through all rooms
+
 
 base_path = '/home/ammirato/Data/';
 
@@ -7,17 +9,22 @@ base_path = '/home/ammirato/Data/';
 d = dir(base_path);
 d = d(3:end);
 
+if(strcmp(room_name,'all'))
+    num_rooms = length(d);
+else
+    num_rooms = 1;
+end
 
-
-
-for i=1:length(d)
+for i=1:num_rooms
     
-    room_name = d(i).name();
+    if(num_rooms >1)
+        room_name = d(i).name();
+    end
     
     dr = dir(fullfile(base_path, room_name,'/rgb/'));
     dr = dr(3:end);
     
-    for j=1:1:length(dr)%floor(length(dr)/images_per_room):length(dr)
+    for j=1:floor(length(dr)/images_per_room):length(dr)
         rgb_name = dr(j).name;
         
         fullfile(base_path, room_name,'rgb/', rgb_name)
@@ -33,7 +40,11 @@ for i=1:length(d)
         h = imagesc(raw_depth);
         set(h,'AlphaData',.5);
         
-        input('1');
+        kin = input(':');
+        
+        if(kin == 'q')
+            break;
+        end
     end
     
 end

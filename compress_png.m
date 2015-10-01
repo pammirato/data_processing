@@ -3,11 +3,11 @@
 
 function compress_png(room_name)
 
-rgb_image_path = ['/home/ammirato/Data/' room_name '/rgb/'];
-unreg_depth_image_path = ['/home/ammirato/Data/' room_name '/unreg_depth/'];
-raw_depth_image_path = ['/home/ammirato/Data/' room_name '/raw_depth/'];
+rgb_image_path = ['/home/ammirato/old_Data/' room_name '/rgb/'];
+unreg_depth_image_path = ['/home/ammirato/old_Data/' room_name '/unreg_depth/'];
+raw_depth_image_path = ['/home/ammirato/old_Data/' room_name '/raw_depth/'];
 
-base_save_path = ['/home/ammirato/png_compressed_Data/' room_name]
+base_save_path = ['/home/ammirato/Data/' room_name]
 rgb_save_path = [base_save_path '/rgb/'];
 unreg_depth_save_path = [base_save_path '/unreg_depth/'];
 raw_depth_save_path = [base_save_path '/raw_depth/'];
