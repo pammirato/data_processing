@@ -52,10 +52,19 @@ for i=1:num_scenes
     %get rid of .png
     file_prefix = image_name(1:end-4);
 
-    detections_mat = load(fullfile(scene_path,RECOGNITION_DIR, FAST_RCNN_RESULTS,...  
+    detections_all = load(fullfile(scene_path,RECOGNITION_DIR, FAST_RCNN_RESULTS,...  
                               strcat(file_prefix,mat_suffix)));
+    detections_all = detections_all.dets;
 
+    categories = fieldnames(detections_all);
 
+    %for every category, draw the bounding boxes
+    for j=1:length(categories)
+      detections = detections_all.(categories{1});  
+       
+    
+
+    end %for j, each category
 
     img = imread(fullfile(scene_path,RGB_IMAGES_DIR,image_name));
 

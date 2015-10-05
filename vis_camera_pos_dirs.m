@@ -38,7 +38,7 @@ for i=1:num_scenes
     %camera data is an arraywith the camera position and a point along is orientation vector
     % [CAM_X CAM_Y CAM_Z DIR_X DIR_Y DIR_Z]
     camera_data_map = load(fullfile(BASE_PATH, scene_name, RECONSTRUCTION_DIR, NAME_TO_POS_DIRS_MAT_FILE));
-    camera_data_map = camera_data_map.name_to_pos_dirs_map;
+    camera_data_map = camera_data_map.(NAME_TO_POS_DIRS_MAP);
 
 
 

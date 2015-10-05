@@ -35,7 +35,7 @@ RECOGNITION_DIR = 'recognition_results/';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%              FILE  NAMES             %%%%%%%%%%%%%%%
 
-%NAME_TO_POS_DIRS_MAT_FILE = 'name_to_pos_dirs_map.mat';
+NAME_TO_POS_DIRS_MAT_FILE = 'name_to_pos_dirs_map.mat';
 
 IMAGES_RECONSTRUCTION = 'images.txt';
 
@@ -47,4 +47,4 @@ IMAGES_RECONSTRUCTION = 'images.txt';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%              VARIABLE  NAMES             %%%%%%%%%%%%%
-NAME_TO_POS_DIRS = 'name_to_pos_dirs_map';
+NAME_TO_POS_DIRS_MAP = 'name_to_pos_dirs_map';
