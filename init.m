@@ -23,7 +23,7 @@ RECONSTRUCTION_DIR = 'reconstruction_results/';
 %hold outputs from recongition systems(detectors, classifers, parsers, etc)
 RECOGNITION_DIR = 'recognition_results/';
 
-    FAST_RCNN_RESULTS = 'fast_rcnn/';
+    FAST_RCNN_RESULTS = 'fast-rcnn/';
 
 
 
@@ -35,7 +35,7 @@ RECOGNITION_DIR = 'recognition_results/';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%              FILE  NAMES             %%%%%%%%%%%%%%%
 
-NAME_TO_POS_DIRS_MAT_FILE = 'name_to_pos_dirs_map.mat';
+%NAME_TO_POS_DIRS_MAT_FILE = 'name_to_pos_dirs_map.mat';
 
 IMAGES_RECONSTRUCTION = 'images.txt';
 
