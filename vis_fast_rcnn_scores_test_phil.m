@@ -9,6 +9,8 @@ init;
 
 scene_name = 'SN208'; %make this = 'all' to run all scenes
 
+%only show bounding boxes above this score
+score_threshold = .5;
 
 mat_suffix = '.mat';
 
@@ -52,30 +54,41 @@ for i=1:num_scenes
     %get rid of .png
     file_prefix = image_name(1:end-4);
 
+
+    %show the image (will add detections next)
+    img = imread(fullfile(scene_path,RGB_IMAGES_DIR,image_name));
+    imshow(img);
+    
+
     detections_all = load(fullfile(scene_path,RECOGNITION_DIR, FAST_RCNN_RESULTS,...  
                               strcat(file_prefix,mat_suffix)));
     detections_all = detections_all.dets;
 
     categories = fieldnames(detections_all);
 
-    %for every category, draw the bounding boxes
+    %for every category
     for j=1:length(categories)
-      detections = detections_all.(categories{1});  
-       
-    
+      detections = detections_all.(categories{j});  
 
+      %threshold out low scores
+      detections = detections(detections(:,5) > score_threshold , :);
+
+      %for each detection       
+      for k=1:size(detections,1)
+        
+
+ 
+%        rectangle('Position',detections(k,1:4), 'LineWidth',2, 'EdgeColor','b'); 
+      end %for k, each detection
     end %for j, each category
 
-    img = imread(fullfile(scene_path,RGB_IMAGES_DIR,image_name));
 
-%    for i=1:length(detections_mat)
 
  
       %# draw a rectangle
 %      rectangle('Position',, 'LineWidth',2, 'EdgeColor','b'); 
 
 
-    imshow(img);
 
 
 
