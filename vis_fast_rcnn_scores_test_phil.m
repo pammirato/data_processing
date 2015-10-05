@@ -76,7 +76,10 @@ for i=1:num_scenes
       %for each detection       
       for k=1:size(detections,1)
         
-
+        img = insertText(img,detections(k,1:2),categories{j});
+        img = insertText(img,[detections(k,1) detections(k,2)+20],detections(k,5));
+        img = insertShape(img,'Rectangle',...
+               [detections(k,1:2) detections(k,3)-detections(k,1) detections(k,4)-detections(k,2)]);
  
 %        rectangle('Position',detections(k,1:4), 'LineWidth',2, 'EdgeColor','b'); 
       end %for k, each detection
@@ -85,8 +88,7 @@ for i=1:num_scenes
 
 
  
-      %# draw a rectangle
-%      rectangle('Position',, 'LineWidth',2, 'EdgeColor','b'); 
+    imshow(img);
 
 
 
