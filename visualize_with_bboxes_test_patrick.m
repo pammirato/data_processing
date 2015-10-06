@@ -97,6 +97,7 @@ function visualize_with_bboxes
   worldpos = [X' Y' Z'];
   worlddir = [Xdir' Ydir' Zdir'];
 
+  % set up the display figure with subplots for camera positions, images, etc
   plotfig = figure;
   subplot(1,2,1);
   scatter3(X,Y,Z,'r.'); %plot camera positions in X and Z
@@ -108,11 +109,13 @@ function visualize_with_bboxes
   print(save_file,'-djpeg'); % save a JPEG image of the figure
   savefig(save_file); % save figure in FIG format
 
-  dcm_obj = datacursormode(plotfig); % data cursor object for selecing points
+  % set figure to call select_camera_position when a data point is selected
+  % by the user in data cursor mode
+  dcm_obj = datacursormode(plotfig); % get the data cursor object
   set(dcm_obj,'UpdateFcn',{@select_camera_position, worldpos, worlddir,...
                            names, image_path, results_path});
   
-  % set up UserData for the figure to save information between events
+  % set up UserData for the figure to save display elements between events
   data = struct('highlight',[],'bboxes',cell(1,1),'scores',cell(1,1));
   set(plotfig,'UserData',data);
 
@@ -121,6 +124,9 @@ function visualize_with_bboxes
 
 end % visualize_with_bboxes()
 
+% This function highlights a camera position and direction in response to
+% the user clicking on a data point, and displays the image and recognition
+% results corresponding to that capture.
 function output = select_camera_position(~, event_obj, worldpos, worlddir,...
                                          names, image_path, results_path)
   cursor = get(event_obj);
@@ -131,17 +137,51 @@ function output = select_camera_position(~, event_obj, worldpos, worlddir,...
   % get index of data point selected by cursor
   [distance, i] = pdist2(worldpos,cursor.Position,'euclidean','Smallest',1);
 
+  highlight_camera_position(i, worldpos, worlddir)
+
+  display_image(i, image_path, names);
+
+  display_recognition_results(i, results_path, names);
+
+  subplot(1,2,1);
+
+end
+
+% highlights the direction camera was facing for the image capture idx
+function highlight_camera_position(idx, worldpos, worlddir)
+  
   % highlight camera direction for selected data point
-  new_highlight = quiver3(worldpos(i,1),worldpos(i,2),worldpos(i,3),...
-                      worlddir(i,1),worlddir(i,2),worlddir(i,3),...
+  new_highlight = quiver3(worldpos(idx,1),worldpos(idx,2),worldpos(idx,3),...
+                      worlddir(idx,1),worlddir(idx,2),worlddir(idx,3),...
                       'Color','b','LineWidth',3.0,'AutoScaleFactor',1.5);
 
-  % % clear previous direction highlight, bounding boxes, and recognition scores
+  % clear previous direction highlight
+  plotfig = gcf;
   userData = get(plotfig,'UserData');
   if length(userData.highlight) > 0
     delete(userData.highlight);
   end
 
+  % set new direction to unhighlight next time
+  userData.highlight = new_highlight;
+  set(plotfig,'UserData',userData);
+end
+
+% displays image specified by idx
+function display_image(idx, image_path, names)
+  subplot(1,2,2);
+  imshow([image_path names{idx}]); % show image camera took at that position
+  hold on;
+end
+
+% displays recognition results (bounding boxes and recognition scores)
+% for the image specified by idx
+function display_recognition_results(idx, results_path, names)
+  
+  plotfig = gcf;
+  userData = get(plotfig,'UserData');
+
+  % clear existing display of recognition results
   for j = 1:size(userData.bboxes,2)
     delete(userData.bboxes{j});
     delete(userData.scores{j});
@@ -149,16 +189,8 @@ function output = select_camera_position(~, event_obj, worldpos, worlddir,...
   userData.bboxes = cell(1,1);
   userData.scores = cell(1,1);
 
-  % set new direction to unhighlight next time
-  userData.highlight = new_highlight;
-
-  %show the corresponding image in the other figure
-  subplot(1,2,2);
-  imshow([image_path names{i}]); % show image camera took at that position
-  hold on;
-
   % load detection results. 'dets' struct gets loaded.
-  [pathstr,name,ext] = fileparts(names{i});
+  [pathstr,name,ext] = fileparts(names{idx});
   load([results_path name '.mat']);
 
   % show bounding boxes with detection score at least 0.1
@@ -170,18 +202,11 @@ function output = select_camera_position(~, event_obj, worldpos, worlddir,...
       r = rectangle('Position',dets.chair(j,1:4),'EdgeColor','r','LineWidth',2);
       userData.bboxes{j} = r;
       % show detection score for this bounding box
-      t = text(double(dets.chair(j,1))+20, double(dets.chair(j,2))+20, num2str(dets.chair(j,5)),...
+      t = text(double(dets.chair(j,1))+20, double(dets.chair(j,2))+40, num2str(dets.chair(j,5)),...
               'Color','r','FontSize',12,'FontWeight','bold');
       userData.scores{j} = t;
     end
   end
 
-  % save new UserData now that highlight and bounding boxes have changed
   set(plotfig,'UserData',userData);
-  subplot(1,2,1);
-
-end % select_camera_position()
-
-function select_bounding_box()
-  disp('bounding box');
 end
