@@ -1,98 +1,39 @@
+% creates an interactive figure with 2 subplots:
+% 1) 3D plot of all the positions in the scene where the camera took a picture
+% 2) image corresponding to a camera position, and bounding boxes labeled
+%    with recognition results for that image.
+
 function visualize_with_bboxes
-  IMAGE_ID = 1;
-  QW = 2;
-  QX = 3;
-  QY = 4;
-  QZ = 5;
-  TX = 6;
-  TY = 7;
-  TZ = 8;
-  CAMERA_ID = 9;
-  NAME = 10;
 
-  % directory containing camera position/orientation data
-  path = '/Users/phahn/work/bvision/data/SN208/reconstruction_results/';
+  scene_name = 'SN208';
 
-  % directory containing images captured by the camera
-  image_path = '/Users/phahn/work/bvision/data/SN208/rgb/';
+  %should the lines indicating orientation be drawn?
+  view_orientation = 1;
 
-  % directory containing detection scores for bounding boxes
-  results_path = '/Users/phahn/work/bvision/data/SN208/recognition_results/fast-rcnn/';
+  %initialize contants, paths and file names, etc.
+  init;
+  scene_path = fullfile(BASE_PATH, scene_name);
+  image_path = fullfile(scene_path, RGB_IMAGES_DIR);
+  results_path = fullfile(scene_path, RECOGNITION_DIR, FAST_RCNN_RESULTS);
+  save_figure_path = fullfile(scene_path, MISC_DIR);
 
-  % directory/filename to save figure to
-  save_file = '/Users/phahn/work/bvision/data/SN208/misc/';
+  % load maps from image name to camera data and vice versa
+  % camera data is an array with the camera position and a point along is orientation vector
+  % [CAM_X CAM_Y CAM_Z DIR_X DIR_Y DIR_Z]
+  name_to_camera_data = load(fullfile(BASE_PATH, scene_name, RECONSTRUCTION_DIR, NAME_TO_POS_DIRS_MAT_FILE));
+  name_to_camera_data = name_to_camera_data.(NAME_TO_POS_DIRS_MAP);
 
-  fid_images = fopen([path 'images.txt']);
-  fgetl(fid_images);
-  fgetl(fid_images);
-  line = fgetl(fid_images);
+  %get all the camera_data, gives only a 1D matrix
+  names = name_to_camera_data.keys;
+  values = cell2mat(name_to_camera_data.values);
 
-  images = cell(1,1);
-  names = cell(1,1);
-
-  cur_image = zeros(1,CAMERA_ID);
-
-  i = 1;
-
-  while(ischar(line))
-
-    %get image info
-    line = fgetl(fid_images);
-    line = strsplit(line);
-
-    names{i} = line{end};
-    cur_image = str2double(line(1:end-1));
-    images{i} = cur_image;
-
-    %get Points2D
-    line =fgetl(fid_images);
-
-    i = i+1;
-  end
-
-  images = images(1:end-1);
-
-  %holds camera positions
-  X = zeros(1,length(images));
-  Y = zeros(1,length(images));
-  Z = zeros(1,length(images));
-
-  %holds camera directions
-  dX = zeros(1,length(images));
-  dY = zeros(1,length(images));
-  dZ = zeros(1,length(images));
-
-  cur_vec = zeros(1,3);
-  vec1 = [0;0;1;1];
-  vec2 = [0;0;0;1];
-
-
-  for i=1:length(images)
-
-    cur_image = images{i};
-    t = [cur_image(TX); cur_image(TY); cur_image(TZ)];
-    quat = [cur_image(QW); cur_image(QX); cur_image(QY); cur_image(QZ)];
-    R = quaternion_to_matrix(quat); % get rotation matrix from quaternion orientation
-    %world camera positions = -(R)^T t (rotation matrix from quaternion(QX...) and t = TX, ...
-    worldpos = -R' * t;
-
-    X(i) = worldpos(1);
-    Y(i) = worldpos(2);
-    Z(i) = worldpos(3);
-
-    proj = [-R' worldpos];
-
-    cur_vec = (proj * vec1) - (proj*vec2);
-
-    dX(i) = worldpos(1) + cur_vec(1);
-    dY(i) = worldpos(2) + cur_vec(2);
-    dZ(i) = worldpos(3) + cur_vec(3);
-
-  end%for i
-
-  Xdir = X-dX;
-  Ydir = Y-dY;
-  Zdir = Z-dZ;
+  %each image has a data vector 6 long, so index every 6
+  X = values(1:6:end-5);
+  Y = values(2:6:end-4);
+  Z = values(3:6:end-3);
+  Xdir = values(4:6:end-2);
+  Ydir = values(5:6:end-1);
+  Zdir = values(6:6:end);
 
   worldpos = [X' Y' Z'];
   worlddir = [Xdir' Ydir' Zdir'];
@@ -106,15 +47,15 @@ function visualize_with_bboxes
 
   axis equal;
   view(-4,-66); % set a nicer viewing angle
-  print(save_file,'-djpeg'); % save a JPEG image of the figure
-  savefig(save_file); % save figure in FIG format
+  print(save_figure_path,'-djpeg'); % save a JPEG image of the figure
+  savefig(save_figure_path); % save figure in FIG format
 
   % set figure to call select_camera_position when a data point is selected
   % by the user in data cursor mode
   dcm_obj = datacursormode(plotfig); % get the data cursor object
   set(dcm_obj,'UpdateFcn',{@select_camera_position, worldpos, worlddir,...
                            names, image_path, results_path});
-  
+
   % set up UserData for the figure to save display elements between events
   data = struct('highlight',[],'bboxes',cell(1,1),'scores',cell(1,1));
   set(plotfig,'UserData',data);
@@ -149,7 +90,7 @@ end
 
 % highlights the direction camera was facing for the image capture idx
 function highlight_camera_position(idx, worldpos, worlddir)
-  
+
   % highlight camera direction for selected data point
   new_highlight = quiver3(worldpos(idx,1),worldpos(idx,2),worldpos(idx,3),...
                       worlddir(idx,1),worlddir(idx,2),worlddir(idx,3),...
@@ -177,7 +118,7 @@ end
 % displays recognition results (bounding boxes and recognition scores)
 % for the image specified by idx
 function display_recognition_results(idx, results_path, names)
-  
+
   plotfig = gcf;
   userData = get(plotfig,'UserData');
 

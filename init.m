@@ -1,4 +1,4 @@
-%this files defines file paths, names, and string literals that are used in 
+%this files defines file paths, names, and string literals that are used in
 %multiple files, and may need to be changed for different machines.
 
 
@@ -7,7 +7,7 @@
 %%%%%%%%%%%%%%              DIRECTORIES             %%%%%%%%%%%%%%%
 
 %directory that holds one directory per scene
-BASE_PATH = '/playpen/ammirato/Data/';
+BASE_PATH = '/Users/phahn/work/bvision/data/SN208/';
 
 RGB_IMAGES_DIR = 'rgb/';
 
@@ -24,6 +24,9 @@ RECONSTRUCTION_DIR = 'reconstruction_results/';
 RECOGNITION_DIR = 'recognition_results/';
 
     FAST_RCNN_RESULTS = 'fast-rcnn/';
+
+%holds miscellanueous files
+MISC_DIR = 'misc/';
 
 
 
