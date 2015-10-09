@@ -7,7 +7,7 @@
 %%%%%%%%%%%%%%              DIRECTORIES             %%%%%%%%%%%%%%%
 
 %directory that holds one directory per scene
-BASE_PATH = '/Users/phahn/work/bvision/data/SN208/';
+BASE_PATH = '/Users/phahn/work/bvision/data/';
 
 RGB_IMAGES_DIR = 'rgb/';
 
@@ -42,6 +42,10 @@ NAME_TO_POS_DIRS_MAT_FILE = 'name_to_pos_dirs_map.mat';
 
 IMAGES_RECONSTRUCTION = 'images.txt';
 
+POINTS_3D = 'points3D.txt';
+
+POINTS_3D_MAT_FILE = 'points3D.mat';
+
 
 
 
@@ -51,3 +55,4 @@ IMAGES_RECONSTRUCTION = 'images.txt';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%              VARIABLE  NAMES             %%%%%%%%%%%%%
 NAME_TO_POS_DIRS_MAP = 'name_to_pos_dirs_map';
+POINTS_3D_MATRIX = 'point_matrix';
