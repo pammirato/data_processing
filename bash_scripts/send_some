@@ -1,0 +1,35 @@
+#!/bin/bash
+
+ALL_DATA_PATH="/home/ammirato/Data/"
+TOSEND="tosend"
+
+RGB="/rgb"
+UNREG="/unreg_depth"
+RAW="/raw_depth"
+
+RGB_FILENAME="/rgb_jpg.tar"
+UNREG_FILENAME="/unreg_jpg.tar"
+RAW_FILENAME="/raw_jpg.tar"
+
+
+
+
+#for each room
+for i in $(ls $ALL_DATA_PATH); do
+  mkdir $ALL_DATA_PATH$TOSEND 
+  #write all the indices to files for rgb,unreg,raw
+done
+
+
+
+
+  test="rgb102K3.png"
+  output=`echo $test | cut -d 'b' -f'2' `
+  echo $output
+
+
+
+#  echo $output >> test.txt
+#  echo $output >> test.txt
+
+

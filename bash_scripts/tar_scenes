@@ -1,10 +1,12 @@
 #!/bin/bash
 
-ALL_DATA_PATH="/home/ammirato/jpg_Data/"
+ALL_DATA_PATH="/home/ammirato/Data/tosend/"
 
 RGB="/rgb"
 UNREG="/unreg_depth"
 RAW="/raw_depth"
+
+TAR_EXTENSION=".tar"
 
 RGB_FILENAME="/rgb_jpg.tar"
 UNREG_FILENAME="/unreg_jpg.tar"
@@ -29,7 +31,9 @@ function tar_dir {
 for i in $(ls $ALL_DATA_PATH); do
   
   echo $i
-  tar_dir $ALL_DATA_PATH$i
+  #tar_dir $ALL_DATA_PATH$i
+
+  tar -cvf $ALL_DATA_PATH$i$TAR_EXTENSION $ALL_DATA_PATH$i
   #write all the indices to files for rgb,unreg,raw
 done
 
