@@ -3,7 +3,7 @@
 % 2) image corresponding to a camera position, and bounding boxes labeled
 %    with recognition results for that image.
 
-function visualize_with_bboxes
+function visualize_everything
 
   scene_name = 'SN208';
 
@@ -53,81 +53,57 @@ function visualize_with_bboxes
   % set up the display figure with subplots for camera positions, images, etc
   plotfig = figure;
   % set up UserData for the figure to save display elements between events
-  data = struct('highlight',[],'bboxes',cell(1,1),'scores',cell(1,1));
+  data = struct('link',[],...
+                'bboxes',cell(1,1),...
+                'scores',cell(1,1),...
+                'points',[],...
+                'selected_view',[],...
+                'selected_bbox',[],...
+                'selected_score',[],...
+                'selected_point',[]);
   set(plotfig,'UserData',data);
 
-  subplot(2,2,1);
+  view_axes = subplot(2,2,1);
   scatter3(X,Y,Z,'r.'); %plot camera positions in X and Z
   hold on;
   quiver3(X,Y,Z,Xdir,Ydir,Zdir,'ShowArrowHead','off');
 
   axis equal;
+  axis vis3d;
   view(-4,-66); % set a nicer viewing angle
   print(save_figure_path,'-djpeg'); % save a JPEG image of the figure
   savefig(save_figure_path); % save figure in FIG format
 
-  display_reconstructed_points(points3D);
+  point_axes = display_reconstructed_points(points3D);
+
+  % link axes together so they rotate together in rotate3d mode
+  hlink = linkprop([view_axes,point_axes],{'CameraPosition','CameraUpVector',...
+                   'CameraTarget','CameraViewAngle'});
+  data = get(plotfig,'UserData');
+  data.link = hlink;
+  set(plotfig,'UserData',data);
+
   % display results for the first image so the display isn't blank.
-  highlight_camera_position(1, worldpos, worlddir);
-  display_image(1, image_path, names);
+  highlight_camera_view(1, worldpos, worlddir);
+  image_axes = display_image(1, image_path, names);
   display_recognition_results(1, results_path, names);
+  select_bounding_box(800,700);
 
   % set figure to call select_camera_position when a data point is selected
   % by the user in data cursor mode
   dcm_obj = datacursormode(plotfig); % get the data cursor object
-  set(dcm_obj,'UpdateFcn',{@select_camera_position, worldpos, worlddir,...
-                           names, image_path, results_path});
+  set(dcm_obj,'UpdateFcn',{@pick_data, worldpos, worlddir, names, image_path,...
+                            results_path, view_axes, image_axes, point_axes});
 
-  rotate3d on;
+  rotate_obj = rotate3d;
+  rotate_obj.Enable = 'on';
+  setAllowAxesRotate(rotate_obj,image_axes,false);
 
-end % visualize_with_bboxes()
-
-% This function highlights a camera position and direction in response to
-% the user clicking on a data point, and displays the image and recognition
-% results corresponding to that capture.
-function output = select_camera_position(~, event_obj, worldpos, worlddir,...
-                                         names, image_path, results_path)
-  cursor = get(event_obj);
-  output = [];
-  plotfig = gcf;
-  subplot(2,2,1);
-
-  % get index of data point selected by cursor
-  [distance, i] = pdist2(worldpos,cursor.Position,'euclidean','Smallest',1);
-
-  highlight_camera_position(i, worldpos, worlddir);
-
-  display_image(i, image_path, names);
-
-  display_recognition_results(i, results_path, names);
-
-end
-
-% highlights the direction camera was facing for the image capture idx
-function highlight_camera_position(idx, worldpos, worlddir)
-
-  subplot(2,2,1);
-
-  % highlight camera direction for selected data point
-  new_highlight = quiver3(worldpos(idx,1),worldpos(idx,2),worldpos(idx,3),...
-                      worlddir(idx,1),worlddir(idx,2),worlddir(idx,3),...
-                      'Color','b','LineWidth',3.0,'AutoScaleFactor',1.5);
-
-  % clear previous direction highlight
-  plotfig = gcf;
-  userData = get(plotfig,'UserData');
-  if length(userData.highlight) > 0
-    delete(userData.highlight);
-  end
-
-  % set new direction to unhighlight next time
-  userData.highlight = new_highlight;
-  set(plotfig,'UserData',userData);
 end
 
 % displays image specified by idx
-function display_image(idx, image_path, names)
-  subplot(2,2,2);
+function ax = display_image(idx, image_path, names)
+  ax = subplot(2,2,2);
   imshow([image_path names{idx}]); % show image camera took at that position
   hold on;
 end
@@ -137,8 +113,8 @@ end
 function display_recognition_results(idx, results_path, names)
 
   plotfig = gcf;
-  subplot(2,2,2);
   userData = get(plotfig,'UserData');
+  subplot(2,2,2);
 
   % clear existing display of recognition results
   for j = 1:size(userData.bboxes,2)
@@ -158,12 +134,14 @@ function display_recognition_results(idx, results_path, names)
     if score < 0.1
       break;
     else
-      r = rectangle('Position',dets.chair(j,1:4),'EdgeColor','r','LineWidth',2);
+      x = dets.chair(j,1);
+      y = dets.chair(j,2);
+      w = dets.chair(j,3) - dets.chair(j,1);
+      h = dets.chair(j,4) - dets.chair(j,2);
+      r = rectangle('Position',[x y w h],'EdgeColor','r','LineWidth',2);
       userData.bboxes{j} = r;
-      % show detection score for this bounding box
-      t = text(double(dets.chair(j,1))+20, double(dets.chair(j,2))+40, num2str(dets.chair(j,5)),...
-              'Color','r','FontSize',12,'FontWeight','bold');
-      userData.scores{j} = t;
+      % save detection score for this bounding box
+      userData.scores{j} = score;
     end
   end
 
@@ -171,8 +149,9 @@ function display_recognition_results(idx, results_path, names)
 end
 
 % display reconstructed 3D points from the scene
-function display_reconstructed_points(points)
-    subplot(2,2,3);
+function ax = display_reconstructed_points(points)
+
+    ax = subplot(2,2,3);
     % only take a small subset of points, otherwise there are too many for
     % matlab to handle easily. Using 1/50 of the points for now.
     points = points(1:50:end,:);
@@ -181,11 +160,133 @@ function display_reconstructed_points(points)
     % positions are within 2-3 std devs of the mean in each direction.
     std_devs = std(points(:,1:3));
     means = mean(points(:,1:3));
-    xlimit = 2*std_devs(1);
+    xlimit = 1.5*std_devs(1);
     ylimit = 3*std_devs(2);
-    zlimit = 2*std_devs(3);
+    zlimit = 1.5*std_devs(3);
     scatter3(points(:,1), points(:,2), points(:,3), 10,...
              points(:,4:6)/255.5, 'filled');
     axis equal;
+    axis vis3d;
     axis([-xlimit xlimit -ylimit ylimit -zlimit zlimit]);
+
+end
+
+
+% This function gets called when the user clicks in data cursor mode.
+% Based on what subplot axes the event came from, choose the correct response.
+function output = pick_data(~, event_obj, worldpos, worlddir, names, image_path,...
+                            results_path, view_axes, image_axes, point_axes)
+
+  targetAxes = get(event_obj.Target,'parent');
+
+  if isequal(targetAxes,view_axes)
+    output = [];
+    select_view(event_obj,worldpos,worlddir,names,image_path,results_path);
+  elseif isequal(targetAxes,image_axes)
+    output = [];
+    cursor = get(event_obj);
+    select_bounding_box(cursor.Position(1),cursor.Position(2));
+  elseif isequal(targetAxes,point_axes)
+    output = 'reconstructed points';
+    select_reconstructed_point();
+  end
+
+end
+
+% This function highlights a camera position and direction in response to
+% the user clicking on a data point, and displays the image and recognition
+% results corresponding to that capture.
+function select_view(event_obj, worldpos, worlddir, names, image_path,...
+                              results_path)
+  cursor = get(event_obj);
+  plotfig = gcf;
+  subplot(2,2,1);
+
+  % get index of data point selected by cursor
+  [distance, i] = pdist2(worldpos,cursor.Position,'euclidean','Smallest',1);
+
+  highlight_camera_view(i, worldpos, worlddir);
+  display_image(i, image_path, names);
+  display_recognition_results(i, results_path, names);
+
+end
+
+function select_bounding_box(x,y);
+  plotfig = gcf;
+  userData = get(plotfig,'UserData');
+  selected_bbox = [];
+  selected_score = [];
+  min_dist = Inf;
+
+  % select the bounding box whose center is closest to (x,y) among all boxes
+  % that contain (x,y)
+  for i=1:size(userData.bboxes,2)
+    pos = userData.bboxes{i}.Position;
+    if x >= pos(1) && x <= pos(1)+pos(3) && y >= pos(2) && y <= pos(2)+pos(4)
+      center = [pos(1)+(pos(3)/2) pos(2)+(pos(4)/2)];
+      dist_from_center = pdist([x y; center]);
+      if dist_from_center < min_dist
+        min_dist = dist_from_center;
+        selected_bbox = userData.bboxes{i};
+        selected_score = userData.scores{i};
+      end
+    end
+  end
+
+  if size(selected_bbox) > 0
+    highlight_bounding_box(selected_bbox,selected_score);
+    highlight_points(selected_bbox);
+  end
+end
+
+function select_reconstructed_point();
+end
+
+% highlights the direction camera was facing for the image capture idx
+function highlight_camera_view(idx, worldpos, worlddir)
+
+  plotfig = gcf;
+  userData = get(plotfig,'UserData');
+  subplot(2,2,1);
+
+  % clear previous view highlight
+  if length(userData.selected_view) > 0
+    delete(userData.selected_view);
+  end
+
+  % highlight camera view for selected data point
+  new_highlight = quiver3(worldpos(idx,1),worldpos(idx,2),worldpos(idx,3),...
+                      worlddir(idx,1),worlddir(idx,2),worlddir(idx,3),...
+                      'Color','b','LineWidth',3.0,'AutoScaleFactor',1.5);
+
+  % set new view to unhighlight next time
+  userData.selected_view = new_highlight;
+  set(plotfig,'UserData',userData);
+end
+
+function highlight_bounding_box(bbox, score)
+  plotfig = gcf;
+  userData = get(plotfig,'UserData');
+  subplot(2,2,2);
+
+  % clear previous bounding box highlight and score
+  if length(userData.selected_bbox) > 0
+    delete(userData.selected_bbox);
+    delete(userData.selected_score);
+  end
+
+  % highlight selected bounding box
+  new_bbox = rectangle('Position',bbox.Position,'EdgeColor','g','LineWidth',2);
+
+  % display the recognition score for the bounding box
+  new_score = text(bbox.Position(1)+20, bbox.Position(2)+40, num2str(score),...
+          'Color','g','FontSize',12,'FontWeight','bold');
+
+  % set new view to unhighlight next time
+  userData.selected_bbox = new_bbox;
+  userData.selected_score = new_score;
+  set(plotfig,'UserData',userData);
+end
+
+function highlight_points(bbox)
 end
