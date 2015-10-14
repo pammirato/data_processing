@@ -55,6 +55,9 @@ function visualize_everything
   plotfig = figure;
   % set up UserData for the figure to save display elements between events
   data = struct('link',[],...
+                'index',1,...
+                'names',cell(1,1),...
+                'image_path',image_path,...
                 'bboxes',cell(1,1),...
                 'scores',cell(1,1),...
                 'categories',cell(1,1),...
@@ -62,7 +65,9 @@ function visualize_everything
                 'selected_view',[],...
                 'selected_bbox',[],...
                 'selected_score',[],...
-                'selected_point',[]);
+                'selected_point',[],...
+                'bbox_img',[]);
+  data.names = names;
   set(plotfig,'UserData',data);
 
   view_axes = subplot(2,2,1);
@@ -89,6 +94,8 @@ function visualize_everything
   highlight_camera_view(1, worldpos, worlddir);
   image_axes = display_image(1, image_path, names);
   display_recognition_results(1, results_path, names);
+  select_bounding_box(700,800);
+  select_bounding_box(900,800);
 
   % set figure to call select_camera_position when a data point is selected
   % by the user in data cursor mode
@@ -108,6 +115,22 @@ function ax = display_image(idx, image_path, names)
   ax = subplot(2,2,2);
   imshow([image_path names{idx}]); % show image camera took at that position
   hold on;
+end
+
+function display_image_portion(idx, xmin, xmax, ymin, ymax)
+  plotfig = gcf;
+  userData = get(plotfig,'UserData');
+  subplot(2,2,4);
+
+  if length(userData.bbox_img) > 0
+    delete(userData.bbox_img);
+  end
+
+  img = imread([userData.image_path userData.names{idx}]);
+  himage = imshow(img(int16(ymin):int16(ymax),int16(xmin):int16(xmax),:));
+
+  userData.bbox_img = himage;
+  set(plotfig,'UserData',userData);
 end
 
 % displays recognition results (bounding boxes and recognition scores)
@@ -176,7 +199,7 @@ function ax = display_reconstructed_points(points)
     % only take a small subset of points, otherwise there are too many for
     % matlab to handle easily. Using 1/50 of the points for now.
     points = points(1:15:end,:);
-    % some points outside the scene end up being captured (due to windows?),
+    % some points outside the scene end up being produced in error,
     % so I try to cut out most of those by only plotting points whose
     % positions are within 2-3 std devs of the mean in each direction.
     std_devs = std(points(:,1:3));
@@ -222,10 +245,13 @@ function select_view(event_obj, worldpos, worlddir, names, image_path,...
                               results_path)
   cursor = get(event_obj);
   plotfig = gcf;
+  userData = get(plotfig,'UserData');
   subplot(2,2,1);
 
   % get index of data point selected by cursor
   [distance, i] = pdist2(worldpos,cursor.Position,'euclidean','Smallest',1);
+  userData.index = i;
+  set(plotfig,'UserData',userData);
 
   highlight_camera_view(i, worldpos, worlddir);
   display_image(i, image_path, names);
@@ -259,6 +285,8 @@ function select_bounding_box(x,y);
 
   if size(selected_bbox) > 0
     highlight_bounding_box(selected_bbox,selected_score,selected_category);
+    pos = selected_bbox.Position;
+    display_image_portion(userData.index, pos(1), pos(1)+pos(3), pos(2), pos(2)+pos(4));
     highlight_points(selected_bbox);
   end
 end
