@@ -23,7 +23,7 @@ NAME = 10;
 
 
 
-scene_name = 'SN208';  %make this = 'all' to run all scenes
+scene_name = 'FB209';  %make this = 'all' to run all scenes
 
 %get the names of all the scenes
 d = dir(BASE_PATH);

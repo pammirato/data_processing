@@ -5,7 +5,7 @@
 
 function visualize_everything
 
-  scene_name = 'SN208';
+  scene_name = 'FB209';
 
   %should the lines indicating orientation be drawn?
   view_orientation = 1;
@@ -38,6 +38,7 @@ function visualize_everything
   Xdir = values(4:6:end-2);
   Ydir = values(5:6:end-1);
   Zdir = values(6:6:end);
+  
 
   worldpos = [X' Y' Z'];
   worlddir = [Xdir' Ydir' Zdir'];

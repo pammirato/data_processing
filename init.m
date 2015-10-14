@@ -7,7 +7,7 @@
 %%%%%%%%%%%%%%              DIRECTORIES             %%%%%%%%%%%%%%%
 
 %directory that holds one directory per scene
-BASE_PATH = '/Users/phahn/work/bvision/data/';
+BASE_PATH = '/playpen/ammirato/Data/';
 
 RGB_IMAGES_DIR = 'rgb/';
 
