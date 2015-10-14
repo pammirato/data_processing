@@ -54,9 +54,6 @@ function visualize_everything
   plotfig = figure;
   % set up UserData for the figure to save display elements between events
   data = struct('link',[],...
-                'index',1,...
-                'names',cell(1,1),...
-                'image_path',image_path,...
                 'bboxes',cell(1,1),...
                 'scores',cell(1,1),...
                 'categories',cell(1,1),...
@@ -65,7 +62,6 @@ function visualize_everything
                 'selected_bbox',[],...
                 'selected_score',[],...
                 'selected_point',[]);
-  data.names = names;
   set(plotfig,'UserData',data);
 
   view_axes = subplot(2,2,1);
@@ -92,7 +88,6 @@ function visualize_everything
   highlight_camera_view(1, worldpos, worlddir);
   image_axes = display_image(1, image_path, names);
   display_recognition_results(1, results_path, names);
-  select_bounding_box(700,800);
 
   % set figure to call select_camera_position when a data point is selected
   % by the user in data cursor mode
@@ -112,15 +107,6 @@ function ax = display_image(idx, image_path, names)
   ax = subplot(2,2,2);
   imshow([image_path names{idx}]); % show image camera took at that position
   hold on;
-end
-
-function display_image_portion(idx, xmin, xmax, ymin, ymax)
-  plotfig = gcf;
-  userData = get(plotfig,'UserData');
-  subplot(2,2,4);
-
-  img = imread([userData.image_path userData.names{idx}]);
-  imshow(img(xmin:xmax,ymin:ymax,:));
 end
 
 % displays recognition results (bounding boxes and recognition scores)
@@ -220,7 +206,7 @@ function output = pick_data(~, event_obj, worldpos, worlddir, names, image_path,
   elseif isequal(targetAxes,image_axes)
     output = [];
     cursor = get(event_obj);
-    select_bounding_box(image_path, cursor.Position(1),cursor.Position(2));
+    select_bounding_box(cursor.Position(1),cursor.Position(2));
   elseif isequal(targetAxes,point_axes)
     output = 'reconstructed points';
     select_reconstructed_point();
@@ -235,13 +221,10 @@ function select_view(event_obj, worldpos, worlddir, names, image_path,...
                               results_path)
   cursor = get(event_obj);
   plotfig = gcf;
-  userData = get(plotfig,'UserData');
   subplot(2,2,1);
 
   % get index of data point selected by cursor
   [distance, i] = pdist2(worldpos,cursor.Position,'euclidean','Smallest',1);
-  userData.index = i;
-  set(plotfig,'UserData',userData);
 
   highlight_camera_view(i, worldpos, worlddir);
   display_image(i, image_path, names);
@@ -275,7 +258,6 @@ function select_bounding_box(x,y);
 
   if size(selected_bbox) > 0
     highlight_bounding_box(selected_bbox,selected_score,selected_category);
-    % display_image_portion(userData.index, pos(1), pos(1)+pos(3), pos(2), pos(2)+pos(4));
     highlight_points(selected_bbox);
   end
 end
