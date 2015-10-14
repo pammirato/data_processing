@@ -38,7 +38,7 @@ function visualize_everything
   Xdir = values(4:6:end-2);
   Ydir = values(5:6:end-1);
   Zdir = values(6:6:end);
-  
+
 
   worldpos = [X' Y' Z'];
   worlddir = [Xdir' Ydir' Zdir'];
@@ -64,7 +64,6 @@ function visualize_everything
                 'points',[],...
                 'selected_view',[],...
                 'selected_bbox',[],...
-                'selected_score',[],...
                 'selected_point',[],...
                 'bbox_img',[]);
   data.names = names;
@@ -93,9 +92,8 @@ function visualize_everything
   % display results for the first image so the display isn't blank.
   highlight_camera_view(1, worldpos, worlddir);
   image_axes = display_image(1, image_path, names);
-  display_recognition_results(1, results_path, names);
+  display_bounding_boxes(1, results_path, names);
   select_bounding_box(700,800);
-  select_bounding_box(900,800);
 
   % set figure to call select_camera_position when a data point is selected
   % by the user in data cursor mode
@@ -133,9 +131,18 @@ function display_image_portion(idx, xmin, xmax, ymin, ymax)
   set(plotfig,'UserData',userData);
 end
 
-% displays recognition results (bounding boxes and recognition scores)
+function display_detection_score(score, object, image_height)
+
+  subplot(2,2,4);
+
+  % display the recognition score for the bounding box
+  title([object ':  ' num2str(score)]);
+
+end
+
+% displays bounding boxes with top detection scores
 % for the image specified by idx
-function display_recognition_results(idx, results_path, names)
+function display_bounding_boxes(idx, results_path, names)
 
   plotfig = gcf;
   userData = get(plotfig,'UserData');
@@ -255,7 +262,7 @@ function select_view(event_obj, worldpos, worlddir, names, image_path,...
 
   highlight_camera_view(i, worldpos, worlddir);
   display_image(i, image_path, names);
-  display_recognition_results(i, results_path, names);
+  display_bounding_boxes(i, results_path, names);
 
 end
 
@@ -287,6 +294,7 @@ function select_bounding_box(x,y);
     highlight_bounding_box(selected_bbox,selected_score,selected_category);
     pos = selected_bbox.Position;
     display_image_portion(userData.index, pos(1), pos(1)+pos(3), pos(2), pos(2)+pos(4));
+    display_detection_score(selected_score, selected_category, pos(2)+pos(4));
     highlight_points(selected_bbox);
   end
 end
@@ -321,22 +329,16 @@ function highlight_bounding_box(bbox, score, object)
   userData = get(plotfig,'UserData');
   subplot(2,2,2);
 
-  % clear previous bounding box highlight and score
+  % clear previous bounding box highlight
   if length(userData.selected_bbox) > 0
     delete(userData.selected_bbox);
-    delete(userData.selected_score);
   end
 
   % highlight selected bounding box
   new_bbox = rectangle('Position',bbox.Position,'EdgeColor','g','LineWidth',2);
 
-  % display the recognition score for the bounding box
-  new_score = text(bbox.Position(1)+20, bbox.Position(2)+40, [object ' ' num2str(score)],...
-          'Color','g','FontSize',12,'FontWeight','bold');
-
-  % set new view to unhighlight next time
+  % set new boxto unhighlight next time
   userData.selected_bbox = new_bbox;
-  userData.selected_score = new_score;
   set(plotfig,'UserData',userData);
 end
 
