@@ -54,13 +54,18 @@ function visualize_everything
   plotfig = figure;
   % set up UserData for the figure to save display elements between events
   data = struct('link',[],...
+                'index',1,...
+                'names',cell(1,1),...
+                'image_path',image_path,...
                 'bboxes',cell(1,1),...
                 'scores',cell(1,1),...
+                'categories',cell(1,1),...
                 'points',[],...
                 'selected_view',[],...
                 'selected_bbox',[],...
                 'selected_score',[],...
                 'selected_point',[]);
+  data.names = names;
   set(plotfig,'UserData',data);
 
   view_axes = subplot(2,2,1);
@@ -87,7 +92,7 @@ function visualize_everything
   highlight_camera_view(1, worldpos, worlddir);
   image_axes = display_image(1, image_path, names);
   display_recognition_results(1, results_path, names);
-  select_bounding_box(800,700);
+  select_bounding_box(700,800);
 
   % set figure to call select_camera_position when a data point is selected
   % by the user in data cursor mode
@@ -97,6 +102,7 @@ function visualize_everything
 
   rotate_obj = rotate3d;
   rotate_obj.Enable = 'on';
+  rotate_obj.RotateStyle = 'box';
   setAllowAxesRotate(rotate_obj,image_axes,false);
 
 end
@@ -106,6 +112,15 @@ function ax = display_image(idx, image_path, names)
   ax = subplot(2,2,2);
   imshow([image_path names{idx}]); % show image camera took at that position
   hold on;
+end
+
+function display_image_portion(idx, xmin, xmax, ymin, ymax)
+  plotfig = gcf;
+  userData = get(plotfig,'UserData');
+  subplot(2,2,4);
+
+  img = imread([userData.image_path userData.names{idx}]);
+  imshow(img(xmin:xmax,ymin:ymax,:));
 end
 
 % displays recognition results (bounding boxes and recognition scores)
@@ -119,30 +134,49 @@ function display_recognition_results(idx, results_path, names)
   % clear existing display of recognition results
   for j = 1:size(userData.bboxes,2)
     delete(userData.bboxes{j});
-    delete(userData.scores{j});
   end
   userData.bboxes = cell(1,1);
   userData.scores = cell(1,1);
+  userData.categories = cell(1,1);
 
   % load detection results. 'dets' struct gets loaded.
   [pathstr,name,ext] = fileparts(names{idx});
   load([results_path name '.mat']);
 
-  % show bounding boxes with detection score at least 0.1
-  for j = 1:size(dets.chair,1)
-    score = dets.chair(j,5);
-    if score < 0.1
-      break;
-    else
-      x = dets.chair(j,1);
-      y = dets.chair(j,2);
-      w = dets.chair(j,3) - dets.chair(j,1);
-      h = dets.chair(j,4) - dets.chair(j,2);
-      r = rectangle('Position',[x y w h],'EdgeColor','r','LineWidth',2);
-      userData.bboxes{j} = r;
-      % save detection score for this bounding box
-      userData.scores{j} = score;
+  % pick out detections from the categories we're looking for.
+  det_tables = {'sofa' 'person' 'monitor' 'diningtable' 'bottle' 'pottedplant' 'chair'};
+  categories = cell(1,1);
+  num_categories = 0;
+  boxes_scores = [];
+  for i=1:7
+    cur_category = det_tables{i};
+    detections = getfield(dets, cur_category);
+    boxes_scores = [boxes_scores; detections];
+    for j=1:size(detections,1)
+      categories{num_categories+1,1} = cur_category;
+      num_categories = num_categories + 1;
     end
+  end
+
+  % sort detection scores into descending order
+  [boxes_scores, SortIndex] = sortrows(boxes_scores,-5);
+  categories = categories(SortIndex);
+
+  num_bboxes_shown = 10;
+  for i=1:num_bboxes_shown
+    score = boxes_scores(i,5);
+    if score < 0.3
+      break;
+    end
+    x = boxes_scores(i,1);
+    y = boxes_scores(i,2);
+    w = boxes_scores(i,3) - boxes_scores(i,1);
+    h = boxes_scores(i,4) - boxes_scores(i,2);
+    r = rectangle('Position',[x y w h],'EdgeColor','r','LineWidth',2);
+    userData.bboxes{i} = r;
+    % save detection score and category for this bounding box
+    userData.scores{i} = score;
+    userData.categories{i} = categories{i};
   end
 
   set(plotfig,'UserData',userData);
@@ -154,20 +188,21 @@ function ax = display_reconstructed_points(points)
     ax = subplot(2,2,3);
     % only take a small subset of points, otherwise there are too many for
     % matlab to handle easily. Using 1/50 of the points for now.
-    points = points(1:50:end,:);
+    points = points(1:15:end,:);
     % some points outside the scene end up being captured (due to windows?),
     % so I try to cut out most of those by only plotting points whose
     % positions are within 2-3 std devs of the mean in each direction.
     std_devs = std(points(:,1:3));
     means = mean(points(:,1:3));
     xlimit = 1.5*std_devs(1);
-    ylimit = 3*std_devs(2);
+    ybottom = 1.5*std_devs(2);
+    ytop = 3*std_devs(2);
     zlimit = 1.5*std_devs(3);
     scatter3(points(:,1), points(:,2), points(:,3), 10,...
              points(:,4:6)/255.5, 'filled');
     axis equal;
     axis vis3d;
-    axis([-xlimit xlimit -ylimit ylimit -zlimit zlimit]);
+    axis([-xlimit xlimit -ybottom ytop -zlimit zlimit]);
 
 end
 
@@ -185,7 +220,7 @@ function output = pick_data(~, event_obj, worldpos, worlddir, names, image_path,
   elseif isequal(targetAxes,image_axes)
     output = [];
     cursor = get(event_obj);
-    select_bounding_box(cursor.Position(1),cursor.Position(2));
+    select_bounding_box(image_path, cursor.Position(1),cursor.Position(2));
   elseif isequal(targetAxes,point_axes)
     output = 'reconstructed points';
     select_reconstructed_point();
@@ -200,10 +235,13 @@ function select_view(event_obj, worldpos, worlddir, names, image_path,...
                               results_path)
   cursor = get(event_obj);
   plotfig = gcf;
+  userData = get(plotfig,'UserData');
   subplot(2,2,1);
 
   % get index of data point selected by cursor
   [distance, i] = pdist2(worldpos,cursor.Position,'euclidean','Smallest',1);
+  userData.index = i;
+  set(plotfig,'UserData',userData);
 
   highlight_camera_view(i, worldpos, worlddir);
   display_image(i, image_path, names);
@@ -216,6 +254,7 @@ function select_bounding_box(x,y);
   userData = get(plotfig,'UserData');
   selected_bbox = [];
   selected_score = [];
+  selected_category = [];
   min_dist = Inf;
 
   % select the bounding box whose center is closest to (x,y) among all boxes
@@ -229,12 +268,14 @@ function select_bounding_box(x,y);
         min_dist = dist_from_center;
         selected_bbox = userData.bboxes{i};
         selected_score = userData.scores{i};
+        selected_category = userData.categories{i};
       end
     end
   end
 
   if size(selected_bbox) > 0
-    highlight_bounding_box(selected_bbox,selected_score);
+    highlight_bounding_box(selected_bbox,selected_score,selected_category);
+    % display_image_portion(userData.index, pos(1), pos(1)+pos(3), pos(2), pos(2)+pos(4));
     highlight_points(selected_bbox);
   end
 end
@@ -264,7 +305,7 @@ function highlight_camera_view(idx, worldpos, worlddir)
   set(plotfig,'UserData',userData);
 end
 
-function highlight_bounding_box(bbox, score)
+function highlight_bounding_box(bbox, score, object)
   plotfig = gcf;
   userData = get(plotfig,'UserData');
   subplot(2,2,2);
@@ -279,7 +320,7 @@ function highlight_bounding_box(bbox, score)
   new_bbox = rectangle('Position',bbox.Position,'EdgeColor','g','LineWidth',2);
 
   % display the recognition score for the bounding box
-  new_score = text(bbox.Position(1)+20, bbox.Position(2)+40, num2str(score),...
+  new_score = text(bbox.Position(1)+20, bbox.Position(2)+40, [object ' ' num2str(score)],...
           'Color','g','FontSize',12,'FontWeight','bold');
 
   % set new view to unhighlight next time
