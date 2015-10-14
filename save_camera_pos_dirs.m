@@ -122,6 +122,6 @@ for i=1:num_scenes
 
     name_to_pos_dirs_map = containers.Map(names, camera_data);
 
-    save(fullfile(scene_path, RECONSTRUCTION_DIR, NAME_TO_POS_DIRS_MAT_FILE), NAME_TO_POS_DIRS);
+    save(fullfile(scene_path, RECONSTRUCTION_DIR, NAME_TO_POS_DIRS_MAT_FILE), NAME_TO_POS_DIRS_MAP);
 
 end
