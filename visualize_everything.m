@@ -5,7 +5,7 @@
 
 function visualize_everything
 
-  scene_name = 'FB209';
+  scene_name = 'SN208';
 
   %should the lines indicating orientation be drawn?
   view_orientation = 1;
