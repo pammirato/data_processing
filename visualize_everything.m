@@ -29,16 +29,15 @@ function visualize_everything
 
   %get all the camera_data, gives only a 1D matrix
   names = name_to_camera_data.keys;
-  values = cell2mat(name_to_camera_data.values);
+  posdir_values = cell2mat(name_to_camera_data.values);
 
   %each image has a data vector 6 long, so index every 6
-  X = values(1:6:end-5);
-  Y = values(2:6:end-4);
-  Z = values(3:6:end-3);
-  Xdir = values(4:6:end-2);
-  Ydir = values(5:6:end-1);
-  Zdir = values(6:6:end);
-
+  X = posdir_values(1:6:end-5);
+  Y = posdir_values(2:6:end-4);
+  Z = posdir_values(3:6:end-3);
+  Xdir = posdir_values(4:6:end-2);
+  Ydir = posdir_values(5:6:end-1);
+  Zdir = posdir_values(6:6:end);
 
   worldpos = [X' Y' Z'];
   worlddir = [Xdir' Ydir' Zdir'];
@@ -51,9 +50,22 @@ function visualize_everything
   points3D = load(points3D_path);
   points3D = points3D.point_matrix;
 
+  % load map from image name to point IDs and map from point ID to point data
+  % load reconstructed 3d points for the scene
+  name_to_point_id_path = fullfile(scene_path, RECONSTRUCTION_DIR, NAME_TO_POINT_ID_MAT_FILE);
+  if (~exist(name_to_point_id_path,'file'))
+    save_name_to_points_maps;
+  end
+  name_to_point_ids = load(name_to_point_id_path);
+  name_to_point_ids = name_to_point_ids.(NAME_TO_POINTS_MAP);
+
+  id_to_point_path = fullfile(scene_path, RECONSTRUCTION_DIR, ID_TO_POINT_MAT_FILE);
+  id_to_point = load(id_to_point_path);
+  id_to_point = id_to_point.(ID_TO_POINT_MAP);
+
   % set up the display figure with subplots for camera positions, images, etc
   plotfig = figure;
-  % set up UserData for the figure to save display elements between events
+  % set up UserData for the figure to save data and display elements between events
   data = struct('link',[],...
                 'index',1,...
                 'names',cell(1,1),...
@@ -65,7 +77,10 @@ function visualize_everything
                 'selected_view',[],...
                 'selected_bbox',[],...
                 'selected_point',[],...
-                'bbox_img',[]);
+                'bbox_img',[],...
+                'bbox_points',[],...
+                'name_to_point_ids',name_to_point_ids,...
+                'id_to_point',id_to_point);
   data.names = names;
   set(plotfig,'UserData',data);
 
@@ -92,7 +107,7 @@ function visualize_everything
   % display results for the first image so the display isn't blank.
   highlight_camera_view(1, worldpos, worlddir);
   image_axes = display_image(1, image_path, names);
-  display_bounding_boxes(1, results_path, names);
+  display_bounding_boxes(names{1}, results_path);
   select_bounding_box(700,800);
 
   % set figure to call select_camera_position when a data point is selected
@@ -124,6 +139,11 @@ function display_image_portion(idx, xmin, xmax, ymin, ymax)
     delete(userData.bbox_img);
   end
 
+  xmin = max([xmin 1]);
+  ymin = max([ymin 1]);
+  xmax = min([xmax 1920]);
+  ymax = min([ymax 1080]);
+
   img = imread([userData.image_path userData.names{idx}]);
   himage = imshow(img(int16(ymin):int16(ymax),int16(xmin):int16(xmax),:));
 
@@ -131,7 +151,7 @@ function display_image_portion(idx, xmin, xmax, ymin, ymax)
   set(plotfig,'UserData',userData);
 end
 
-function display_detection_score(score, object, image_height)
+function display_detection_score(score, object)
 
   subplot(2,2,4);
 
@@ -142,7 +162,7 @@ end
 
 % displays bounding boxes with top detection scores
 % for the image specified by idx
-function display_bounding_boxes(idx, results_path, names)
+function display_bounding_boxes(image_name, results_path)
 
   plotfig = gcf;
   userData = get(plotfig,'UserData');
@@ -157,7 +177,7 @@ function display_bounding_boxes(idx, results_path, names)
   userData.categories = cell(1,1);
 
   % load detection results. 'dets' struct gets loaded.
-  [pathstr,name,ext] = fileparts(names{idx});
+  [pathstr,name,ext] = fileparts(image_name);
   load([results_path name '.mat']);
 
   % pick out detections from the categories we're looking for.
@@ -204,7 +224,7 @@ function ax = display_reconstructed_points(points)
 
     ax = subplot(2,2,3);
     % only take a small subset of points, otherwise there are too many for
-    % matlab to handle easily. Using 1/50 of the points for now.
+    % matlab to handle easily.
     points = points(1:15:end,:);
     % some points outside the scene end up being produced in error,
     % so I try to cut out most of those by only plotting points whose
@@ -217,6 +237,7 @@ function ax = display_reconstructed_points(points)
     zlimit = 1.5*std_devs(3);
     scatter3(points(:,1), points(:,2), points(:,3), 10,...
              points(:,4:6)/255.5, 'filled');
+    hold on;
     axis equal;
     axis vis3d;
     axis([-xlimit xlimit -ybottom ytop -zlimit zlimit]);
@@ -262,7 +283,7 @@ function select_view(event_obj, worldpos, worlddir, names, image_path,...
 
   highlight_camera_view(i, worldpos, worlddir);
   display_image(i, image_path, names);
-  display_bounding_boxes(i, results_path, names);
+  display_bounding_boxes(names{i}, results_path);
 
 end
 
@@ -294,7 +315,7 @@ function select_bounding_box(x,y);
     highlight_bounding_box(selected_bbox,selected_score,selected_category);
     pos = selected_bbox.Position;
     display_image_portion(userData.index, pos(1), pos(1)+pos(3), pos(2), pos(2)+pos(4));
-    display_detection_score(selected_score, selected_category, pos(2)+pos(4));
+    display_detection_score(selected_score, selected_category);
     highlight_points(selected_bbox);
   end
 end
@@ -343,4 +364,48 @@ function highlight_bounding_box(bbox, score, object)
 end
 
 function highlight_points(bbox)
+  plotfig = gcf;
+  u = get(plotfig,'UserData');
+  subplot(2,2,3);
+
+  % clear previously highlighted points
+  if length(u.bbox_points) > 0
+    delete(u.bbox_points);
+  end
+
+  % get IDs for 3D points seen in the current image
+  name2pt = u.name_to_point_ids(u.names{u.index});
+  bbox_pos = u.selected_bbox.Position;
+  xmin = bbox_pos(1);
+  xmax = xmin + bbox_pos(3);
+  ymin = bbox_pos(2);
+  ymax = ymin + bbox_pos(4);
+  pt_ids = cell(1,1);
+  num_pts = 0;
+
+  for i=1:3:length(name2pt)
+    x = name2pt(i);
+    y = name2pt(i+1);
+    % find all reconstructed points within bounding box whose point ID is not -1
+    if (x > xmin && x < xmax && y > ymin && y < ymax && name2pt(i+2) ~= -1)
+      num_pts = num_pts + 1;
+      pt_ids{num_pts} = name2pt(i+2);
+    end
+  end
+
+  points = values(u.id_to_point,pt_ids);
+  points = cell2mat(points);
+  X = zeros(num_pts,1);
+  Y = zeros(num_pts,1);
+  Z = zeros(num_pts,1);
+
+  for i=0:num_pts-1
+    X(i+1) = points((i*6)+1);
+    Y(i+1) = points((i*6)+2);
+    Z(i+1) = points((i*6)+3);
+  end
+
+  bbox_points = scatter3(X, Y, Z, 50, 'g', 'filled');
+  u.bbox_points = bbox_points;
+  set(plotfig,'UserData',u);
 end

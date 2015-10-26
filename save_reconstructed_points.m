@@ -13,7 +13,7 @@ G = 6;
 B = 7;
 ERROR = 8;
 
-scene_name = 'FB209';
+scene_name = 'SN208';
 
 fid_points = fopen(fullfile(BASE_PATH, scene_name, RECONSTRUCTION_DIR, POINTS_3D));
 
@@ -46,7 +46,6 @@ while(ischar(line))
 
   %get Points2D
   line =fgetl(fid_points);
-
 
   i = i+1;
 end

@@ -1,10 +1,10 @@
 %gets all the camera positions and orientations from the reconstruction output
-%saves them in a map data structure, in a mat file. The structure maps from image name to a 
+%saves them in a map data structure, in a mat file. The structure maps from image name to a
 %       a vector [X,Y,Z,dX,dY,dZ]  the camera position, and a point along the vector of its
 %							orientation
 %
 
-%initialize contants, paths and file names, etc. 
+%initialize contants, paths and file names, etc.
 init;
 
 
@@ -23,7 +23,7 @@ NAME = 10;
 
 
 
-scene_name = 'FB209';  %make this = 'all' to run all scenes
+scene_name = 'SN208';  %make this = 'all' to run all scenes
 
 %get the names of all the scenes
 d = dir(BASE_PATH);
@@ -37,7 +37,7 @@ else
 end
 
 for i=1:num_scenes
-    
+
     %if we are processing all scenes
     if(num_scenes >1)
         scene_name = d(i).name();
@@ -49,24 +49,24 @@ for i=1:num_scenes
     positions_path =fullfile( scene_path, RECONSTRUCTION_DIR);
     %get the camera positions and orientations for the given images
 
-    fid_images = fopen(fullfile(positions_path, IMAGES_RECONSTRUCTION)); 
+    fid_images = fopen(fullfile(positions_path, IMAGES_RECONSTRUCTION));
 
     if(fid_images == -1)
         continue;
     end
-    
-    
+
+
     num_total_rgb_images = length(dir(fullfile(scene_path,RGB_IMAGES_DIR))) - 2;
 
     %skip header
-    fgetl(fid_images); 
-    fgetl(fid_images); 
-    line = fgetl(fid_images); 
+    fgetl(fid_images);
+    fgetl(fid_images);
+    line = fgetl(fid_images);
 
-    camera_data = cell(1,num_total_rgb_images); 
-    names = cell(1,num_total_rgb_images); 
+    camera_data = cell(1,num_total_rgb_images);
+    names = cell(1,num_total_rgb_images);
 
-    cur_image = zeros(1,CAMERA_ID); 
+    cur_image = zeros(1,CAMERA_ID);
 
     %for the orientation
     abcur_vec = zeros(1,3);
@@ -81,9 +81,9 @@ for i=1:num_scenes
       line = fgetl(fid_images);
       line = strsplit(line);
 
-      names{i} = line{end}; 
-      cur_image = str2double(line(1:end-1)); 
-      %camera_data{i} = cur_image; 
+      names{i} = line{end};
+      cur_image = str2double(line(1:end-1));
+      %camera_data{i} = cur_image;
 
       if(length(cur_image) < QZ)
           break;
@@ -109,8 +109,8 @@ for i=1:num_scenes
 
       camera_data{i} = [worldpos(1) worldpos(2) worldpos(3) dX dY dZ];
 
-      %get Points2D 
-      line =fgetl(fid_images); 
+      %get Points2D
+      line =fgetl(fid_images);
 
       i = i+1;
     end
