@@ -30,18 +30,20 @@ function visualize_everything
 
   %get all the camera_data, gives only a 1D matrix
   names = name_to_camera_data.keys;
-  posdir_values = cell2mat(name_to_camera_data.values);
+  pos_dir = cell2mat(name_to_camera_data.values);
 
   %each image has a data vector 6 long, so index every 6
-  X = posdir_values(1:6:end-5);
-  Y = posdir_values(2:6:end-4);
-  Z = posdir_values(3:6:end-3);
-  Xdir = posdir_values(4:6:end-2);
-  Ydir = posdir_values(5:6:end-1);
-  Zdir = posdir_values(6:6:end);
+  X = pos_dir(1:6:end-5);
+  Y = pos_dir(2:6:end-4);
+  Z = pos_dir(3:6:end-3);
+  Xdir = pos_dir(4:6:end-2);
+  Ydir = pos_dir(5:6:end-1);
+  Zdir = pos_dir(6:6:end);
 
   worldpos = [X' Y' Z'];
   worlddir = [Xdir' Ydir' Zdir'];
+
+  [names, worldpos, worlddir] = sort_image_data(names, worldpos, worlddir);
 
   % load reconstructed 3d points for the scene
   points3D_path = fullfile(scene_path, RECONSTRUCTION_DIR, POINTS_3D_MAT_FILE);
@@ -102,6 +104,17 @@ function visualize_everything
   display_bounding_boxes(1);
   select_bounding_box(700, 800);
 
+  % set up buttons for iterating through images
+  t = uitoolbar(plotfig);
+  [pathstr, name, ext] = fileparts(which('visualize_everything'));
+
+  img1 = imread(fullfile(pathstr,'leftarrow.jpg'));
+  leftarrow = uipushtool(t,'TooltipString','Previous image','CData',img1,...
+                 'ClickedCallback',{@switchViewCallback, worldpos, worlddir});
+  img2 = imread(fullfile(pathstr,'rightarrow.jpg'));
+  rightarrow = uipushtool(t,'TooltipString','Next image','CData',img2,...
+                 'ClickedCallback',{@switchViewCallback, worldpos, worlddir});
+
   % set figure to call pick_data when a data point is selected
   % by the user in data cursor mode
   dcm_obj = datacursormode(plotfig); % get the data cursor object
@@ -114,6 +127,10 @@ function visualize_everything
   setAllowAxesRotate(rotate_obj, image_axes, false);
 end
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%% UI callbacks and other misc. functions %%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % This function gets called when the user clicks in data cursor mode.
 % Based on what subplot axes the event came from, choose the correct response.
 function output = pick_data(~, event_obj, worldpos, worlddir, view_axes,...
@@ -123,7 +140,7 @@ function output = pick_data(~, event_obj, worldpos, worlddir, view_axes,...
 
   if isequal(targetAxes, view_axes)
     output = [];
-    select_view(event_obj, worldpos, worlddir);
+    select_view_for_point(event_obj, worldpos, worlddir);
   elseif isequal(targetAxes, image_axes)
     output = [];
     cursor = get(event_obj);
@@ -133,6 +150,59 @@ function output = pick_data(~, event_obj, worldpos, worlddir, view_axes,...
     select_reconstructed_point();
   end
 
+end
+
+function output = switchViewCallback(source, event_data, worldpos, worlddir)
+  plotfig = gcf;
+  userData = get(plotfig, 'UserData');
+  num_views = length(userData.names);
+  idx = userData.index;
+
+  if strcmp(source.TooltipString, 'Next image')
+    if idx >= num_views
+      select_view(1, worldpos, worlddir);
+    else
+      % increment by 3 since 3 pictures are taken at each position, this keeps
+      % it at the same elevation but changes the angle/location
+      select_view(idx + 3, worldpos, worlddir);
+    end
+  elseif strcmp(source.TooltipString, 'Previous image')
+    if idx <= 3
+      select_view(num_views, worldpos, worlddir);
+    else
+      select_view(idx - 3, worldpos, worlddir);
+    end
+  end
+end
+
+function [sorted_names, sorted_pos, sorted_dir] = sort_image_data(names, pos, dirs)
+
+  padded_names = cell(length(names),1);
+
+  for i=1:length(names)
+    org_name = names{i};
+    prefix_index = strfind(org_name, 'b');
+    suffix_index = strfind(org_name, 'K');
+    org_stamp = org_name(prefix_index+1:suffix_index-1);
+    rgb_prefix = org_name(1:prefix_index);
+    suffix = org_name(suffix_index:end);
+
+    counter_string = org_stamp;
+    if(length(counter_string) < 6)
+      pad = '';
+      for j=1:(5-length(counter_string))
+        pad = [pad '0'];
+      end
+      counter_string = [pad counter_string];
+    end
+
+    padded_names{i} = [rgb_prefix counter_string suffix];
+  end
+
+  [padded_names, index] = sort(padded_names);
+  sorted_names = names(index);
+  sorted_pos = pos(index,:);
+  sorted_dir = dirs(index,:);
 end
 
 
@@ -155,20 +225,28 @@ end
 % This function highlights a camera position and direction in response to
 % the user clicking on a data point, and displays the image and recognition
 % results corresponding to that capture.
-function select_view(event_obj, worldpos, worlddir)
+function select_view_for_point(event_obj, worldpos, worlddir)
   cursor = get(event_obj);
-  plotfig = gcf;
-  userData = get(plotfig, 'UserData');
-  subplot(2,2,1);
 
   % get index of data point selected by cursor
   [distance, i] = pdist2(worldpos, cursor.Position, 'euclidean', 'Smallest', 1);
   userData.index = i;
   set(plotfig, 'UserData', userData);
 
-  highlight_camera_view(i, worldpos, worlddir);
-  display_image(i);
-  display_bounding_boxes(i);
+  select_view(i, worldpos, worlddir)
+end
+
+function select_view(idx, worldpos, worlddir)
+  plotfig = gcf;
+  userData = get(plotfig, 'UserData');
+  subplot(2,2,1);
+
+  userData.index = idx;
+  set(plotfig, 'UserData', userData);
+
+  highlight_camera_view(idx, worldpos, worlddir);
+  display_image(idx);
+  display_bounding_boxes(idx);
 end
 
 % highlights the direction camera was facing for the image capture idx
@@ -361,7 +439,9 @@ function highlight_points(bbox)
 
   % clear previously highlighted points
   if length(userData.bbox_points) > 0
-    delete(userData.bbox_points);
+    for i=1:length(userData.bbox_points)
+      delete(userData.bbox_points{i});
+    end
   end
 
   % get IDs for 3D points seen in the current image
@@ -396,7 +476,17 @@ function highlight_points(bbox)
     Z(i+1) = points((i*6)+3);
   end
 
-  bbox_points = scatter3(X, Y, Z, 50, 'g', 'filled');
+  points = [X Y Z];
+  eva = evalclusters(points,'linkage','gap','KList',[1:5]);
+  idx = clusterdata([X Y Z], eva.OptimalK);
+
+  bbox_points = cell(1,1);
+  colors = ['g' 'r' 'b' 'y' 'm'];
+
+  for i=1:eva.OptimalK
+    bbox_points{i} = scatter3(X(idx==i), Y(idx==i), Z(idx==i), 50, colors(i), 'filled');
+  end
+
   userData.bbox_points = bbox_points;
   set(plotfig,'UserData',userData);
 end
