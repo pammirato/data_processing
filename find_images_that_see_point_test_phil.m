@@ -17,7 +17,7 @@ TZ = 8;
 
 
 
-scene_name = 'Room15';
+scene_name = 'SN208';
 occulsion_threshold = 200;
 
 
@@ -37,55 +37,55 @@ kDistanceK2K3 = 272;
 scene_path = fullfile(BASE_PATH,scene_name);
 
 % %the image we will hand label
-% labeled_image_name =  'rgb0K1.png';
-% suffix_index = strfind(labeled_image_name,'b') + 1;
+ labeled_image_name =  'rgb0K1.png';
+ suffix_index = strfind(labeled_image_name,'b') + 1;
 % 
-% rgb_image = imread(fullfile(scene_path, 'rgb/', labeled_image_name));
-% depth_image = imread(fullfile(scene_path, ['raw_depth/raw_depth' labeled_image_name(suffix_index:end)] ));
+ rgb_image = imread(fullfile(scene_path, 'rgb/', labeled_image_name));
+ depth_image = imread(fullfile(scene_path, ['raw_depth/raw_depth' labeled_image_name(suffix_index:end)] ));
 %   
 % %display the image with the depth map overlaid on it
-% imshow(rgb_image);    
-% hold on;          
-% h = imagesc(depth_image);
-% set(h,'AlphaData',.5);
+ imshow(rgb_image);    
+ hold on;          
+ h = imagesc(depth_image);
+ set(h,'AlphaData',.5);
 % 
 % %get one point from the user clicking on the image
-% [xi, yi, but] = ginput(1);
-% hold off;
+ [xi, yi, but] = ginput(1);
+ hold off;
 % 
-% x = floor(xi);
-% y = floor(yi);
-% point = [x y];
+ x = floor(xi);
+ y = floor(yi);
+ point = [x y];
 % %get the depth of the labeled pixel from the depth image
-% depth = double(depth_image(y,x));
+ depth = double(depth_image(y,x));
 
 
 
 %open file with labeled points                
-labeled_points_fid = fopen(fullfile(scene_path, LABELING_DIR, ...
-                               DATA_FOR_LABELING_DIR, ALL_LABELED_POINTS_FILE));
+%labeled_points_fid = fopen(fullfile(scene_path, LABELING_DIR, ...
+                             %  DATA_FOR_LABELING_DIR, ALL_LABELED_POINTS_FILE));
 
                            
                            
 %move past header
-fgetl(labeled_points_fid);
-fgetl(labeled_points_fid);
-line = fgetl(labeled_points_fid);
+%fgetl(labeled_points_fid);
+%fgetl(labeled_points_fid);
+%line = fgetl(labeled_points_fid);
 
 
 
 
-line = fgetl(labeled_points_fid);
-while(ischar(line))
+%line = fgetl(labeled_points_fid);
+%while(ischar(line))
 
 
-  fprintf(fid_save, [line '\n']);
+%  fprintf(fid_save, [line '\n']);
 
   %get label
-  line =fgetl(labeled_points_fid);
-  line =fgetl(labeled_points_fid);
+%  line =fgetl(labeled_points_fid);
+%  line =fgetl(labeled_points_fid);
 
-end
+%end
 
 
 
