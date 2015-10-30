@@ -105,10 +105,7 @@ while image_counter <= length(image_names)
 
 
   [xi, yi, but] = ginput(1);
-  x = floor(xi);
-  y = floor(yi);
-  
-  points{point_counter} = [x y depth_image(y,x)];
+  points{point_counter} = [xi yi];
   hold off;
   
   images_used{point_counter} = image_names{image_counter};
@@ -118,11 +115,14 @@ while image_counter <= length(image_names)
   %world_points{num_points} = point_3d + camera_positions(i); 
 
   %num_points = num_points +1; 
-  if(strcmp(labels{point_counter},''))
-      %get rid of last label and point
+  if(strcmp(labels{point_counter},'n'))
+      %get rid of last point, move to next image
       points =points(1:end-1);
       images_used = images_used(1:end-1);
       labels = labels(1:end-1);
+      point_counter = point_counter -1;
+      
+      image_counter = image_counter+1;
   elseif(strcmp(labels{point_counter}, 'q'))
       disp('ending...');
       %get rid of that last point
@@ -205,7 +205,7 @@ close all;
 fid = fopen(fullfile(write_path ,ALL_LABELED_POINTS_FILE), 'wt');
 
 fprintf(fid, ['%%Points of interest in images, two lines per point' '\n' ...
-             '%%IMAGE_FILE_NAME X Y DEPTH' '\n' ...
+             '%%IMAGE_FILE_NAME X Y' '\n' ...
              '%%OBJECT_LABEL' '\n' ]);
              
 
@@ -218,8 +218,7 @@ for i=1:length(points)
   %TODO  MAKE 4 DIGITS PAST DECIMAL
   fprintf(fid, [images_used{i} ' ' ... 
                 num2str(cur_point(1)) ' ' ...
-                num2str(cur_point(2)) ' ' ... 
-                num2str(cur_point(3)) '\n' ... 
+                num2str(cur_point(2)) '\n' ... 
                  labels{i} '\n']);
 end%for i points
 fprintf(fid, '\n');

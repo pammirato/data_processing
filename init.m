@@ -28,6 +28,11 @@ RECOGNITION_DIR = 'recognition_results/';
 %holds miscellanueous files
 MISC_DIR = 'misc/';
 
+%holds labels and data used for labeling
+LABELING_DIR = 'labeling';
+
+    %data_for_labeling
+    DATA_FOR_LABELING_DIR = 'data_for_labeling';
 
 
 
@@ -46,7 +51,9 @@ POINTS_3D = 'points3D.txt';
 
 POINTS_3D_MAT_FILE = 'points3D.mat';
 
+CAMERA_STRUCTS_FILE = 'camera_structs.mat';
 
+ALL_LABELED_POINTS_FILE = 'all_labeled_points.txt';
 
 
 
@@ -56,3 +63,18 @@ POINTS_3D_MAT_FILE = 'points3D.mat';
 %%%%%%%%%%%%              VARIABLE  NAMES             %%%%%%%%%%%%%
 NAME_TO_POS_DIRS_MAP = 'name_to_pos_dirs_map';
 POINTS_3D_MATRIX = 'point_matrix';
+CAMERA_STRUCTS = 'camera_structs';
+
+SCALE = 'scale';
+
+IMAGE_NAME = 'name';
+TRANSLATION_VECTOR = 't';
+ROTATION_MATRIX = 'R';
+WORLD_POSITION = 'world_pos';
+DIRECTION = 'direction';
+QUATERNION = 'quat';
+SCALED_WORLD_POSITION = 'scaled_world_pos';
+
+
+
+
