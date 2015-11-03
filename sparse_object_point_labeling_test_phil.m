@@ -26,7 +26,7 @@
 init;
 
 
-scene_name = 'Room14';
+scene_name = 'Room15';
 
 
 %should be 1

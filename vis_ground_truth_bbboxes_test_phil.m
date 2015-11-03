@@ -2,23 +2,33 @@
 
 
 
+init;
 
-
-room_name = 'KitchenLiving12';
+room_name = 'Room15';
 
 class_name = 'monitor';
 label_name = 'monitor1';
 
-base_path =['/home/ammirato/Data/' room_name];
+scene_path = fullfile(BASE_PATH,scene_name);
 
-rgb_images_path = [base_path '/rgb/'];
-labeled_names_path = [base_path '/labeling/' label_name '/']
+write_path = fullfile(scene_path,LABELING_DIR, GROUND_TRUTH_BBOXES_DIR, label_name);
+mkdir(write_path);
+
+
+
 %load names of images we care about
-labeled_image_names = load([labeled_names_path 'names_of_images_that_see_instance.mat']); 
-labeled_image_names = labeled_image_names.labeled_image_names;
+map = load(fullfile(scene_path, LABELING_DIR, ...
+                            DATA_FOR_LABELING_DIR, ...
+                              LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE)); 
+map = map.(LABEL_TO_IMAGES_THAT_SEE_IT_MAP);
+
+label_structs = map(label_name);
+temp = cell2mat(label_structs);
+labeled_image_names = {temp.(IMAGE_NAME)};
+clear temp;
 
 
-ground_truth_bboxes= load([base_path '/labeling/' label_name '/ground_truth_bboxes.mat']);
+ground_truth_bboxes= load(fullfile(scene_path,LABELING_DIR, GROUND_TRUTH_BBOXES_DIR, label_name, '/ground_truth_bboxes.mat'));
 ground_truth_bboxes = ground_truth_bboxes.ground_truth_bboxes;
 
 
@@ -30,7 +40,7 @@ for i=1:length(labeled_image_names)
     
     cur_name = labeled_image_names{i};
     
-    rgb_image = imread([rgb_images_path cur_name]);
+    rgb_image = imread(fullfile(scene_path,RGB_IMAGES_DIR, cur_name));
     
     imshow(rgb_image);
     hold on;

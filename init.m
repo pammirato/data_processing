@@ -23,7 +23,7 @@ RECONSTRUCTION_DIR = 'reconstruction_results/';
 %hold outputs from recongition systems(detectors, classifers, parsers, etc)
 RECOGNITION_DIR = 'recognition_results/';
 
-    FAST_RCNN_RESULTS = 'fast-rcnn/';
+    FAST_RCNN_DIR = 'fast-rcnn/';
 
 %holds miscellanueous files
 MISC_DIR = 'misc/';
@@ -34,7 +34,8 @@ LABELING_DIR = 'labeling';
     %data_for_labeling
     DATA_FOR_LABELING_DIR = 'data_for_labeling';
 
-
+    %
+    GROUND_TRUTH_BBOXES_DIR = 'ground_truth_bboxes';
 
 
 
@@ -55,6 +56,9 @@ CAMERA_STRUCTS_FILE = 'camera_structs.mat';
 
 ALL_LABELED_POINTS_FILE = 'all_labeled_points.txt';
 
+ALL_IMAGES_THAT_SEE_POINT_FILE = 'all_images_that_see_point_file.txt';
+
+LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE = 'label_to_images_that_see_it_map.mat';
 
 
 
@@ -67,7 +71,7 @@ CAMERA_STRUCTS = 'camera_structs';
 
 SCALE = 'scale';
 
-IMAGE_NAME = 'name';
+IMAGE_NAME = 'image_name';
 TRANSLATION_VECTOR = 't';
 ROTATION_MATRIX = 'R';
 WORLD_POSITION = 'world_pos';
@@ -75,6 +79,21 @@ DIRECTION = 'direction';
 QUATERNION = 'quat';
 SCALED_WORLD_POSITION = 'scaled_world_pos';
 
+LABEL_TO_IMAGES_THAT_SEE_IT_MAP = 'label_to_images_that_see_it_map';
+X = 'x';
+Y = 'y';
+DEPTH = 'depth';
+
+
+DETECTIONS_STRUCT = 'dets';
+
+
+
+
+%set intrinsic matrices for each kinect
+intrinsic1 = [ 1.0700016292741097e+03, 0., 9.2726881773877119e+02; 0.,1.0691225545678490e+03, 5.4576099988165549e+02; 0., 0., 1. ];
+intrinsic2 = [  1.0582854982177009e+03, 0., 9.5857576622458146e+0; 0., 1.0593799583771420e+03, 5.3110874137837084e+02; 0., 0., 1. ];
+intrinsic3 = [ 1.0630462958838500e+03, 0., 9.6260473585485727e+02; 0., 1.0636103172708376e+03, 5.3489949221354482e+02; 0., 0., 1.];
 
 
 

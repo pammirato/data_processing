@@ -1,6 +1,6 @@
 
 images_per_room = 101;
-room_name = 'all';  %make this = 'all' to go through all rooms
+room_name = 'SN208';  %make this = 'all' to go through all rooms
 
 
 base_path = '/home/ammirato/Data/';

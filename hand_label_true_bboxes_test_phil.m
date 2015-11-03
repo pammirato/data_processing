@@ -1,35 +1,40 @@
 %tool for making ground truth bounding boxes im a set of images, for one label
 
+clear all, close all;
+init;
 
-
-room_name = 'KitchenLiving12';
+scene_name = 'Room15';
 
 
 %class_name = 'monitor';  
 label_name = 'monitor1';  %what label will be given to every bounding box
 
+scene_path = fullfile(BASE_PATH,scene_name);
 
-base_path =['/home/ammirato/Data/' room_name];
-
-rgb_images_path = [base_path '/rgb/'];
-labeled_names_path = [base_path '/labeling/' label_name '/'];
-
-write_path = [base_path '/labeling/' label_name '/'];
+write_path = fullfile(scene_path,LABELING_DIR, GROUND_TRUTH_BBOXES_DIR, 'label_name');
+mkdir(write_path);
 
 
 
 %load names of images we care about
-labeled_image_names = load([labeled_names_path 'labeled_image_names.mat']); 
-labeled_image_names = labeled_image_names.labeled_image_names;
+map = load(fullfile(scene_path, LABELING_DIR, ...
+                            DATA_FOR_LABELING_DIR, ...
+                              LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE)); 
+map = map.(LABEL_TO_IMAGES_THAT_SEE_IT_MAP);
+
+label_structs = map(label_name);
+temp = cell2mat(label_structs);
+labeled_image_names = {temp.(IMAGE_NAME)};
+clear temp;
 
 
-%holds all bboxes
+holds all bboxes
 ground_truth_bboxes = cell(1,length(labeled_image_names));
 
 
 
-%First label the top left corner of the bbox in every image, then the bottom right in every image
-%this is faster because the images are often close and so it takes less mouse movement
+First label the top left corner of the bbox in every image, then the bottom right in every image
+this is faster because the images are often close and so it takes less mouse movement
 
 
 
@@ -39,7 +44,9 @@ for i=1:length(labeled_image_names)
      
     cur_name = labeled_image_names{i};
      
-    rgb_image = imread([rgb_images_path cur_name]);     
+    rgb_image = imread(fullfile(scene_path, RGB_IMAGES_DIR, cur_name)); 
+    
+    imshow(rgb_image);
 
     %get the clicked on point for bbox
     [xi, yi, but] = ginput(1);
@@ -66,7 +73,9 @@ for i=1:length(labeled_image_names)
     
     cur_name = labeled_image_names{i};
     
-    rgb_image = imread([rgb_images_path cur_name]);
+    rgb_image = imread(fullfile(scene_path, RGB_IMAGES_DIR, cur_name));
+    
+    imshow(rgb_image);
     
     cur_bbox = ground_truth_bboxes{i};
     
@@ -74,7 +83,7 @@ for i=1:length(labeled_image_names)
     [xi, yi, but] = ginput(1);
     %pts = readPoints(rgb_image,1);
     
-    if(length(pts) <2)
+    if(but~=1)%(length(pts) <2)
        cur_box(3) = -1;
        cur_box(4) = -1;
     else
@@ -91,5 +100,5 @@ end%for i
 
 
 
-save([write_path 'ground_truth_bboxes.mat'], ground_truth_bboxes);
+save(fullfile(write_path, 'ground_truth_bboxes.mat'), 'ground_truth_bboxes');
 

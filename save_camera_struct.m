@@ -4,10 +4,17 @@
 %							orientation
 %
 
+clear all, close all;
 %initialize contants, paths and file names, etc. 
 init;
 
+ %size of rgb image in pixels
+kImageWidth = 1920;
+kImageHeight = 1080;
 
+%distance from kinects in mm
+kDistanceK1K2 = 291;
+kDistanceK2K3 = 272;
 
 %some constants that correspond to an index in each line the data is
 IMAGE_ID = 1;
@@ -135,7 +142,7 @@ for i=1:num_scenes
     
     %get a list of all the image file names
     temp = cell2mat(camera_structs);
-    image_names = {temp.name};
+    image_names = {temp.(IMAGE_NAME)};
     clear temp;
 
     %make a map from image name to camera_struct
