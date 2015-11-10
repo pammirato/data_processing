@@ -40,6 +40,8 @@ MISC_DIR = 'misc/';
 
 NAME_TO_POS_DIRS_MAT_FILE = 'name_to_pos_dirs_map.mat';
 
+CAMERA_STRUCTS_FILE = 'camera_structs.mat';
+
 NAME_TO_POINT_ID_MAT_FILE = 'name_to_point_id.mat';
 
 ID_TO_POINT_MAT_FILE = 'id_to_point.mat';
@@ -62,3 +64,23 @@ NAME_TO_POS_DIRS_MAP = 'name_to_pos_dirs_map';
 NAME_TO_POINTS_MAP = 'name_to_points_map';
 ID_TO_POINT_MAP = 'id_to_point_map';
 POINTS_3D_MATRIX = 'point_matrix';
+
+CAMERA_STRUCTS = 'camera_structs';
+
+SCALE = 'scale';
+
+IMAGE_NAME = 'image_name';
+TRANSLATION_VECTOR = 't';
+ROTATION_MATRIX = 'R';
+WORLD_POSITION = 'world_pos';
+DIRECTION = 'direction';
+QUATERNION = 'quat';
+SCALED_WORLD_POSITION = 'scaled_world_pos';
+
+LABEL_TO_IMAGES_THAT_SEE_IT_MAP = 'label_to_images_that_see_it_map';
+X = 'x';
+Y = 'y';
+DEPTH = 'depth';
+
+
+DETECTIONS_STRUCT = 'dets';

@@ -9,40 +9,29 @@ function visualize_everything
 
   scene_name = 'SN208';
 
-  %should the lines indicating orientation be drawn?
-  view_orientation = 1;
-
   %initialize constants, paths and file names, etc.
   init;
   scene_path = fullfile(BASE_PATH, scene_name);
   image_path = fullfile(scene_path, RGB_IMAGES_DIR);
   results_path = fullfile(scene_path, RECOGNITION_DIR, FAST_RCNN_RESULTS);
 
-  % load maps from image name to camera data and vice versa
-  % camera data is an array with the camera position and a point along is orientation vector
-  % [CAM_X CAM_Y CAM_Z DIR_X DIR_Y DIR_Z]
-  name_to_camera_data_path = fullfile(scene_path, RECONSTRUCTION_DIR, NAME_TO_POS_DIRS_MAT_FILE);
-  if (~exist(name_to_camera_data_path,'file'))
-    save_camera_pos_dirs;
-  end
-  name_to_camera_data = load(name_to_camera_data_path);
-  name_to_camera_data = name_to_camera_data.(NAME_TO_POS_DIRS_MAP);
 
-  %get all the camera_data, gives only a 1D matrix
-  names = name_to_camera_data.keys;
-  pos_dir = cell2mat(name_to_camera_data.values);
+  % load data about each view. Each camera struct contains the image name, camera
+  % position, camera orientation, translation vector, rotation matrix, quaternion
+  % orientation, and scaled world position
+  camera_structs_file =  load(fullfile(scene_path,RECONSTRUCTION_DIR,CAMERA_STRUCTS_FILE));
+  camera_structs = camera_structs_file.(CAMERA_STRUCTS);
+  scale  = camera_structs_file.scale;
 
-  %each image has a data vector 6 long, so index every 6
-  X = pos_dir(1:6:end-5);
-  Y = pos_dir(2:6:end-4);
-  Z = pos_dir(3:6:end-3);
-  Xdir = pos_dir(4:6:end-2);
-  Ydir = pos_dir(5:6:end-1);
-  Zdir = pos_dir(6:6:end);
+  %get a list of all the image file names and corresponding camera position/orientation
+  temp = cell2mat(camera_structs);
+  names = {temp.(IMAGE_NAME)};
+  worldpos = cell2mat({temp.(WORLD_POSITION)})';
+  worlddir = cell2mat({temp.(DIRECTION)})';
+  size(worldpos)
+  size(names)
 
-  worldpos = [X' Y' Z'];
-  worlddir = [Xdir' Ydir' Zdir'];
-
+  % sort the camera view data so we can move through views in order
   [names, worldpos, worlddir] = sort_image_data(names, worldpos, worlddir);
 
   % load reconstructed 3d points for the scene
@@ -74,6 +63,8 @@ function visualize_everything
                 'names', cell(1,1),...
                 'image_path', image_path,...
                 'results_path', results_path,...
+                'worldpos', worldpos,...
+                'worlddir', worlddir,...
                 'bboxes', cell(1,1),...
                 'scores', cell(1,1),...
                 'categories', cell(1,1),...
@@ -83,12 +74,15 @@ function visualize_everything
                 'selected_point', [],...
                 'bbox_img', [],...
                 'bbox_points', [],...
+                'views_of_object', [],...
                 'name_to_point_ids', name_to_point_ids,...
                 'id_to_point', id_to_point);
   data.names = names;
   set(plotfig, 'UserData', data);
 
-  view_axes = display_camera_views(X, Y, Z, Xdir, Ydir, Zdir);
+  view_axes = display_camera_views(worldpos(:,1), worldpos(:,2), worldpos(:,3),...
+                                   worlddir(:,1), worlddir(:,2), worlddir(:,3));
+
   point_axes = display_reconstructed_points(points3D);
 
   % link axes together so they rotate together in rotate3d mode
@@ -127,6 +121,8 @@ function visualize_everything
   setAllowAxesRotate(rotate_obj, image_axes, false);
 end
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%% UI callbacks and other misc. functions %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -135,21 +131,17 @@ end
 % Based on what subplot axes the event came from, choose the correct response.
 function output = pick_data(~, event_obj, worldpos, worlddir, view_axes,...
                             image_axes, point_axes)
-
+  output = [];
   targetAxes = get(event_obj.Target, 'parent');
+  cursor = get(event_obj);
 
   if isequal(targetAxes, view_axes)
-    output = [];
     select_view_for_point(event_obj, worldpos, worlddir);
   elseif isequal(targetAxes, image_axes)
-    output = [];
-    cursor = get(event_obj);
     select_bounding_box(cursor.Position(1), cursor.Position(2));
   elseif isequal(targetAxes, point_axes)
-    output = 'reconstructed points';
-    select_reconstructed_point();
+    %select_reconstructed_point(cursor.Position);
   end
-
 end
 
 function output = switchViewCallback(source, event_data, worldpos, worlddir)
@@ -175,6 +167,10 @@ function output = switchViewCallback(source, event_data, worldpos, worlddir)
   end
 end
 
+% sorts image names and position/orientation data into alphabetical order by
+% by image name. The numbers in the image names must be padded first for the
+% sorting to work properly. Then the images are in the order they were taken
+% by the robot.
 function [sorted_names, sorted_pos, sorted_dir] = sort_image_data(names, pos, dirs)
 
   padded_names = cell(length(names),1);
@@ -226,6 +222,8 @@ end
 % the user clicking on a data point, and displays the image and recognition
 % results corresponding to that capture.
 function select_view_for_point(event_obj, worldpos, worlddir)
+  plotfig = gcf;
+  userData = get(plotfig, 'UserData');
   cursor = get(event_obj);
 
   % get index of data point selected by cursor
@@ -247,6 +245,38 @@ function select_view(idx, worldpos, worlddir)
   highlight_camera_view(idx, worldpos, worlddir);
   display_image(idx);
   display_bounding_boxes(idx);
+end
+
+function get_all_views_of_object(points)
+  userData = get(gcf, 'UserData');
+  subplot(2,2,1);
+
+  % get 3D bounding box containing all points in the cluster
+  Xmin = min(points(:,1));
+  Xmax = max(points(:,1));
+  Ymin = min(points(:,2));
+  Ymax = max(points(:,2));
+  Zmin = min(points(:,3));
+  Zmax = max(points(:,3));
+
+  views = [];
+
+  % find indicies of all views that can see a point in the 3D bounding box
+  names = userData.names;
+  for i=1:length(names)
+    point_id_data = userData.name_to_point_ids(names{i});
+    for j=3:3:length(point_id_data)
+      if point_id_data(j) > 0
+        pt = userData.id_to_point(point_id_data(j));
+          if (pt(1) >= Xmin && pt(1) <= Xmax && pt(2) >= Ymin && pt(2) <= Ymax && pt(3) >= Zmin && pt(3) <= Zmax)
+            views = [views; i];
+            break;
+          end
+      end
+    end
+  end
+
+  highlight_views_of_object(views);
 end
 
 % highlights the direction camera was facing for the image capture idx
@@ -271,7 +301,28 @@ function highlight_camera_view(idx, worldpos, worlddir)
   set(plotfig, 'UserData', userData);
 end
 
+% Highlight camera orientation for given array of indices
+function highlight_views_of_object(views)
+  plotfig = gcf;
+  userData = get(plotfig, 'UserData');
+  subplot(2,2,1);
 
+  % clear previous views highlight
+  if length(userData.views_of_object) > 0
+    delete(userData.views_of_object);
+  end
+
+  worldpos = userData.worldpos;
+  worlddir = userData.worlddir;
+
+  % highlight camera view for selected data point
+  new_highlight = quiver3(worldpos(views,1), worldpos(views,2), worldpos(views,3),...
+                      worlddir(views,1), worlddir(views,2), worlddir(views,3),...
+                      'Color', 'c', 'LineWidth', 2.0);
+
+  % set views to unhighlight next time
+  userData.views_of_object = new_highlight;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%% Functions for top-right subplot display %%%%%%%%%%%%%%%%%%%%%
@@ -429,7 +480,25 @@ function ax = display_reconstructed_points(points)
     axis([-xlimit xlimit -ybottom ytop -zlimit zlimit]);
 end
 
-function select_reconstructed_point();
+function select_reconstructed_point(position)
+  plotfig = gcf;
+  userData = get(plotfig,'UserData');
+  clusters = userData.bbox_points;
+  distance_to_cluster = zeros(length(clusters),1);
+
+  % choose cluster closest to selected point
+  for i=1:length(clusters)
+    points = [(clusters{i}.XData)' (clusters{i}.YData)' (clusters{i}.ZData)'];
+    distance_to_cluster(i) = pdist2(points, position, 'euclidean', 'Smallest', 1);
+  end
+  [m, idx] = min(distance_to_cluster);
+
+  % highlight selected cluster
+  clusters{idx}.MarkerFaceColor = 'c';
+
+  % highlight views that can see the object identified by the chosen cluster
+  points = [(clusters{idx}.XData)' (clusters{idx}.YData)' (clusters{idx}.ZData)'];
+  get_all_views_of_object(points);
 end
 
 function highlight_points(bbox)
@@ -464,7 +533,7 @@ function highlight_points(bbox)
     end
   end
 
-  points = values(userData.id_to_point,pt_ids);
+  points = values(userData.id_to_point, pt_ids);
   points = cell2mat(points);
   X = zeros(num_pts, 1);
   Y = zeros(num_pts, 1);
