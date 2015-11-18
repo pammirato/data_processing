@@ -64,6 +64,7 @@ function visualize_everything
                 'image_path', image_path,...
                 'results_path', results_path,...
                 'index', 1,...
+                'highlight_index', -1,...
                 'names', cell(1,1),...
                 'scale', scene_scale,...
                 'worldpos', worldpos,...
@@ -79,6 +80,7 @@ function visualize_everything
                 'bbox_depth_img', [],...
                 'bbox_points', [],...
                 'views_of_object', [],...
+                'views_indices', [],...
                 'name_to_camera_struct', camera_struct_map,...
                 'name_to_point_ids', name_to_point_ids,...
                 'id_to_point', id_to_point);
@@ -107,12 +109,19 @@ function visualize_everything
   t = uitoolbar(plotfig);
   [pathstr, name, ext] = fileparts(which('visualize_everything'));
 
-  img1 = imread(fullfile(pathstr,'leftarrow.jpg'));
-  leftarrow = uipushtool(t,'TooltipString','Previous image','CData',img1,...
+  img_la = imread(fullfile(pathstr,'leftarrow.jpg'));
+  leftarrow = uipushtool(t,'TooltipString','Previous view','CData',img_la,...
                  'ClickedCallback', @switchViewCallback);
-  img2 = imread(fullfile(pathstr,'rightarrow.jpg'));
-  rightarrow = uipushtool(t,'TooltipString','Next image','CData',img2,...
+  img_ra = imread(fullfile(pathstr,'rightarrow.jpg'));
+  rightarrow = uipushtool(t,'TooltipString','Next view','CData',img_ra,...
                  'ClickedCallback', @switchViewCallback);
+  img_lab = imread(fullfile(pathstr,'leftarrowblue.jpg'));
+  leftarrow_blue = uipushtool(t,'TooltipString','Previous highlighted view','CData',img_lab,...
+                  'ClickedCallback', @switchViewCallback);
+  img_rab = imread(fullfile(pathstr,'rightarrowblue.jpg'));
+  rightarrow = uipushtool(t,'TooltipString','Next highlighted view','CData',img_rab,...
+                  'ClickedCallback', @switchViewCallback);
+
 
   % set figure to call pick_data when a data point is selected
   % by the user in data cursor mode
@@ -152,21 +161,51 @@ end
 function output = switchViewCallback(source, event_data)
   userData = get(gcf, 'UserData');
   num_views = length(userData.names);
+  hviews = userData.views_indices;
   idx = userData.index;
+  hidx = userData.highlight_index;
 
-  if strcmp(source.TooltipString, 'Next image')
-    if idx >= num_views
+  if strcmp(source.TooltipString, 'Next view')
+    if idx >= num_views-2
       select_view(1);
     else
       % increment by 3 since 3 pictures are taken at each position, this keeps
       % it at the same elevation but changes the angle/location
       select_view(idx + 3);
     end
-  elseif strcmp(source.TooltipString, 'Previous image')
+  elseif strcmp(source.TooltipString, 'Previous view')
     if idx <= 3
       select_view(num_views);
     else
       select_view(idx - 3);
+    end
+  elseif strcmp(source.TooltipString, 'Next highlighted view')
+    if length(hviews) < 1
+      return;
+    end
+    if hidx == -1 && ~ismember(idx, hviews)
+      select_view(hviews(1));
+    else
+      vidx = find(hviews==idx);
+      if (idx >= hviews(end)-2)
+        select_view(hviews(1));
+      else
+        select_view(hviews(vidx+3));
+      end
+    end
+  elseif strcmp(source.TooltipString, 'Previous highlighted view')
+    if length(hviews) < 1
+      return;
+    end
+    if hidx == -1 && ~ismember(idx, hviews)
+      select_view(hviews(1));
+    else
+      vidx = find(hviews==idx);
+      if (idx <= hviews(1)+2)
+        select_view(hviews(end));
+      else
+        select_view(hviews(vidx-3));
+      end
     end
   end
 end
@@ -244,6 +283,9 @@ function select_view(idx)
   subplot(2,2,1);
 
   userData.index = idx;
+  if ismember(idx, userData.views_indices)
+    userdata.highlight_index = idx;
+  end
   set(gcf, 'UserData', userData);
 
   highlight_camera_view(idx);
@@ -576,7 +618,11 @@ function select_object(x, y)
   r = userData.selected_bbox;
   x = x + r.Position(1);
   y = y + r.Position(2);
+
   views = get_all_views_of_object(userData.names{userData.index}, x, y);
+  userData.views_indices = views;
+  set(gcf,'UserData',userData);
+
   highlight_views_of_object(views);
 end
 
