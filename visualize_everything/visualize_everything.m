@@ -21,18 +21,19 @@ function visualize_everything
   % orientation, and scaled world position
   camera_structs_file =  load(fullfile(scene_path,RECONSTRUCTION_DIR,CAMERA_STRUCTS_FILE));
   camera_structs = camera_structs_file.(CAMERA_STRUCTS);
-  scale  = camera_structs_file.scale;
+  scene_scale = camera_structs_file.scale;
 
   %get a list of all the image file names and corresponding camera position/orientation
   temp = cell2mat(camera_structs);
   names = {temp.(IMAGE_NAME)};
   worldpos = cell2mat({temp.(WORLD_POSITION)})';
   worlddir = cell2mat({temp.(DIRECTION)})';
-  size(worldpos)
-  size(names)
+
+  %make a map from image name to camera_struct
+  camera_struct_map = containers.Map(names, camera_structs);
 
   % sort the camera view data so we can move through views in order
-  [names, worldpos, worlddir] = sort_image_data(names, worldpos, worlddir);
+  [names, camera_structs, worldpos, worlddir] = sort_image_data(names, camera_structs, worldpos, worlddir);
 
   % load reconstructed 3d points for the scene
   points3D_path = fullfile(scene_path, RECONSTRUCTION_DIR, POINTS_3D_MAT_FILE);
@@ -59,10 +60,12 @@ function visualize_everything
   plotfig = figure;
   % set up UserData for the figure to save data and display elements between events
   data = struct('link', [],...
-                'index', 1,...
-                'names', cell(1,1),...
+                'scene_path', scene_path,...
                 'image_path', image_path,...
                 'results_path', results_path,...
+                'index', 1,...
+                'names', cell(1,1),...
+                'scale', scene_scale,...
                 'worldpos', worldpos,...
                 'worlddir', worlddir,...
                 'bboxes', cell(1,1),...
@@ -75,6 +78,7 @@ function visualize_everything
                 'bbox_img', [],...
                 'bbox_points', [],...
                 'views_of_object', [],...
+                'name_to_camera_struct', camera_struct_map,...
                 'name_to_point_ids', name_to_point_ids,...
                 'id_to_point', id_to_point);
   data.names = names;
@@ -141,6 +145,9 @@ function output = pick_data(~, event_obj, worldpos, worlddir, view_axes,...
     select_bounding_box(cursor.Position(1), cursor.Position(2));
   elseif isequal(targetAxes, point_axes)
     %select_reconstructed_point(cursor.Position);
+  else % must be the bottom-right subplot
+    output = [cursor.Position(1) cursor.Position(2)];
+    select_object(cursor.Position(1), cursor.Position(2));
   end
 end
 
@@ -171,7 +178,7 @@ end
 % by image name. The numbers in the image names must be padded first for the
 % sorting to work properly. Then the images are in the order they were taken
 % by the robot.
-function [sorted_names, sorted_pos, sorted_dir] = sort_image_data(names, pos, dirs)
+function [snames, sstructs, spos, sdir] = sort_image_data(names, structs, pos, dirs)
 
   padded_names = cell(length(names),1);
 
@@ -196,9 +203,10 @@ function [sorted_names, sorted_pos, sorted_dir] = sort_image_data(names, pos, di
   end
 
   [padded_names, index] = sort(padded_names);
-  sorted_names = names(index);
-  sorted_pos = pos(index,:);
-  sorted_dir = dirs(index,:);
+  snames = names(index);
+  sstructs = structs(index);
+  spos = pos(index,:);
+  sdir = dirs(index,:);
 end
 
 
@@ -247,38 +255,6 @@ function select_view(idx, worldpos, worlddir)
   display_bounding_boxes(idx);
 end
 
-function get_all_views_of_object(points)
-  userData = get(gcf, 'UserData');
-  subplot(2,2,1);
-
-  % get 3D bounding box containing all points in the cluster
-  Xmin = min(points(:,1));
-  Xmax = max(points(:,1));
-  Ymin = min(points(:,2));
-  Ymax = max(points(:,2));
-  Zmin = min(points(:,3));
-  Zmax = max(points(:,3));
-
-  views = [];
-
-  % find indicies of all views that can see a point in the 3D bounding box
-  names = userData.names;
-  for i=1:length(names)
-    point_id_data = userData.name_to_point_ids(names{i});
-    for j=3:3:length(point_id_data)
-      if point_id_data(j) > 0
-        pt = userData.id_to_point(point_id_data(j));
-          if (pt(1) >= Xmin && pt(1) <= Xmax && pt(2) >= Ymin && pt(2) <= Ymax && pt(3) >= Zmin && pt(3) <= Zmax)
-            views = [views; i];
-            break;
-          end
-      end
-    end
-  end
-
-  highlight_views_of_object(views);
-end
-
 % highlights the direction camera was facing for the image capture idx
 function highlight_camera_view(idx, worldpos, worlddir)
 
@@ -322,6 +298,7 @@ function highlight_views_of_object(views)
 
   % set views to unhighlight next time
   userData.views_of_object = new_highlight;
+  set(plotfig,'UserData',userData);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -546,11 +523,12 @@ function highlight_points(bbox)
   end
 
   points = [X Y Z];
-  eva = evalclusters(points,'linkage','gap','KList',[1:5]);
+  eva = evalclusters(points,'linkage','silhouette','KList',[1:10]);
   idx = clusterdata([X Y Z], eva.OptimalK);
 
   bbox_points = cell(1,1);
   colors = ['g' 'r' 'b' 'y' 'm'];
+  colors = [colors colors];
 
   for i=1:eva.OptimalK
     bbox_points{i} = scatter3(X(idx==i), Y(idx==i), Z(idx==i), 50, colors(i), 'filled');
@@ -593,3 +571,157 @@ function display_detection_score(score, object)
   % display the recognition score for the bounding box
   title([object ':  ' num2str(score)]);
 end
+
+function select_object(x, y)
+  plotfig = gcf;
+  userData = get(plotfig,'UserData');
+
+  r = userData.selected_bbox;
+  x = x + r.Position(1);
+  y = y + r.Position(2);
+  views = get_all_views_of_object(userData.names{userData.index}, x, y);
+  highlight_views_of_object(views);
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function views = get_all_views_of_object(image_name, x, y)
+  init;
+  plotfig = gcf;
+  userData = get(plotfig,'UserData');
+
+  occlusion_threshold = 200;
+
+  %get the depth image
+  scene_path = userData.scene_path;
+  suffix_index = strfind(image_name,'b') + 1;
+  depth_image = imread(fullfile(scene_path, ['raw_depth/raw_depth' image_name(suffix_index:end)] ));
+  depth = double(depth_image(floor(y),floor(x)));
+
+  %size of rgb image in pixels
+  kImageWidth = 1920;
+  kImageHeight = 1080;
+
+  %distance from kinects in mm
+  kDistanceK1K2 = 291;
+  kDistanceK2K3 = 272;
+
+  %set intrinsic matrices for each kinect
+  intrinsic1 = [ 1.0700016292741097e+03, 0., 9.2726881773877119e+02; 0.,1.0691225545678490e+03, 5.4576099988165549e+02; 0., 0., 1. ];
+  intrinsic2 = [  1.0582854982177009e+03, 0., 9.5857576622458146e+0; 0., 1.0593799583771420e+03, 5.3110874137837084e+02; 0., 0., 1. ];
+  intrinsic3 = [ 1.0630462958838500e+03, 0., 9.6260473585485727e+02; 0., 1.0636103172708376e+03, 5.3489949221354482e+02; 0., 0., 1.];
+
+  names = userData.names;
+  camera_struct_map = userData.name_to_camera_struct;
+  scale = userData.scale;
+
+  %for the given pixel, find all views that can see the corresponding point
+  pixel = floor([x y])';
+
+  %%%%%%%%%%% CONVERT POINT FROM PIXELS TO WORLD COORDINATES %%%%%%%%%%%%%%%
+
+  %get the data for the labeled image
+  camera_struct = camera_struct_map(image_name);
+
+  K = intrinsic1;
+  t = camera_struct.(TRANSLATION_VECTOR);
+  R = camera_struct.(ROTATION_MATRIX);
+  C = camera_struct.(SCALED_WORLD_POSITION);
+  t = t*scale;
+  world_coords = R' * depth * pinv(K) *  [pixel;1] - R'*t;
+
+  %%%%%%%%%%%%% FIND IMAGES THAT SEE THAT 3D Point   %%%%%%%%%%%%%%%%
+
+  found_indices = cell(0);
+  found_image_names = cell(0);
+  found_points = cell(0);
+
+  %for each possible image, see if it contains the labeled point
+  for i=1:length(names)
+    cur_name = names{i};
+    cur_camera_struct = camera_struct_map(cur_name);
+
+    %get rotation matrix
+    R = cur_camera_struct.(ROTATION_MATRIX);
+
+    %translation vector
+    t = cur_camera_struct.(TRANSLATION_VECTOR);
+    t = t * scale;
+
+    %re-orient the point to see if it is viewable by this camera
+    P = [R t];
+    oriented_point = P * [world_coords;1];
+    %make sure z is positive
+    if(oriented_point(3) < 0)
+      continue;
+    end
+
+    %project the world point onto this image
+    M = K * [R t];
+    cur_image_point = M * [world_coords;1];
+
+    %acccount for homogenous coords
+    cur_image_point = cur_image_point / cur_image_point(3);
+    cur_image_point = cur_image_point(1:2);
+
+    %make sure the point is in the image
+    if(cur_image_point(1) < 1 ||  cur_image_point(2) < 1 || ...
+      cur_image_point(1) > kImageWidth || cur_image_point(2) > kImageHeight)
+      continue;
+    end
+
+    %%%%%% OCCLUSION  %%%%%%
+    %make sure distance from camera to world_coords is similar to depth of
+    %projected point in the depth image
+
+    %get the depth image
+    % suffix_index = strfind(cur_name,'b') + 1;
+    % depth_image = imread(fullfile(scene_path, ['raw_depth/raw_depth' cur_name(suffix_index:end)] ));
+    %
+    % cur_depth = depth_image(floor(cur_image_point(2)), floor(cur_image_point(1)));
+    % camera_pos = cur_camera_struct.(SCALED_WORLD_POSITION);
+    % world_dist = pdist2(camera_pos', world_coords');
+    %
+    % %if the depth == 0, then keep this image as we can't tell
+    % if(abs(world_dist - cur_depth) > occlusion_threshold  && cur_depth >0)
+    %   continue;
+    % end
+
+    found_indices{length(found_indices)+1} = i;
+    found_image_names{length(found_image_names)+1} = cur_name;
+    % found_points{length(found_points)+1} = [cur_image_point' cur_depth];
+  end
+
+  views = cell2mat(found_indices);
+end
+
+% function views = get_all_views_of_object(points)
+%   userData = get(gcf, 'UserData');
+%   subplot(2,2,1);
+%
+%   % get 3D bounding box containing all points in the cluster
+%   Xmin = min(points(:,1));
+%   Xmax = max(points(:,1));
+%   Ymin = min(points(:,2));
+%   Ymax = max(points(:,2));
+%   Zmin = min(points(:,3));
+%   Zmax = max(points(:,3));
+%
+%   views = [];
+%
+%   % find indicies of all views that can see a point in the 3D bounding box
+%   names = userData.names;
+%   for i=1:length(names)
+%     point_id_data = userData.name_to_point_ids(names{i});
+%     for j=3:3:length(point_id_data)
+%       if point_id_data(j) > 0
+%         pt = userData.id_to_point(point_id_data(j));
+%           if (pt(1) >= Xmin && pt(1) <= Xmax && pt(2) >= Ymin && pt(2) <= Ymax && pt(3) >= Zmin && pt(3) <= Zmax)
+%             views = [views; i];
+%             break;
+%           end
+%       end
+%     end
+%   end
+%
+% end
