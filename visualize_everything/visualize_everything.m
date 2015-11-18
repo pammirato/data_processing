@@ -76,6 +76,7 @@ function visualize_everything
                 'selected_bbox', [],...
                 'selected_point', [],...
                 'bbox_img', [],...
+                'bbox_depth_img', [],...
                 'bbox_points', [],...
                 'views_of_object', [],...
                 'name_to_camera_struct', camera_struct_map,...
@@ -97,7 +98,7 @@ function visualize_everything
   set(plotfig, 'UserData', userData);
 
   % display results for the first image so the display isn't blank.
-  highlight_camera_view(1, worldpos, worlddir);
+  highlight_camera_view(1);
   image_axes = display_image(1);
   display_bounding_boxes(1);
   select_bounding_box(700, 800);
@@ -108,16 +109,15 @@ function visualize_everything
 
   img1 = imread(fullfile(pathstr,'leftarrow.jpg'));
   leftarrow = uipushtool(t,'TooltipString','Previous image','CData',img1,...
-                 'ClickedCallback',{@switchViewCallback, worldpos, worlddir});
+                 'ClickedCallback', @switchViewCallback);
   img2 = imread(fullfile(pathstr,'rightarrow.jpg'));
   rightarrow = uipushtool(t,'TooltipString','Next image','CData',img2,...
-                 'ClickedCallback',{@switchViewCallback, worldpos, worlddir});
+                 'ClickedCallback', @switchViewCallback);
 
   % set figure to call pick_data when a data point is selected
   % by the user in data cursor mode
   dcm_obj = datacursormode(plotfig); % get the data cursor object
-  set(dcm_obj, 'UpdateFcn', {@pick_data, worldpos, worlddir, view_axes,...
-                              image_axes, point_axes});
+  set(dcm_obj, 'UpdateFcn', {@pick_data, view_axes, image_axes, point_axes});
 
   rotate_obj = rotate3d;
   rotate_obj.Enable = 'on';
@@ -133,43 +133,40 @@ end
 
 % This function gets called when the user clicks in data cursor mode.
 % Based on what subplot axes the event came from, choose the correct response.
-function output = pick_data(~, event_obj, worldpos, worlddir, view_axes,...
-                            image_axes, point_axes)
+function output = pick_data(~, event_obj, view_axes, image_axes, point_axes)
   output = [];
   targetAxes = get(event_obj.Target, 'parent');
   cursor = get(event_obj);
 
   if isequal(targetAxes, view_axes)
-    select_view_for_point(event_obj, worldpos, worlddir);
+    select_view_for_point(event_obj);
   elseif isequal(targetAxes, image_axes)
     select_bounding_box(cursor.Position(1), cursor.Position(2));
   elseif isequal(targetAxes, point_axes)
     %select_reconstructed_point(cursor.Position);
   else % must be the bottom-right subplot
-    output = [cursor.Position(1) cursor.Position(2)];
     select_object(cursor.Position(1), cursor.Position(2));
   end
 end
 
-function output = switchViewCallback(source, event_data, worldpos, worlddir)
-  plotfig = gcf;
-  userData = get(plotfig, 'UserData');
+function output = switchViewCallback(source, event_data)
+  userData = get(gcf, 'UserData');
   num_views = length(userData.names);
   idx = userData.index;
 
   if strcmp(source.TooltipString, 'Next image')
     if idx >= num_views
-      select_view(1, worldpos, worlddir);
+      select_view(1);
     else
       % increment by 3 since 3 pictures are taken at each position, this keeps
       % it at the same elevation but changes the angle/location
-      select_view(idx + 3, worldpos, worlddir);
+      select_view(idx + 3);
     end
   elseif strcmp(source.TooltipString, 'Previous image')
     if idx <= 3
-      select_view(num_views, worldpos, worlddir);
+      select_view(num_views);
     else
-      select_view(idx - 3, worldpos, worlddir);
+      select_view(idx - 3);
     end
   end
 end
@@ -229,37 +226,36 @@ end
 % This function highlights a camera position and direction in response to
 % the user clicking on a data point, and displays the image and recognition
 % results corresponding to that capture.
-function select_view_for_point(event_obj, worldpos, worlddir)
-  plotfig = gcf;
-  userData = get(plotfig, 'UserData');
+function select_view_for_point(event_obj)
+  userData = get(gcf, 'UserData');
+  worldpos = userData.worldpos;
   cursor = get(event_obj);
 
   % get index of data point selected by cursor
   [distance, i] = pdist2(worldpos, cursor.Position, 'euclidean', 'Smallest', 1);
   userData.index = i;
-  set(plotfig, 'UserData', userData);
+  set(gcf, 'UserData', userData);
 
-  select_view(i, worldpos, worlddir)
+  select_view(i)
 end
 
-function select_view(idx, worldpos, worlddir)
-  plotfig = gcf;
-  userData = get(plotfig, 'UserData');
+function select_view(idx)
+  userData = get(gcf, 'UserData');
   subplot(2,2,1);
 
   userData.index = idx;
-  set(plotfig, 'UserData', userData);
+  set(gcf, 'UserData', userData);
 
-  highlight_camera_view(idx, worldpos, worlddir);
+  highlight_camera_view(idx);
   display_image(idx);
   display_bounding_boxes(idx);
 end
 
 % highlights the direction camera was facing for the image capture idx
-function highlight_camera_view(idx, worldpos, worlddir)
-
-  plotfig = gcf;
-  userData = get(plotfig, 'UserData');
+function highlight_camera_view(idx)
+  userData = get(gcf, 'UserData');
+  worldpos = userData.worldpos;
+  worlddir = userData.worlddir;
   subplot(2,2,1);
 
   % clear previous view highlight
@@ -274,13 +270,12 @@ function highlight_camera_view(idx, worldpos, worlddir)
 
   % set new view to unhighlight next time
   userData.selected_view = new_highlight;
-  set(plotfig, 'UserData', userData);
+  set(gcf, 'UserData', userData);
 end
 
 % Highlight camera orientation for given array of indices
 function highlight_views_of_object(views)
-  plotfig = gcf;
-  userData = get(plotfig, 'UserData');
+  userData = get(gcf, 'UserData');
   subplot(2,2,1);
 
   % clear previous views highlight
@@ -298,7 +293,7 @@ function highlight_views_of_object(views)
 
   % set views to unhighlight next time
   userData.views_of_object = new_highlight;
-  set(plotfig,'UserData',userData);
+  set(gcf,'UserData',userData);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -308,20 +303,17 @@ end
 
 % displays image specified by idx
 function ax = display_image(idx)
-  plotfig = gcf;
-  userData = get(plotfig, 'UserData');
+  userData = get(gcf, 'UserData');
   ax = subplot(2,2,2);
 
   imshow([userData.image_path userData.names{idx}]);
   hold on;
 end
 
-% displays bounding boxes with top detection scores
+% displays bounding boxes with top recognition scores
 % for the image specified by idx
 function display_bounding_boxes(idx)
-
-  plotfig = gcf;
-  userData = get(plotfig, 'UserData');
+  userData = get(gcf, 'UserData');
   subplot(2,2,2);
 
   % clear existing display of recognition results
@@ -332,7 +324,7 @@ function display_bounding_boxes(idx)
   userData.scores = cell(1,1);
   userData.categories = cell(1,1);
 
-  % load detection results. 'dets' struct gets loaded.
+  % load recognition results. 'dets' struct gets loaded.
   [pathstr, name, ext] = fileparts(userData.names{idx});
   load([userData.results_path name '.mat']);
 
@@ -352,7 +344,7 @@ function display_bounding_boxes(idx)
     end
   end
 
-  % sort detection scores into descending order, then sort category labels to match
+  % sort recongition scores into descending order, then sort category labels to match
   [boxes_scores, SortIndex] = sortrows(boxes_scores, -5);
   categories = categories(SortIndex);
 
@@ -368,17 +360,16 @@ function display_bounding_boxes(idx)
     h = boxes_scores(i,4) - boxes_scores(i,2);
     r = rectangle('Position',[x y w h],'EdgeColor','r','LineWidth',2);
     userData.bboxes{i} = r;
-    % save detection score and category for this bounding box
+    % save recognition score and category for this bounding box
     userData.scores{i} = score;
     userData.categories{i} = categories{i};
   end
 
-  set(plotfig, 'UserData', userData);
+  set(gcf, 'UserData', userData);
 end
 
 function select_bounding_box(x, y);
-  plotfig = gcf;
-  userData = get(plotfig, 'UserData');
+  userData = get(gcf, 'UserData');
   selected_bbox = [];
   selected_score = [];
   selected_category = [];
@@ -404,14 +395,13 @@ function select_bounding_box(x, y);
     highlight_bounding_box(selected_bbox, selected_score, selected_category);
     pos = selected_bbox.Position;
     display_image_portion(userData.index, pos(1), pos(1)+pos(3), pos(2), pos(2)+pos(4));
-    display_detection_score(selected_score, selected_category);
+    display_recognition_score(selected_score, selected_category);
     highlight_points(selected_bbox);
   end
 end
 
 function highlight_bounding_box(bbox, score, object)
-  plotfig = gcf;
-  userData = get(plotfig,'UserData');
+  userData = get(gcf,'UserData');
   subplot(2,2,2);
 
   % clear previous bounding box highlight
@@ -424,7 +414,7 @@ function highlight_bounding_box(bbox, score, object)
 
   % set new box to unhighlight next time
   userData.selected_bbox = new_bbox;
-  set(plotfig, 'UserData', userData);
+  set(gcf, 'UserData', userData);
 end
 
 
@@ -458,8 +448,7 @@ function ax = display_reconstructed_points(points)
 end
 
 function select_reconstructed_point(position)
-  plotfig = gcf;
-  userData = get(plotfig,'UserData');
+  userData = get(gcf,'UserData');
   clusters = userData.bbox_points;
   distance_to_cluster = zeros(length(clusters),1);
 
@@ -479,8 +468,7 @@ function select_reconstructed_point(position)
 end
 
 function highlight_points(bbox)
-  plotfig = gcf;
-  userData = get(plotfig,'UserData');
+  userData = get(gcf,'UserData');
   subplot(2,2,3);
 
   % clear previously highlighted points
@@ -535,7 +523,7 @@ function highlight_points(bbox)
   end
 
   userData.bbox_points = bbox_points;
-  set(plotfig,'UserData',userData);
+  set(gcf,'UserData',userData);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -544,12 +532,12 @@ end
 
 
 function display_image_portion(idx, xmin, xmax, ymin, ymax)
-  plotfig = gcf;
-  userData = get(plotfig,'UserData');
+  userData = get(gcf,'UserData');
   subplot(2,2,4);
 
   if length(userData.bbox_img) > 0
     delete(userData.bbox_img);
+    delete(userData.bbox_depth_img)
   end
 
   xmin = int16(max([xmin 1]));
@@ -557,14 +545,24 @@ function display_image_portion(idx, xmin, xmax, ymin, ymax)
   xmax = int16(min([xmax 1920]));
   ymax = int16(min([ymax 1080]));
 
-  img = imread([userData.image_path userData.names{idx}]);
+  image_name = userData.names{idx};
+  img = imread([userData.image_path image_name]);
   himage = imshow(img(ymin:ymax, xmin:xmax, :));
+  hold on;
+
+  % overlay depth image
+  suffix_index = strfind(image_name,'b') + 1;
+  raw_depth = imread(fullfile(userData.scene_path,...
+                      ['raw_depth/raw_depth' image_name(suffix_index:end)]));
+  depth_image = imagesc(raw_depth(ymin:ymax, xmin:xmax, :));
+  set(depth_image,'AlphaData',.5);
 
   userData.bbox_img = himage;
-  set(plotfig,'UserData',userData);
+  userData.bbox_depth_img = depth_image;
+  set(gcf,'UserData',userData);
 end
 
-function display_detection_score(score, object)
+function display_recognition_score(score, object)
 
   subplot(2,2,4);
 
@@ -573,8 +571,7 @@ function display_detection_score(score, object)
 end
 
 function select_object(x, y)
-  plotfig = gcf;
-  userData = get(plotfig,'UserData');
+  userData = get(gcf,'UserData');
 
   r = userData.selected_bbox;
   x = x + r.Position(1);
@@ -587,16 +584,21 @@ end
 
 function views = get_all_views_of_object(image_name, x, y)
   init;
-  plotfig = gcf;
-  userData = get(plotfig,'UserData');
+  userData = get(gcf,'UserData');
 
   occlusion_threshold = 200;
 
-  %get the depth image
+  % get the depth image
   scene_path = userData.scene_path;
   suffix_index = strfind(image_name,'b') + 1;
   depth_image = imread(fullfile(scene_path, ['raw_depth/raw_depth' image_name(suffix_index:end)] ));
   depth = double(depth_image(floor(y),floor(x)));
+
+  % if there is no depth information for this pixel, don't highlight any views
+  if (depth < 1)
+    views = [];
+    return;
+  end
 
   %size of rgb image in pixels
   kImageWidth = 1920;
