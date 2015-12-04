@@ -7,8 +7,6 @@
 
 function visualize_everything
 
-  scene_name = 'SN208';
-
   %initialize constants, paths and file names, etc.
   init;
   scene_path = fullfile(BASE_PATH, scene_name);
@@ -19,7 +17,11 @@ function visualize_everything
   % load data about each view. Each camera struct contains the image name, camera
   % position, camera orientation, translation vector, rotation matrix, quaternion
   % orientation, and scaled world position
-  camera_structs_file =  load(fullfile(scene_path,RECONSTRUCTION_DIR,CAMERA_STRUCTS_FILE));
+  camera_structs_path = fullfile(scene_path,RECONSTRUCTION_DIR,CAMERA_STRUCTS_FILE);
+  if (~exist(camera_structs_path,'file'))
+    save_camera_structs;
+  end
+  camera_structs_file = load(camera_structs_path);
   camera_structs = camera_structs_file.(CAMERA_STRUCTS);
   scene_scale = camera_structs_file.scale;
 
@@ -28,6 +30,7 @@ function visualize_everything
   names = {temp.(IMAGE_NAME)};
   worldpos = cell2mat({temp.(WORLD_POSITION)})';
   worlddir = cell2mat({temp.(DIRECTION)})';
+  clear temp;
 
   %make a map from image name to camera_struct
   camera_struct_map = containers.Map(names, camera_structs);
@@ -47,7 +50,7 @@ function visualize_everything
   % load reconstructed 3d points for the scene
   name_to_point_id_path = fullfile(scene_path, RECONSTRUCTION_DIR, NAME_TO_POINT_ID_MAT_FILE);
   if (~exist(name_to_point_id_path,'file'))
-    save_name_to_points_maps;
+    save_name_to_points_maps2;
   end
   name_to_point_ids = load(name_to_point_id_path);
   name_to_point_ids = name_to_point_ids.(NAME_TO_POINTS_MAP);
@@ -57,7 +60,7 @@ function visualize_everything
   id_to_point = id_to_point.(ID_TO_POINT_MAP);
 
   % set up the display figure with subplots for camera positions, images, etc
-  plotfig = figure;
+  plotfig = figure('units','normalized','outerposition',[0 0 1 1]);
   % set up UserData for the figure to save data and display elements between events
   data = struct('link', [],...
                 'scene_path', scene_path,...
@@ -104,6 +107,7 @@ function visualize_everything
   image_axes = display_image(1);
   display_bounding_boxes(1);
   select_bounding_box(700, 800);
+  select_object(259,257);
 
   % set up buttons for iterating through images
   t = uitoolbar(plotfig);
@@ -187,10 +191,10 @@ function output = switchViewCallback(source, event_data)
       select_view(hviews(1));
     else
       vidx = find(hviews==idx);
-      if (idx >= hviews(end)-2)
+      if (idx >= hviews(end))
         select_view(hviews(1));
       else
-        select_view(hviews(vidx+3));
+        select_view(hviews(vidx+1));
       end
     end
   elseif strcmp(source.TooltipString, 'Previous highlighted view')
@@ -201,10 +205,10 @@ function output = switchViewCallback(source, event_data)
       select_view(hviews(1));
     else
       vidx = find(hviews==idx);
-      if (idx <= hviews(1)+2)
+      if (idx <= hviews(1))
         select_view(hviews(end));
       else
-        select_view(hviews(vidx-3));
+        select_view(hviews(vidx-1));
       end
     end
   end
@@ -216,30 +220,7 @@ end
 % by the robot.
 function [snames, sstructs, spos, sdir] = sort_image_data(names, structs, pos, dirs)
 
-  padded_names = cell(length(names),1);
-
-  for i=1:length(names)
-    org_name = names{i};
-    prefix_index = strfind(org_name, 'b');
-    suffix_index = strfind(org_name, 'K');
-    org_stamp = org_name(prefix_index+1:suffix_index-1);
-    rgb_prefix = org_name(1:prefix_index);
-    suffix = org_name(suffix_index:end);
-
-    counter_string = org_stamp;
-    if(length(counter_string) < 6)
-      pad = '';
-      for j=1:(5-length(counter_string))
-        pad = [pad '0'];
-      end
-      counter_string = [pad counter_string];
-    end
-
-    padded_names{i} = [rgb_prefix counter_string suffix];
-  end
-
-  [padded_names, index] = sort(padded_names);
-  snames = names(index);
+  [snames, index] = sort(names);
   sstructs = structs(index);
   spos = pos(index,:);
   sdir = dirs(index,:);
@@ -348,7 +329,10 @@ function ax = display_image(idx)
   userData = get(gcf, 'UserData');
   ax = subplot(2,2,2);
 
-  imshow([userData.image_path userData.names{idx}]);
+  image_name = userData.names{idx};
+  image_name = [image_name(1:11) 'jpg'];
+
+  imshow([userData.image_path image_name]);
   hold on;
 end
 
@@ -436,7 +420,7 @@ function select_bounding_box(x, y);
   if size(selected_bbox) > 0
     highlight_bounding_box(selected_bbox, selected_score, selected_category);
     pos = selected_bbox.Position;
-    display_image_portion(userData.index, pos(1), pos(1)+pos(3), pos(2), pos(2)+pos(4));
+    display_image_portion(userData.index, pos);
     display_recognition_score(selected_score, selected_category);
     highlight_points(selected_bbox);
   end
@@ -572,8 +556,8 @@ end
 %%%%%%%%%%%%%%%%% Functions for bottom-right subplot display %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-function display_image_portion(idx, xmin, xmax, ymin, ymax)
+% pos is the bounding box Position field, [x y w h]
+function display_image_portion(idx, pos)
   userData = get(gcf,'UserData');
   subplot(2,2,4);
 
@@ -582,22 +566,31 @@ function display_image_portion(idx, xmin, xmax, ymin, ymax)
     delete(userData.bbox_depth_img)
   end
 
-  xmin = int16(max([xmin 1]));
-  ymin = int16(max([ymin 1]));
-  xmax = int16(min([xmax 1920]));
-  ymax = int16(min([ymax 1080]));
+  xmin = int16(max([pos(1) 1]));
+  ymin = int16(max([pos(2) 1]));
+  xmax = int16(min([pos(1)+pos(3) 1920]));
+  ymax = int16(min([pos(2)+pos(4) 1080]));
 
   image_name = userData.names{idx};
+  image_name = [image_name(1:11) 'jpg'];
+
   img = imread([userData.image_path image_name]);
   himage = imshow(img(ymin:ymax, xmin:xmax, :));
   hold on;
 
   % overlay depth image
-  suffix_index = strfind(image_name,'b') + 1;
-  raw_depth = imread(fullfile(userData.scene_path,...
-                      ['raw_depth/raw_depth' image_name(suffix_index:end)]));
+  suffix_index = 11;
+  depth_name = [image_name(1:9) '3.png'];
+  raw_depth = imread(fullfile(userData.scene_path, ['raw_depth/' depth_name]));
   depth_image = imagesc(raw_depth(ymin:ymax, xmin:xmax, :));
   set(depth_image,'AlphaData',.5);
+
+  % overlay object segmentation outline
+  % trimap = extract_foreground(image_name, pos);
+  % plotfig = gcf;
+  % newfig = figure;
+  % imshow(trimap);
+  % figure(plotfig);
 
   userData.bbox_img = himage;
   userData.bbox_depth_img = depth_image;
@@ -625,151 +618,3 @@ function select_object(x, y)
 
   highlight_views_of_object(views);
 end
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-function views = get_all_views_of_object(image_name, x, y)
-  init;
-  userData = get(gcf,'UserData');
-
-  occlusion_threshold = 200;
-
-  % get the depth image
-  scene_path = userData.scene_path;
-  suffix_index = strfind(image_name,'b') + 1;
-  depth_image = imread(fullfile(scene_path, ['raw_depth/raw_depth' image_name(suffix_index:end)] ));
-  depth = double(depth_image(floor(y),floor(x)));
-
-  % if there is no depth information for this pixel, don't highlight any views
-  if (depth < 1)
-    views = [];
-    return;
-  end
-
-  %size of rgb image in pixels
-  kImageWidth = 1920;
-  kImageHeight = 1080;
-
-  %distance from kinects in mm
-  kDistanceK1K2 = 291;
-  kDistanceK2K3 = 272;
-
-  %set intrinsic matrices for each kinect
-  intrinsic1 = [ 1.0700016292741097e+03, 0., 9.2726881773877119e+02; 0.,1.0691225545678490e+03, 5.4576099988165549e+02; 0., 0., 1. ];
-  intrinsic2 = [  1.0582854982177009e+03, 0., 9.5857576622458146e+0; 0., 1.0593799583771420e+03, 5.3110874137837084e+02; 0., 0., 1. ];
-  intrinsic3 = [ 1.0630462958838500e+03, 0., 9.6260473585485727e+02; 0., 1.0636103172708376e+03, 5.3489949221354482e+02; 0., 0., 1.];
-
-  names = userData.names;
-  camera_struct_map = userData.name_to_camera_struct;
-  scale = userData.scale;
-
-  %for the given pixel, find all views that can see the corresponding point
-  pixel = floor([x y])';
-
-  %%%%%%%%%%% CONVERT POINT FROM PIXELS TO WORLD COORDINATES %%%%%%%%%%%%%%%
-
-  %get the data for the labeled image
-  camera_struct = camera_struct_map(image_name);
-
-  K = intrinsic1;
-  t = camera_struct.(TRANSLATION_VECTOR);
-  R = camera_struct.(ROTATION_MATRIX);
-  C = camera_struct.(SCALED_WORLD_POSITION);
-  t = t*scale;
-  world_coords = R' * depth * pinv(K) *  [pixel;1] - R'*t;
-
-  %%%%%%%%%%%%% FIND IMAGES THAT SEE THAT 3D Point   %%%%%%%%%%%%%%%%
-
-  found_indices = cell(0);
-  found_image_names = cell(0);
-  found_points = cell(0);
-
-  %for each possible image, see if it contains the labeled point
-  for i=1:length(names)
-    cur_name = names{i};
-    cur_camera_struct = camera_struct_map(cur_name);
-
-    %get rotation matrix
-    R = cur_camera_struct.(ROTATION_MATRIX);
-
-    %translation vector
-    t = cur_camera_struct.(TRANSLATION_VECTOR);
-    t = t * scale;
-
-    %re-orient the point to see if it is viewable by this camera
-    P = [R t];
-    oriented_point = P * [world_coords;1];
-    %make sure z is positive
-    if(oriented_point(3) < 0)
-      continue;
-    end
-
-    %project the world point onto this image
-    M = K * [R t];
-    cur_image_point = M * [world_coords;1];
-
-    %acccount for homogenous coords
-    cur_image_point = cur_image_point / cur_image_point(3);
-    cur_image_point = cur_image_point(1:2);
-
-    %make sure the point is in the image
-    if(cur_image_point(1) < 1 ||  cur_image_point(2) < 1 || ...
-      cur_image_point(1) > kImageWidth || cur_image_point(2) > kImageHeight)
-      continue;
-    end
-
-    %%%%%% OCCLUSION  %%%%%%
-    %make sure distance from camera to world_coords is similar to depth of
-    %projected point in the depth image
-
-    %get the depth image
-    % suffix_index = strfind(cur_name,'b') + 1;
-    % depth_image = imread(fullfile(scene_path, ['raw_depth/raw_depth' cur_name(suffix_index:end)] ));
-    %
-    % cur_depth = depth_image(floor(cur_image_point(2)), floor(cur_image_point(1)));
-    % camera_pos = cur_camera_struct.(SCALED_WORLD_POSITION);
-    % world_dist = pdist2(camera_pos', world_coords');
-    %
-    % %if the depth == 0, then keep this image as we can't tell
-    % if(abs(world_dist - cur_depth) > occlusion_threshold  && cur_depth >0)
-    %   continue;
-    % end
-
-    found_indices{length(found_indices)+1} = i;
-    found_image_names{length(found_image_names)+1} = cur_name;
-    % found_points{length(found_points)+1} = [cur_image_point' cur_depth];
-  end
-
-  views = cell2mat(found_indices);
-end
-
-% function views = get_all_views_of_object(points)
-%   userData = get(gcf, 'UserData');
-%   subplot(2,2,1);
-%
-%   % get 3D bounding box containing all points in the cluster
-%   Xmin = min(points(:,1));
-%   Xmax = max(points(:,1));
-%   Ymin = min(points(:,2));
-%   Ymax = max(points(:,2));
-%   Zmin = min(points(:,3));
-%   Zmax = max(points(:,3));
-%
-%   views = [];
-%
-%   % find indicies of all views that can see a point in the 3D bounding box
-%   names = userData.names;
-%   for i=1:length(names)
-%     point_id_data = userData.name_to_point_ids(names{i});
-%     for j=3:3:length(point_id_data)
-%       if point_id_data(j) > 0
-%         pt = userData.id_to_point(point_id_data(j));
-%           if (pt(1) >= Xmin && pt(1) <= Xmax && pt(2) >= Ymin && pt(2) <= Ymax && pt(3) >= Zmin && pt(3) <= Zmax)
-%             views = [views; i];
-%             break;
-%           end
-%       end
-%     end
-%   end
-%
-% end

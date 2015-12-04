@@ -1,7 +1,7 @@
 %this files defines file paths, names, and string literals that are used in
 %multiple files, and may need to be changed for different machines.
 
-
+scene_name = 'FB209';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%              DIRECTORIES             %%%%%%%%%%%%%%%
@@ -39,23 +39,15 @@ MISC_DIR = 'misc/';
 %%%%%%%%%%%%%%              FILE  NAMES             %%%%%%%%%%%%%%%
 
 NAME_TO_POS_DIRS_MAT_FILE = 'name_to_pos_dirs_map.mat';
-
 CAMERA_STRUCTS_FILE = 'camera_structs.mat';
 
+NAME_TO_POINTS_STRUCTS_FILE = 'point_2d_structs.mat';
 NAME_TO_POINT_ID_MAT_FILE = 'name_to_point_id.mat';
-
 ID_TO_POINT_MAT_FILE = 'id_to_point.mat';
 
 IMAGES_RECONSTRUCTION = 'images.txt';
-
 POINTS_3D = 'points3D.txt';
-
 POINTS_3D_MAT_FILE = 'points3D.mat';
-
-
-
-
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -66,8 +58,10 @@ ID_TO_POINT_MAP = 'id_to_point_map';
 POINTS_3D_MATRIX = 'point_matrix';
 
 CAMERA_STRUCTS = 'camera_structs';
-
 SCALE = 'scale';
+
+NAME_TO_POINTS_STRUCTS = 'point_2d_structs';
+PIXEL_TO_POINT = 'points_2d';
 
 IMAGE_NAME = 'image_name';
 TRANSLATION_VECTOR = 't';

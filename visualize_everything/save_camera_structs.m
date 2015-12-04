@@ -28,10 +28,6 @@ TZ = 8;
 CAMERA_ID = 9;
 NAME = 10;
 
-
-
-scene_name = 'SN208';  %make this = 'all' to run all scenes
-
 %get the names of all the scenes
 d = dir(BASE_PATH);
 d = d(3:end);
@@ -137,9 +133,6 @@ for i=1:num_scenes
     camera_structs = camera_structs(~cellfun('isempty',camera_structs));
 
 
-
-
-
     %get a list of all the image file names
     temp = cell2mat(camera_structs);
     image_names = {temp.(IMAGE_NAME)};
@@ -149,10 +142,6 @@ for i=1:num_scenes
     camera_struct_map = containers.Map(image_names, camera_structs);
 
 
-
-
-
-        %
     % %%%%%%%%%%%%%%% DETERMINE SCALE  OF RECONSTRUCTION  %%%%%%%%%%%%%%%%%%
     %
     %

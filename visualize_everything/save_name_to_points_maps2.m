@@ -1,3 +1,6 @@
+% use this if you have points_2d_structs.mat and points3D.txt
+% use save_name_to_points_maps.m when you have images.txt and points3D.txt
+
 % gets all the reconstructed points for an image in the reconstruction output and
 % saves them in a map data structure, in a mat file. The structure maps from image name to a
 % a vector [x1,y1,ID1,x2,y2,...,xn,yn,IDn] where for each xi of the n
@@ -14,8 +17,6 @@ POINT_ID  = 1;
 X = 2;
 Y = 3;
 Z = 4;
-
-scene_name = 'SN208';  %make this = 'all' to run all scenes
 
 %get the names of all the scenes
 d = dir(BASE_PATH);
@@ -42,56 +43,15 @@ for i=1:num_scenes
 
 %%%%%%%%%%%%%%%%%%%% Build the image name to points map %%%%%%%%%%%%%%%%%%%%%%%%
 
-    % get the camera positions and orientations for the given images
-    fid_images = fopen(fullfile(positions_path, IMAGES_RECONSTRUCTION));
+    name_to_points_structs_file = load(fullfile(scene_path,RECONSTRUCTION_DIR,NAME_TO_POINTS_STRUCTS_FILE));
+    name_to_points_structs = name_to_points_structs_file.(NAME_TO_POINTS_STRUCTS);
 
-    if(fid_images == -1)
-        continue;
-    end
+    temp = cell2mat(name_to_points_structs);
+    names = {temp.(IMAGE_NAME)};
+    pixel_to_pt = {temp.(PIXEL_TO_POINT)};
+    clear temp;
 
-    num_total_rgb_images = length(dir(fullfile(scene_path,RGB_IMAGES_DIR))) - 2;
-
-    %skip header in images.txt
-    fgetl(fid_images);
-    fgetl(fid_images);
-    line = fgetl(fid_images);
-
-    point_data = cell(1,num_total_rgb_images);
-    names = cell(1,num_total_rgb_images);
-
-    cur_image = zeros(1,9);
-
-    i = 1;
-
-    while(ischar(line))
-
-      %get image info
-      line = fgetl(fid_images);
-      line = strsplit(line);
-
-      if length(line) < 1
-        break;
-      end
-
-      names{i} = line{end};
-
-      %get line that gives ID of a 3D point for some pixels
-      line = fgetl(fid_images);
-      if ~ischar(line)
-        break;
-      end
-
-      pixel_to_pt = strsplit(line);
-      point_data{i} = str2double(pixel_to_pt(1:end));
-
-      i = i+1;
-    end
-
-    fclose(fid_images);
-
-    point_data = point_data(1:i-1);
-    names = names(1:i-1);
-    name_to_points_map = containers.Map(names, point_data);
+    name_to_points_map = containers.Map(names, pixel_to_pt);
 
     save(fullfile(scene_path, RECONSTRUCTION_DIR, NAME_TO_POINT_ID_MAT_FILE), NAME_TO_POINTS_MAP);
 
