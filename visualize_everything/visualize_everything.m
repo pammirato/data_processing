@@ -586,11 +586,19 @@ function display_image_portion(idx, pos)
   set(depth_image,'AlphaData',.5);
 
   % overlay object segmentation outline
-  % trimap = extract_foreground(image_name, pos);
-  % plotfig = gcf;
-  % newfig = figure;
-  % imshow(trimap);
-  % figure(plotfig);
+  seg_img = extract_foreground(image_name, pos);
+  seg_img = im2bw(seg_img, 2/255);
+  [B,L] = bwboundaries(seg_img,'noholes');
+  seg_img = seg_img .* 85;
+  plotfig = gcf;
+  newfig = figure;
+  imshow(seg_img);
+  hold on;
+  for k = 1:length(B)
+    boundary = B{k};
+    plot(boundary(:,2), boundary(:,1), 'r', 'LineWidth', 2)
+  end
+  figure(plotfig);
 
   userData.bbox_img = himage;
   userData.bbox_depth_img = depth_image;
