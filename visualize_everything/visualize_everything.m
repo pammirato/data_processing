@@ -78,6 +78,7 @@ function visualize_everything
                 'points', [],...
                 'selected_view', [],...
                 'selected_bbox', [],...
+                'selected_bbox_idx', [],...
                 'selected_point', [],...
                 'bbox_img', [],...
                 'bbox_depth_img', [],...
@@ -110,7 +111,7 @@ function visualize_everything
   select_bounding_box(700, 800);
   select_object(259,257);
 
-  % set up buttons for iterating through images
+  % set up button controls
   t = uitoolbar(plotfig);
   [pathstr, name, ext] = fileparts(which('visualize_everything'));
 
@@ -126,6 +127,9 @@ function visualize_everything
   img_rab = imread(fullfile(pathstr,'rightarrowblue.jpg'));
   rightarrow = uipushtool(t,'TooltipString','Next highlighted view','CData',img_rab,...
                   'ClickedCallback', @switchViewCallback);
+  img_seg = imread(fullfile(pathstr,'segment.jpg'));
+  rightarrow = uipushtool(t,'TooltipString','Object segmentation','CData',img_seg,...
+                  'ClickedCallback', @segmentationCallback);
 
 
   % set figure to call pick_data when a data point is selected
@@ -214,6 +218,19 @@ function output = switchViewCallback(source, event_data)
     end
   end
 end
+
+function output = segmentationCallback(source, event_data)
+    userData = get(gcf, 'UserData');
+
+    if length(userData.selected_bbox_idx) > 0
+        idx = userData.selected_bbox_idx;
+        image_name = userData.names{idx};
+        image_name = [image_name(1:11) 'jpg'];
+
+        display_segmentation(image_name, userData.selected_bbox.Position);
+    end
+end
+
 
 % sorts image names and position/orientation data into alphabetical order by
 % by image name. The numbers in the image names must be padded first for the
@@ -424,6 +441,10 @@ function select_bounding_box(x, y);
     display_image_portion(userData.index, pos);
     display_recognition_score(selected_score, selected_category);
     highlight_points(selected_bbox);
+
+    userData = get(gcf, 'UserData');
+    userData.selected_bbox_idx = userData.index;
+    set(gcf, 'UserData', userData);
   end
 end
 
@@ -589,9 +610,9 @@ function display_image_portion(idx, pos)
   depth_image = imagesc(raw_depth(ymin:ymax, xmin:xmax, :));
   set(depth_image,'AlphaData',.5);
 
-  % overlay object segmentation outline
-  display_segmentation(image_name, pos);
-  userData = get(gcf,'UserData');
+  % % overlay object segmentation outline
+  % display_segmentation(image_name, pos);
+  % userData = get(gcf,'UserData');
 
   userData.bbox_img = himage;
   userData.bbox_depth_img = depth_image;
