@@ -82,6 +82,7 @@ function visualize_everything
                 'bbox_img', [],...
                 'bbox_depth_img', [],...
                 'bbox_points', [],...
+                'segmentation', cell(1,1),...
                 'views_of_object', [],...
                 'views_indices', [],...
                 'name_to_camera_struct', camera_struct_map,...
@@ -563,7 +564,10 @@ function display_image_portion(idx, pos)
 
   if length(userData.bbox_img) > 0
     delete(userData.bbox_img);
-    delete(userData.bbox_depth_img)
+    delete(userData.bbox_depth_img);
+    for i=1:length(userData.segmentation)
+        delete(userData.segmentation{i});
+    end
   end
 
   xmin = int16(max([pos(1) 1]));
@@ -586,23 +590,44 @@ function display_image_portion(idx, pos)
   set(depth_image,'AlphaData',.5);
 
   % overlay object segmentation outline
-  seg_img = extract_foreground(image_name, pos);
-  seg_img = im2bw(seg_img, 2/255);
-  [B,L] = bwboundaries(seg_img,'noholes');
-  seg_img = seg_img .* 85;
-  plotfig = gcf;
-  newfig = figure;
-  imshow(seg_img);
-  hold on;
-  for k = 1:length(B)
-    boundary = B{k};
-    plot(boundary(:,2), boundary(:,1), 'r', 'LineWidth', 2)
-  end
-  figure(plotfig);
+  display_segmentation(image_name, pos);
+  userData = get(gcf,'UserData');
 
   userData.bbox_img = himage;
   userData.bbox_depth_img = depth_image;
   set(gcf,'UserData',userData);
+end
+
+function display_segmentation(image_name, pos)
+    userData = get(gcf,'UserData');
+    subplot(2,2,4);
+
+    if length(userData.segmentation) > 0
+        for i=1:length(userData.segmentation)
+          delete(userData.segmentation{i});
+        end
+    end
+
+    xmin = int16(max([pos(1) 1]));
+    ymin = int16(max([pos(2) 1]));
+    xmax = int16(min([pos(1)+pos(3) 1920]));
+    ymax = int16(min([pos(2)+pos(4) 1080]));
+
+    seg_img = extract_foreground(image_name, pos);
+    seg_img = seg_img(ymin:ymax, xmin:xmax);
+    seg_img = im2bw(seg_img, 2/255);
+    [B,L] = bwboundaries(seg_img,'noholes');
+    seg_img = seg_img .* 85;
+
+    seg_plots = cell(1,1);
+    for k = 1:length(B)
+      boundary = B{k};
+      outline = plot(boundary(:,2), boundary(:,1), 'c', 'LineWidth', 2);
+      seg_plots{k} = outline;
+    end
+
+    userData.segmentation = seg_plots;
+    set(gcf,'UserData',userData);
 end
 
 function display_recognition_score(score, object)
