@@ -610,10 +610,6 @@ function display_image_portion(idx, pos)
   depth_image = imagesc(raw_depth(ymin:ymax, xmin:xmax, :));
   set(depth_image,'AlphaData',.5);
 
-  % % overlay object segmentation outline
-  % display_segmentation(image_name, pos);
-  % userData = get(gcf,'UserData');
-
   userData.bbox_img = himage;
   userData.bbox_depth_img = depth_image;
   set(gcf,'UserData',userData);
