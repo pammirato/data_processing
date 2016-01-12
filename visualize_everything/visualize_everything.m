@@ -608,7 +608,7 @@ function display_image_portion(idx, pos)
   depth_name = [image_name(1:9) '3.png'];
   raw_depth = imread(fullfile(userData.scene_path, ['raw_depth/' depth_name]));
   depth_image = imagesc(raw_depth(ymin:ymax, xmin:xmax, :));
-  set(depth_image,'AlphaData',.5);
+  set(depth_image,'AlphaData',.3);
 
   userData.bbox_img = himage;
   userData.bbox_depth_img = depth_image;
