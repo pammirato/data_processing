@@ -13,11 +13,11 @@ kImageWidth = 1920;
 kImageHeight = 1080;
 
 %distance from kinects in mm
-kDistanceK1K2 = 291;
+kDistanceK1K2 = 291 + 272;
 kDistanceK2K3 = 272;
 
 %some constants that correspond to an index in each line the data is
-IMAGE_ID = 1;
+IMG_ID = 1;
 QW = 2;
 QX = 3;
 QY = 4;
@@ -25,12 +25,12 @@ QZ = 5;
 TX = 6;
 TY = 7;
 TZ = 8;
-CAMERA_ID = 9;
+CAM_ID = 9;
 NAME = 10;
 
 
 
-scene_name = 'all';  %make this = 'all' to run all scenes
+scene_name = 'FB209_2';  %make this = 'all' to run all scenes
 
 %get the names of all the scenes
 d = dir(BASE_PATH);
@@ -47,7 +47,7 @@ for i=1:num_scenes
     
     %if we are processing all scenes
     if(num_scenes >1)
-        scene_name = d(i).name();
+        scene_name = d(i).name()
     end
 
     scene_path =fullfile(BASE_PATH, scene_name);
@@ -72,6 +72,7 @@ for i=1:num_scenes
   
     %holds all the structs, one per image, for this scene
     camera_structs = cell(1,num_total_rgb_images); 
+    point_2d_structs = cell(1,num_total_rgb_images);
  
 
     %for the orientation
@@ -116,26 +117,36 @@ for i=1:num_scenes
          
           %put all the info in a struct, with a place holder for scaled
           %position
-          cur_struct = struct(IMAGE_NAME, line{end}, TRANSLATION_VECTOR, t, ...
+          cur_struct = struct(IMAGE_NAME, name, TRANSLATION_VECTOR, t, ...
                              ROTATION_MATRIX, R, WORLD_POSITION, (-R' * t), ...
                              DIRECTION, -cur_vec, QUATERNION, quat, ...
-                             SCALED_WORLD_POSITION, [0,0,0]);
+                             SCALED_WORLD_POSITION, [0,0,0], IMAGE_ID,line{IMG_ID}, CAMERA_ID, line{CAM_ID});
      
           camera_structs{j} = cur_struct;
           
           j = j+1;
+          
+          %get Points2D 
+          line =fgetl(fid_images); 
+          
+          p2d_struct = struct(IMAGE_NAME, name, ...
+              POINTS_2D, str2double(strsplit(line)));
+          
+          point_2d_structs{j} = p2d_struct;
    
-      end
       
+      else
+          %get Points2D 
+          line = fgetl(fid_images);
+      end
                       
-      %get Points2D 
-      line =fgetl(fid_images); 
+      
 
     end
 
     %get rid of empty cells if not all images were reconstructed
     camera_structs = camera_structs(~cellfun('isempty',camera_structs));
-
+    point_2d_structs = point_2d_structs(~cellfun('isempty',point_2d_structs));
     
     
     
@@ -165,9 +176,9 @@ for i=1:num_scenes
     k2k3_counter =1;
     
     %find all the distances from the reconstruction
-    for i=1:length(image_names)
+    for jj=1:length(image_names)
     
-      cur_name = image_names{i};
+      cur_name = image_names{jj};
     
     
       %if this is a k1, store the distance to the k2 above it 
@@ -175,6 +186,7 @@ for i=1:num_scenes
         %get name of image for k2 at same point
         k2_name = cur_name;
         k2_name(end -4) = '2';
+        k2_name(end -4) = '3';
     
         %get camera positions
         k1_data = camera_struct_map(cur_name);
@@ -224,6 +236,8 @@ for i=1:num_scenes
     %get the overall scale as a weighted average from the above
     scale  = ( length(distances_k1k2)*scale_k1k2  + length(distances_k2k3)*scale_k2k3 )...
               / ( length(distances_k1k2) + length(distances_k2k3) );
+
+    scale = scale_k1k2;
     % 
     % 
     % %%%%%%%%%%%%%%% END DETERMINE SCALE OF  RECONSTRUCTION  %%%%%%%%%%%%%%%%%%
@@ -237,9 +251,9 @@ for i=1:num_scenes
     
     
     
-    for i=1:length(camera_structs)
+    for jj=1:length(camera_structs)
         
-        cur_struct = camera_structs{i};
+        cur_struct = camera_structs{jj};
         
         t = cur_struct.(TRANSLATION_VECTOR);
         R = cur_struct.(ROTATION_MATRIX);
@@ -248,7 +262,7 @@ for i=1:num_scenes
         
         cur_struct.(SCALED_WORLD_POSITION) = (-R' *t);
         
-        camera_structs{i} = cur_struct;
+        camera_structs{jj} = cur_struct;
         
     end%for camera_structs
     
@@ -265,4 +279,6 @@ for i=1:num_scenes
     
     save(fullfile(scene_path, RECONSTRUCTION_DIR, CAMERA_STRUCTS_FILE), CAMERA_STRUCTS, SCALE);
 
+    save(fullfile(scene_path, RECONSTRUCTION_DIR, POINT_2D_STRUCTS_FILE), POINT_2D_STRUCTS);
+    
 end

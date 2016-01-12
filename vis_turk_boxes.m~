@@ -1,0 +1,42 @@
+%draws the bboxes on the images
+
+
+
+init;
+
+scene_name = 'FB209_2';
+
+label_name = 'advil_liqui_gels';
+
+
+scene_path = fullfile(BASE_PATH,scene_name);
+turk_path = fullfile(scene_path,'turk_boxes');
+
+
+
+
+%load names of images we care about
+annotations = load(fullfile(turk_path,strcat(label_name,'.mat')));
+
+annotations = annotations.annotations;
+for i=1:length(annotations)
+    
+    cur_ann = 
+    
+    rgb_image = imread(fullfile(scene_path,JPG_RGB_IMAGES_DIR, cur_name));
+    
+    imshow(rgb_image);
+    hold on;
+    
+    bbox = map(cur_name);
+    
+    rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], 'LineWidth',2, 'EdgeColor','b');
+    
+    
+    ginput(1);
+    hold off;
+end
+
+
+
+

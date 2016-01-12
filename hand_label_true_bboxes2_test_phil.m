@@ -7,10 +7,10 @@ scene_name = 'FB209';
 
 
 %class_name = 'monitor';  
-label_name = 'spongebob_squarepants_fruit_snaks' ;  %what label will be given to every bounding box
+label_name = 'hunts_sauce' ;  %what label will be given to every bounding box
 
 
-center_label = 1;
+center_label = 0;
 
 
 

@@ -92,7 +92,7 @@ while image_counter <= length(image_names)
   
   rgb_image = imread(fullfile(scene_path,RGB_IMAGES_DIR,rgb_name));
   depth_image = imread(fullfile(scene_path, RAW_DEPTH_IMAGES_DIR, ... 
-                       strcat('raw_depth' ,rgb_name(suffix_index:end)) ));
+                       strcat(rgb_name(1:8),'03.png') ));
     
   %get one point from the user clicking on the image
   %points{point_counter} = readPoints(rgb_images{image_counter},1);
@@ -103,12 +103,15 @@ while image_counter <= length(image_names)
   h = imagesc(depth_image);
   set(h,'AlphaData',.5);
 
-
+  title(rgb_name);
   [xi, yi, but] = ginput(1);
   x = floor(xi);
   y = floor(yi);
-  
-  points{point_counter} = [x y depth_image(y,x)];
+  try
+    points{point_counter} = [x y depth_image(y,x)];
+  catch ME
+        breakp =1;
+  end
   hold off;
   
   images_used{point_counter} = image_names{image_counter};
@@ -201,8 +204,13 @@ end%for i images
 
 close all;
 
+
 %write the coordinates of the points to a text file
-fid = fopen(fullfile(write_path ,ALL_LABELED_POINTS_FILE), 'wt');
+if(exist(fullfile(write_path ,ALL_LABELED_POINTS_FILE),'file'))
+    fid = fopen(fullfile(write_path ,'labelded_points_to_add.txt'), 'wt');
+else
+    fid = fopen(fullfile(write_path ,ALL_LABELED_POINTS_FILE), 'wt');
+end
 
 fprintf(fid, ['%%Points of interest in images, two lines per point' '\n' ...
              '%%IMAGE_FILE_NAME X Y DEPTH' '\n' ...

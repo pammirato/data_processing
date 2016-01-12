@@ -23,7 +23,7 @@ NAME = 10;
 
 
 
-scene_name = 'SN208';  %make this = 'all' to run all scenes
+scene_name = 'Room15';  %make this = 'all' to run all scenes
 
 %get the names of all the scenes
 d = dir(BASE_PATH);
@@ -109,7 +109,7 @@ for i=1:num_scenes
 
       %camera_data{i} = [worldpos(1) worldpos(2) worldpos(3) dX dY dZ];
       %camera_data{i} = [worldpos(1) worldpos(2) worldpos(3) quat'];
-      camera_data{i} = [t' quat'];
+      camera_data{i} = [worldpos' dX dY dZ ];
       
       
       %get Points2D 
@@ -126,6 +126,6 @@ for i=1:num_scenes
     name_to_pos_dirs_map = containers.Map(names, camera_data);
 
     %save(fullfile(scene_path, RECONSTRUCTION_DIR, NAME_TO_POS_DIRS_MAT_FILE), NAME_TO_POS_DIRS_MAP);
-    save(fullfile(scene_path, RECONSTRUCTION_DIR, 'camera_data_map.mat'), NAME_TO_POS_DIRS_MAP);
+    save(fullfile(scene_path, RECONSTRUCTION_DIR, 'name_to_pos_dirs_map.mat'), NAME_TO_POS_DIRS_MAP);
 
 end

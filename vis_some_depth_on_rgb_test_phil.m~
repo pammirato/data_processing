@@ -44,7 +44,7 @@ for i=1:num_rooms
         fullfile(BASE_PATH, scene_name,'rgb/', rgb_name)
         
         img = imread(fullfile(BASE_PATH, scene_name,'rgb/', rgb_name));
-        depth_name =strcat(rgb_name(1:8),'03.png');
+        depth_name =strcat(
         raw_depth = imread(fullfile(BASE_PATH,scene_name,'/raw_depth/',depth_name));
         
         %fullfile(base_path,scene_name,'/raw_depth/',['raw_depth' index])

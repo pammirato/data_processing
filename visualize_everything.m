@@ -5,7 +5,7 @@
 
 function visualize_everything
 
-  scene_name = 'SN208';
+  scene_name = 'Room15';
 
   %should the lines indicating orientation be drawn?
   view_orientation = 1;
@@ -14,7 +14,7 @@ function visualize_everything
   init;
   scene_path = fullfile(BASE_PATH, scene_name);
   image_path = fullfile(scene_path, RGB_IMAGES_DIR);
-  results_path = fullfile(scene_path, RECOGNITION_DIR, FAST_RCNN_RESULTS);
+  results_path = fullfile(scene_path, RECOGNITION_DIR, FAST_RCNN_DIR);
   save_figure_path = fullfile(scene_path, MISC_DIR);
 
   % load maps from image name to camera data and vice versa
@@ -179,10 +179,10 @@ function display_bounding_boxes(idx, results_path, names)
   [boxes_scores, SortIndex] = sortrows(boxes_scores,-5);
   categories = categories(SortIndex);
 
-  num_bboxes_shown = 10;
+  num_bboxes_shown = 100;
   for i=1:num_bboxes_shown
     score = boxes_scores(i,5);
-    if score < 0.3
+    if score < 0.1
       break;
     end
     x = boxes_scores(i,1);

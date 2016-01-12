@@ -11,8 +11,7 @@ label_name = class_name;%'monitor1';
 
 scene_path = fullfile(BASE_PATH,scene_name);
 
-write_path = fullfile(scene_path,LABELING_DIR, GROUND_TRUTH_BBOXES_DIR, label_name);
-%mkdir(write_path);
+labeled_boxes_path = fullfile(scene_path,LABELING_DIR, LABELED_BBOXES_DIR, label_name);
 
 
 

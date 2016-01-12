@@ -7,9 +7,15 @@
 %%%%%%%%%%%%%%              DIRECTORIES             %%%%%%%%%%%%%%%
 
 %directory that holds one directory per scene
-BASE_PATH = '/playpen/ammirato/Data/';
+BASE_PATH = '/playpen/ammirato/Data/RohitData';
+
+BIGBIRD_BASE_PATH = '/playpen/ammirato/Data/BigBIRD';
+
+
 
 RGB_IMAGES_DIR = 'rgb/';
+
+JPG_RGB_IMAGES_DIR = 'jpg_rgb/';
 
 %holds original 424x512 depth images
 UNREG_DEPTH_IMAGES_DIR = 'unreg_depth/';
@@ -33,15 +39,22 @@ LABELING_DIR = 'labeling';
 
     %data_for_labeling
     DATA_FOR_LABELING_DIR = 'data_for_labeling';
+    
+    IMAGES_FOR_LABELING_DIR = 'images_for_labeling';
 
     %
     GROUND_TRUTH_BBOXES_DIR = 'ground_truth_bboxes';
+    
+    PREPARED_IMAGES_DIR = 'prepared_images';
+        DATA_DIR = 'data';
+        IMAGES_DIR = 'images';
+
+
+   LABELED_BBOXES_DIR = 'labeled_bboxes';
 
 
 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%              FILE  NAMES             %%%%%%%%%%%%%%%
 
 NAME_TO_POS_DIRS_MAT_FILE = 'name_to_pos_dirs_map.mat';
@@ -53,12 +66,17 @@ POINTS_3D = 'points3D.txt';
 POINTS_3D_MAT_FILE = 'points3D.mat';
 
 CAMERA_STRUCTS_FILE = 'camera_structs.mat';
+NEW_CAMERA_STRUCTS_FILE = 'new_camera_structs.mat';
+POINT_2D_STRUCTS_FILE = 'point_2d_structs.mat';
+NEW_POINT_2D_STRUCTS_FILE = 'new_point_2d_structs.mat';
 
 ALL_LABELED_POINTS_FILE = 'all_labeled_points.txt';
 
 ALL_IMAGES_THAT_SEE_POINT_FILE = 'all_images_that_see_point_file.txt';
 
 LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE = 'label_to_images_that_see_it_map.mat';
+
+NAME_MAP_FILE = 'name_map.mat';
 
 
 
@@ -68,6 +86,7 @@ LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE = 'label_to_images_that_see_it_map.mat';
 NAME_TO_POS_DIRS_MAP = 'name_to_pos_dirs_map';
 POINTS_3D_MATRIX = 'point_matrix';
 CAMERA_STRUCTS = 'camera_structs';
+POINT_2D_STRUCTS = 'point_2d_structs';
 
 SCALE = 'scale';
 
@@ -78,6 +97,9 @@ WORLD_POSITION = 'world_pos';
 DIRECTION = 'direction';
 QUATERNION = 'quat';
 SCALED_WORLD_POSITION = 'scaled_world_pos';
+IMAGE_ID = 'image_id';
+CAMERA_ID = 'camera_id';
+POINTS_2D = 'points_2d';
 
 LABEL_TO_IMAGES_THAT_SEE_IT_MAP = 'label_to_images_that_see_it_map';
 X = 'x';
@@ -86,6 +108,23 @@ DEPTH = 'depth';
 
 
 DETECTIONS_STRUCT = 'dets';
+
+
+
+RGB_INDEX_STRING = '01';
+RGB_INDEX = 1;
+UNREG_DEPTH_INDEX_STRING = '02';
+UNREG_DEPTH_INDEX = 2;
+RAW_DEPTH_INDEX_STRING = '03';
+RAW_DEPTH_INDEX = 3;
+FILLED_DEPTH_INDEX_STRING = '04';
+FILLED_DEPTH_INDEX = 4;
+
+RGB_JPG_INDEX_STRING = '11';
+RGB_JPG_INDEX = 11;
+
+NAME_MAP = 'name_map';
+
 
 
 
