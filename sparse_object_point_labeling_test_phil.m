@@ -26,7 +26,7 @@
 init;
 
 
-scene_name = 'Room15';
+scene_name = 'SN208';
 
 
 %should be 1
@@ -204,18 +204,24 @@ end%for i images
 
 close all;
 
-
-%write the coordinates of the points to a text file
+header = 1;
 if(exist(fullfile(write_path ,ALL_LABELED_POINTS_FILE),'file'))
-    fid = fopen(fullfile(write_path ,'labelded_points_to_add.txt'), 'wt');
-else
-    fid = fopen(fullfile(write_path ,ALL_LABELED_POINTS_FILE), 'wt');
+    header = 0;
 end
+    
+    
+%write the coordinates of the points to a text file
+% if(exist(fullfile(write_path ,ALL_LABELED_POINTS_FILE),'file'))
+%     fid = fopen(fullfile(write_path ,'labelded_points_to_add.txt'), 'wt');
+% else
+    fid = fopen(fullfile(write_path ,ALL_LABELED_POINTS_FILE), 'at');
+% end
 
-fprintf(fid, ['%%Points of interest in images, two lines per point' '\n' ...
+if(header)
+    fprintf(fid, ['%%Points of interest in images, two lines per point' '\n' ...
              '%%IMAGE_FILE_NAME X Y DEPTH' '\n' ...
              '%%OBJECT_LABEL' '\n' ]);
-             
+end   
 
 for i=1:length(points)
   cur_point = points{i};
@@ -230,7 +236,7 @@ for i=1:length(points)
                 num2str(cur_point(3)) '\n' ... 
                  labels{i} '\n']);
 end%for i points
-fprintf(fid, '\n');
+%fprintf(fid, '\n');
 fclose(fid);
 
 

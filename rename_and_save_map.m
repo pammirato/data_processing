@@ -5,7 +5,7 @@ clear;
 init; 
 
 
-scene_name = 'FB241B';  %make this = 'all' to go through all rooms
+scene_name = 'SN349';  %make this = 'all' to go through all rooms
 
 
 
@@ -49,7 +49,7 @@ for i=1:num_rooms
         if(strcmp(name(1),'2'))
             index = name(8:end-6);
             %plus one cause matlab is 1 based
-            index = str2num(index) +1 + length(org_rgb_names);
+            index = str2num(index) +1 + 637;
             
         else
             index = name(4:end-6);        
@@ -160,12 +160,20 @@ for i=1:num_rooms
     for j=1:length(sorted_org_rgb_names)
         
         org_rgb_name = sorted_org_rgb_names{j};
+        
+
         new_rgb_name = new_rgb_names{j};
         
         org_unreg_depth_name = strcat('unreg_depth',org_rgb_name(4:end));
         org_raw_depth_name = strcat('raw_depth',org_rgb_name(4:end));
-        org_rgb_jpg_name = strcat(org_rgb_name(1:end-3),'jpg');
+        %org_rgb_jpg_name = strcat(org_rgb_name(1:end-3),'jpg');
         
+        if(org_rgb_name(1) == '2')
+            org_unreg_depth_name = strcat('2222','unreg_depth',org_rgb_name(8:end));
+            org_raw_depth_name = strcat('2222','raw_depth',org_rgb_name(8:end));
+            %org_rgb_jpg_name = strcat(org_rgb_name(1:end-3),'jpg');
+
+        end
         
         kinect_id = strcat('0',org_rgb_name(end-4));
         
@@ -173,7 +181,7 @@ for i=1:num_rooms
         %new_rgb_name = strcat(new_indices{j}, kinect_id, RGB_INDEX_STRING,'.png');
         new_unreg_depth_name = strcat(new_indices{j}, kinect_id, UNREG_DEPTH_INDEX_STRING,'.png');
         new_raw_depth_name = strcat(new_indices{j}, kinect_id, RAW_DEPTH_INDEX_STRING,'.png');
-        new_rgb_jpg_name = strcat(new_indices{j}, kinect_id, RGB_JPG_INDEX_STRING,'.jpg');
+        %new_rgb_jpg_name = strcat(new_indices{j}, kinect_id, RGB_JPG_INDEX_STRING,'.jpg');
        
         
         if(strcmp(org_rgb_name,new_rgb_name))
@@ -193,10 +201,10 @@ for i=1:num_rooms
             assert(movefile(fullfile(scene_path,RAW_DEPTH_IMAGES_DIR, org_raw_depth_name), ...
                             fullfile(scene_path,RAW_DEPTH_IMAGES_DIR, new_raw_depth_name)));
 
-            if(exist(fullfile(scene_path,JPG_RGB_IMAGES_DIR),'dir') == 7)
-                assert(movefile(fullfile(scene_path,JPG_RGB_IMAGES_DIR, org_rgb_jpg_name), ...
-                                fullfile(scene_path,JPG_RGB_IMAGES_DIR, new_rgb_jpg_name))); 
-            end
+%             if(exist(fullfile(scene_path,JPG_RGB_IMAGES_DIR),'dir') == 7)
+%                 assert(movefile(fullfile(scene_path,JPG_RGB_IMAGES_DIR, org_rgb_jpg_name), ...
+%                                 fullfile(scene_path,JPG_RGB_IMAGES_DIR, new_rgb_jpg_name))); 
+%             end
         
         end
 % %         movefile(fullfile(scene_path,RGB_JPG_IMAGES_DIR,strcat(org_name(1:end-3),'jpg')), ...

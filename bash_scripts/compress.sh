@@ -17,6 +17,7 @@ SLASH="/";
 #  convert -compress Zip $ORG_PATH$ROOM_NAME$image $COMPRESS_PATH$ROOM_NAME$image 
 #done
 
+rm -rf $2
 mkdir -p $2
 
 

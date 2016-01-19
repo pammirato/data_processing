@@ -7,7 +7,7 @@ init;
 
 
 
-scene_name = 'FB209'; %make this = 'all' to run all scenes
+scene_name = 'SN208'; %make this = 'all' to run all scenes
 
 %should the lines indicating orientation be drawn?
 view_orientation = 1;
@@ -43,8 +43,11 @@ for i=1:num_scenes
 
     
     temp = cell2mat(camera_structs);
-    a = {temp.world_pos};
+    a = {temp.scaled_world_pos};
     b =cell2mat(a);
+    
+    a = {temp.direction};
+    c = cell2mat(a);
     
     plot3(b(1,:),b(2,:),b(3,:),'r.');
     
@@ -65,8 +68,8 @@ for i=1:num_scenes
         hold on;
         
         %DIR_X,_Y,_Z coordinates are just a point along the direction line
-        %quiver3(values(1:6:end-5), values(2:6:end-4), values(3:6:end-3), ...
-        %        values(4:6:end-2), values(5:6:end-1), values(6:6:end), 'ShowArrowHead','off','Color' ,'b');
+        quiver3(b(1,:),b(2,:),b(3,:), ...
+               c(1,:),c(2,:),c(3,:), 'ShowArrowHead','off','Color' ,'b');
         
         
         hold off;

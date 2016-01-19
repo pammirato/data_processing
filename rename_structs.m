@@ -5,7 +5,7 @@ clear;
 init;
 
 
-scene_name = 'FB209_2';  %make this = 'all' to run all scenes
+scene_name = 'Room15_2';  %make this = 'all' to run all scenes
 
 %get the names of all the scenes
 d = dir(BASE_PATH);

@@ -1,28 +1,33 @@
 #!/bin/bash
 
-ALL_DATA_PATH="/home/ammirato/Data/tosend/"
+ALL_DATA_PATH="/playpen/ammirato/Data/RohitData/"
 
 RGB="/rgb"
 UNREG="/unreg_depth"
 RAW="/raw_depth"
 
+TAR_DIR="tar_files"
+
 TAR_EXTENSION=".tar"
 
-RGB_FILENAME="/rgb_jpg.tar"
-UNREG_FILENAME="/unreg_jpg.tar"
-RAW_FILENAME="/raw_jpg.tar"
+RGB_FILENAME="rgb.tar"
+UNREG_FILENAME="unreg_depth.tar"
+RAW_FILENAME="raw_depth.tar"
 
 function tar_dir {
-  tar -cvf $1$RGB_FILENAME $1$RGB
-#  tar -cvf $1$UNREG_FILENAME $1$UNREG
-#  tar -cvf $1$RAW_FILENAME $1$RAW
+
+  rm -rf $1/$TAR_DIR
+  mkdir -p $1/$TAR_DIR
+  tar -cf $1/$TAR_DIR/$RGB_FILENAME $1$RGB
+  tar -cf $1/$TAR_DIR/$UNREG_FILENAME $1$UNREG
+  tar -cf $1/$TAR_DIR/$RAW_FILENAME $1$RAW
   
   #echo $1$RGB_FILENAME
   #echo $1$RGB
   #echo $1$UNREG_FILENAME 
   #echo $1$UNREG
   #echo $1$RAW_FILENAME 
-  echo $1$RAW
+  #echo $1$RAW
 }
 
 
@@ -31,9 +36,9 @@ function tar_dir {
 for i in $(ls $ALL_DATA_PATH); do
   
   echo $i
-  #tar_dir $ALL_DATA_PATH$i
+  tar_dir $ALL_DATA_PATH$i
 
-  tar -cvf $ALL_DATA_PATH$i$TAR_EXTENSION $ALL_DATA_PATH$i
+  #tar -cvf $ALL_DATA_PATH$i$TAR_EXTENSION $ALL_DATA_PATH$i
   #write all the indices to files for rgb,unreg,raw
 done
 

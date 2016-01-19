@@ -4,7 +4,7 @@ init;
 
 
 images_per_room = 101;
-scene_name = 'SN208';  %make this = 'all' to go through all rooms
+scene_name = 'FB002';  %make this = 'all' to go through all rooms
 
 
 
@@ -44,15 +44,15 @@ for i=1:num_rooms
         fullfile(BASE_PATH, scene_name,'rgb/', rgb_name)
         
         img = imread(fullfile(BASE_PATH, scene_name,'rgb/', rgb_name));
-        depth_name =strcat(rgb_name(1:8),'03.png');
-        raw_depth = imread(fullfile(BASE_PATH,scene_name,'/raw_depth/',depth_name));
+        depth_name =strcat(rgb_name(1:8),'04.png');
+        raw_depth = imread(fullfile(BASE_PATH,scene_name,'/filled_depth/',depth_name));
         
         %fullfile(base_path,scene_name,'/raw_depth/',['raw_depth' index])
         
         imshow(img);
         hold on;
         h = imagesc(raw_depth);
-        set(h,'AlphaData',.5);
+        set(h,'AlphaData',1);
         hold off; 
        % kin = input(':');
        % 

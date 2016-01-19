@@ -30,7 +30,7 @@ NAME = 10;
 
 
 
-scene_name = 'FB209_2';  %make this = 'all' to run all scenes
+scene_name = 'Room15_2';  %make this = 'all' to run all scenes
 
 %get the names of all the scenes
 d = dir(BASE_PATH);
@@ -113,7 +113,7 @@ for i=1:num_scenes
  
       %check to see if the image exists
       name = line{end};
-      if ( exist(fullfile(scene_path,RGB_IMAGES_DIR, name),'file'))
+      if (1) % exist(fullfile(scene_path,RGB_IMAGES_DIR, name),'file'))
          
           %put all the info in a struct, with a place holder for scaled
           %position

@@ -8,16 +8,18 @@ init;
 
 
 %the scene and instance we are interested in
-scene_name = 'FB209_2';
+scene_name = 'Room15';
 
 
-label_name = 'hersheys_bar';  %make this 'all' to do it for all labels
+label_name = 'refrigerator1';  %make this 'all' to do it for all labels
+
+debug = 0;
 
 
-
-label_box_size = 5;
+label_box_size = 20;
 max_image_dimension = 600;
-crop_size = 500;
+start_crop_size = 800;
+do_depth_crop = 1;
 max_images_per_dir = 50;
 min_images_per_dir = 20;
 
@@ -98,10 +100,14 @@ for i =1:num_labels
 
         ls = label_structs{jj};
         
+        if(jpg_name(8) == '1' || jpg_name(8) == '2')
+            ls.(X)  = min(1920,ls.x + 40);
+        end
+        
         depth = ls.depth;
         
-        crop_size = 400;
-        if(depth >1000)
+        crop_size = start_crop_size;
+        if(do_depth_crop && depth >1000)
             crop_size = crop_size - crop_size*(1000/depth)/3;
         end
 
@@ -118,6 +124,10 @@ for i =1:num_labels
         img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,2) = zeros(size(temp));
         img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,3) = zeros(size(temp));
 
+        if(debug)
+            imshow(img);
+            ginput(1);
+        end
         %imshow(img);
 
 
@@ -171,9 +181,13 @@ for i =1:num_labels
     end%for i in image_names
 
     %add in reference image
-    bbimg = imread(fullfile(BIGBIRD_BASE_PATH,label_name,'NP1_0.jpg'));
-    bbimg = imresize(bbimg,[size(scale_img,1),size(scale_img,2)]);
-    
+    if(exist(fullfile(BIGBIRD_BASE_PATH,label_name,'NP1_0.jpg'),'file'))
+        ref_img = imread(fullfile(BIGBIRD_BASE_PATH,label_name,'NP1_0.jpg'));
+    else
+        ref_img = imread(fullfile(scene_path,LABELING_DIR,'reference_images', ...
+                            strcat(label_name,'.jpg')));
+    end
+    ref_img = imresize(ref_img,[size(scale_img,1),size(scale_img,2)]);
 
 
      if(length(image_names) > max_images_per_dir)
@@ -212,17 +226,17 @@ for i =1:num_labels
                              fullfile(scene_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, ...
                                         strcat(label_name, '_', num2str(k)), new_image_names{kk}));
                 end
-                imwrite(bbimg,fullfile(scene_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, strcat(label_name, '_', num2str(k)),'0000000000.jpg') );
+                imwrite(ref_img,fullfile(scene_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, strcat(label_name, '_', num2str(k)),'0000000000.jpg') );
 
                 images_moved_so_far = end_kk;
 
             end% for k
         else
-            imwrite(bbimg,fullfile(scene_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, label_name,'0000000000.jpg') );
+            imwrite(ref_img,fullfile(scene_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, label_name,'0000000000.jpg') );
         end% if buckets > 1
 
     else
-        imwrite(bbimg,fullfile(scene_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, label_name,'0000000000.jpg') );
+        imwrite(ref_img,fullfile(scene_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, label_name,'0000000000.jpg') );
     end%if more images than max images
     
 

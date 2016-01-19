@@ -4,9 +4,9 @@
 
 init;
 
-room_name = 'FB209';
+room_name = 'FB209_2';
 
-class_name = 'pringles_bbq';
+class_name = 'advil_liqui_gels';
 label_name = class_name;%'monitor1';
 
 scene_path = fullfile(BASE_PATH,scene_name);

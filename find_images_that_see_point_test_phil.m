@@ -18,10 +18,11 @@ TZ = 8;
 
 
 scene_name = 'Room15';
+label_to_process = 'table1'; %make 'all' for every label
 occulsion_threshold = 200;
 scale_add = 0;
 
-debug = 1;
+debug =0;
 
  x = 0;
  y = 0;
@@ -164,6 +165,12 @@ for i=1:length(labeled_names_and_points)
     depth = str2double(cur_data{4});
     
     label = labels{i}
+    
+    if(~strcmp(label_to_process,'all'))
+        if(~strcmp(label_to_process,label))
+            continue;
+        end
+    end
     
 
 
@@ -945,11 +952,22 @@ end %for i , every labeled point from file
 
 
 
+if(exist(fullfile(scene_path,LABELING_DIR, ...
+         DATA_FOR_LABELING_DIR,LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE),'file'))
+     
+     values = label_to_images_that_see_it_map.values;
+     key = label_to_images_that_see_it_map.keys;
+     
+     label_to_images_that_see_it_map = load(fullfile(scene_path,LABELING_DIR, ...
+         DATA_FOR_LABELING_DIR,LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE));
+     label_to_images_that_see_it_map = label_to_images_that_see_it_map.label_to_images_that_see_it_map;
+     
+     label_to_images_that_see_it_map(key{1}) = values{1};
+end
 
-
-% save(fullfile(scene_path,LABELING_DIR, ...
-%     DATA_FOR_LABELING_DIR,LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE), ...
-%     LABEL_TO_IMAGES_THAT_SEE_IT_MAP);
+save(fullfile(scene_path,LABELING_DIR, ...
+    DATA_FOR_LABELING_DIR,LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE), ...
+    LABEL_TO_IMAGES_THAT_SEE_IT_MAP);
 
 
 

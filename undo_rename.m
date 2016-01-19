@@ -5,7 +5,7 @@
 init; 
 
 
-scene_name = 'FB209';  %make this = 'all' to go through all rooms
+scene_name = 'FB241B';  %make this = 'all' to go through all rooms
 
 
 
@@ -36,7 +36,7 @@ for i=1:num_rooms
     new_rgb_names = name_map.keys;
     
     
-    for j=1:length(org_rgb_names)
+    for j=1:length(new_rgb_names)
        new_rgb_name = new_rgb_names{j};
         
        org_rgb_name = name_map(new_rgb_name);
@@ -71,7 +71,7 @@ for i=1:num_rooms
             assert(movefile(fullfile(scene_path,RAW_DEPTH_IMAGES_DIR, new_raw_depth_name), ...
                             fullfile(scene_path,RAW_DEPTH_IMAGES_DIR, org_raw_depth_name)));
 
-            if(exist(fullfile(scene_path,RGB_JPG_IMAGES_DIR),'dir') == 7)
+            if(exist(fullfile(scene_path,JPG_RGB_IMAGES_DIR),'dir') == 7)
                 assert(movefile(fullfile(scene_path,RGB_JPG_IMAGES_DIR, new_rgb_jpg_name), ...
                                 fullfile(scene_path,RGB_JPG_IMAGES_DIR, org_rgb_jpg_name))); 
             end

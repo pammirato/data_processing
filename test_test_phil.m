@@ -161,85 +161,106 @@
 
 
 
+% 
+% 
+% 
+% 
+% scene_name = 'FB241B';  %make this = 'all' to go through all rooms
+% 
+% 
+% d = dir(BASE_PATH);
+% d = d(3:end);
+% 
+% if(strcmp(scene_name,'all'))
+%     num_rooms = length(d);
+% else
+%     num_rooms = 1;
+% end
+% 
+% for i=1:num_rooms
+%     
+%     if(num_rooms >1)
+%         scene_name = d(i).name()
+%     end
+%     
+%     scene_path = fullfile(BASE_PATH,scene_name);
+%     
+%     dr = dir(fullfile(BASE_PATH, scene_name,RGB_IMAGES_DIR));
+%     dr = dr(3:end);
+%     
+%     
+%     org_rgb_names = {dr.name};
+%     
+%     %*3 so there are extra slots, because files may have been deleted
+%     sorted_org_rgb_names = cell(1,length(org_rgb_names)*3 +200);
+%     
+%     if(isempty(strfind(org_rgb_names{1},'rgb')))
+%         continue;
+%     end
+%     
+%     %sort the original names
+%     for j=1:length(org_rgb_names)
+%         
+%         name = org_rgb_names{j};
+%         if(strcmp(name(1),'2'))
+%             index = name(8:end-6);
+%             %plus one cause matlab is 1 based
+%             index = str2num(index) +1 + length(org_rgb_names);
+%             
+%         else
+%             index = name(4:end-6);        
+% 
+%             %plus one cause matlab is 1 based
+%             index = str2num(index) +1;
+%         
+%         end
+%         k_index = str2num(name(end-4));
+%         sorted_org_rgb_names{(index-1)*3 +k_index} = name;
+%        
+%     end%for j
+% 
+% 
+% end
+% 
+% 
+%     sorted_org_rgb_names = sorted_org_rgb_names(find(~cellfun('isempty',sorted_org_rgb_names)));
+%     
+%     assert(length(sorted_org_rgb_names) > 1);
+%     assert(length(sorted_org_rgb_names) == length(org_rgb_names));
+%     assert(length(sorted_org_rgb_names) == length(unique(sorted_org_rgb_names)));
+%     
+%     
+% 
+% 
+% 
+% 
 
 
 
 
-scene_name = 'FB241B';  %make this = 'all' to go through all rooms
-
-
-d = dir(BASE_PATH);
-d = d(3:end);
-
-if(strcmp(scene_name,'all'))
-    num_rooms = length(d);
-else
-    num_rooms = 1;
-end
-
-for i=1:num_rooms
-    
-    if(num_rooms >1)
-        scene_name = d(i).name()
-    end
-    
-    scene_path = fullfile(BASE_PATH,scene_name);
-    
-    dr = dir(fullfile(BASE_PATH, scene_name,RGB_IMAGES_DIR));
-    dr = dr(3:end);
-    
-    
-    org_rgb_names = {dr.name};
-    
-    %*3 so there are extra slots, because files may have been deleted
-    sorted_org_rgb_names = cell(1,length(org_rgb_names)*3 +200);
-    
-    if(isempty(strfind(org_rgb_names{1},'rgb')))
-        continue;
-    end
-    
-    %sort the original names
-    for j=1:length(org_rgb_names)
-        
-        name = org_rgb_names{j};
-        if(strcmp(name(1),'2'))
-            index = name(8:end-6);
-            %plus one cause matlab is 1 based
-            index = str2num(index) +1 + length(org_rgb_names);
-            
-        else
-            index = name(4:end-6);        
-
-            %plus one cause matlab is 1 based
-            index = str2num(index) +1;
-        
-        end
-        k_index = str2num(name(end-4));
-        sorted_org_rgb_names{(index-1)*3 +k_index} = name;
-       
-    end%for j
-
-
-end
-
-
-    sorted_org_rgb_names = sorted_org_rgb_names(find(~cellfun('isempty',sorted_org_rgb_names)));
-    
-    assert(length(sorted_org_rgb_names) > 1);
-    assert(length(sorted_org_rgb_names) == length(org_rgb_names));
-    assert(length(sorted_org_rgb_names) == length(unique(sorted_org_rgb_names)));
-    
-    
-
-
-
-
-
-
-
-
-
-
+% 
+% 
+% for i=1:length(values)
+%     
+%     v = values{i};
+%     
+%     index = v(4:end-6);
+%     
+%     index = str2num(index);
+%     index = num2str(index);
+%     
+%     kindex = v(end-4);
+%     
+%     
+%     v = strcat('rgb',index,'K',kindex,'.png');
+%     
+%     values{i} = v;
+%     
+%     
+% end%for i
+% 
+% name_map = containers.Map(keys,values);
+% save(fullfile(BASE_PATH,scene_name, NAME_MAP_FILE),NAME_MAP);
 
 
 
