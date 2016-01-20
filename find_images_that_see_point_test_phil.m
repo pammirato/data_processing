@@ -17,12 +17,12 @@ TZ = 8;
 
 
 
-scene_name = 'Room15';
-label_to_process = 'table1'; %make 'all' for every label
+scene_name = 'SN208';
+label_to_process = 'chair4'; %make 'all' for every label
 occulsion_threshold = 200;
-scale_add = 0;
+scale_add = -200;
 
-debug =0;
+debug =1;
 
  x = 0;
  y = 0;
@@ -143,6 +143,7 @@ scale  = camera_structs_file.scale + scale_add;
 temp = cell2mat(camera_structs);
 image_names = {temp.(IMAGE_NAME)};
 clear temp;
+
 
 %make a map from image name to camera_struct
 camera_struct_map = containers.Map(image_names, camera_structs);

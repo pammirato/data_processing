@@ -9,8 +9,8 @@ init;
 
 
 %the scene and instance we are interested in
-scene_name = 'Room15';
-instance_name = 'honey_bunches_of_oats_with_almonds';
+scene_name = 'SN208';
+instance_name = 'chair3';
 
 
 scene_path = fullfile(BASE_PATH,scene_name);

@@ -8,10 +8,10 @@ init;
 
 
 %the scene and instance we are interested in
-scene_name = 'Room15';
+scene_name = 'SN208';
 
 
-label_name = 'refrigerator1';  %make this 'all' to do it for all labels
+label_name = 'all';  %make this 'all' to do it for all labels
 
 debug = 0;
 

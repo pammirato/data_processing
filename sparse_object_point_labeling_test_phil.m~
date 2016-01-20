@@ -28,7 +28,7 @@ init;
 
 scene_name = 'SN208';
 
-label_box_size = 10;
+label_box_s
 
 %should be 1
 step_size = int16(1);%dont make this a multiple of 3 or 24 or 25
@@ -199,22 +199,19 @@ while image_counter <= length(image_names)
 	disp('	g - move forward 100 images ');
 	
 
-  elseif(~exist(fullfile('/playpen/ammirato/Data/BigBIRD/',labels{point_counter}),'dir'))
-      
+  else
     breakp = 1;
     %first draw the label dot
-    x_dot_min = max(1,x - label_box_size/2);
-    x_dot_max = min(size(rgb_image,2),x + label_box_size/2);
-    y_dot_min = max(1,y - label_box_size/2);
-    y_dot_max = min(size(rgb_image,1),y + label_box_size/2);
+    x_dot_min = max(1,ls.(X) - label_box_size/2);
+    x_dot_max = min(size(img,2),ls.(X) + label_box_size/2);
+    y_dot_min = max(1,ls.(Y) - label_box_size/2);
+    y_dot_max = min(size(img,1),ls.(Y) + label_box_size/2);
 
 
-    temp =  rgb_image(y_dot_min:y_dot_max,x_dot_min:x_dot_max,1);
-    rgb_image(y_dot_min:y_dot_max,x_dot_min:x_dot_max,1) = 255*ones(size(temp));
-    rgb_image(y_dot_min:y_dot_max,x_dot_min:x_dot_max,2) = zeros(size(temp));
-    rgb_image(y_dot_min:y_dot_max,x_dot_min:x_dot_max,3) = zeros(size(temp));
-    
-    imwrite(rgb_image,fullfile('/home/ammirato/Pictures/',strcat(labels{point_counter},'.jpg')));
+    temp =  img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,1);
+    img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,1) = 255*ones(size(temp));
+    img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,2) = zeros(size(temp));
+    img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,3) = zeros(size(temp));
   end
   point_counter = point_counter +1;
 end%for i images
