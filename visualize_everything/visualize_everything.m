@@ -81,6 +81,7 @@ function visualize_everything
                 'selected_bbox_idx', [],...
                 'selected_point', [],...
                 'bbox_img', [],...
+                'bbox_img_pad', 25,...
                 'bbox_depth_img', [],...
                 'bbox_points', [],...
                 'segmentation', cell(1,1),...
@@ -591,15 +592,18 @@ function display_image_portion(idx, pos)
     end
   end
 
+  image_name = userData.names{idx};
+  image_name = [image_name(1:11) 'jpg'];
+
+  img = imread([userData.image_path image_name]);
+
+  pos = get_larger_bbox(img, pos, userData.bbox_img_pad);
+
   xmin = int16(max([pos(1) 1]));
   ymin = int16(max([pos(2) 1]));
   xmax = int16(min([pos(1)+pos(3) 1920]));
   ymax = int16(min([pos(2)+pos(4) 1080]));
 
-  image_name = userData.names{idx};
-  image_name = [image_name(1:11) 'jpg'];
-
-  img = imread([userData.image_path image_name]);
   himage = imshow(img(ymin:ymax, xmin:xmax, :));
   hold on;
 
@@ -625,12 +629,17 @@ function display_segmentation(image_name, pos)
         end
     end
 
+
+    img = imread([userData.image_path image_name]);
+    pos = get_larger_bbox(img, pos, userData.bbox_img_pad);
+
     xmin = int16(max([pos(1) 1]));
     ymin = int16(max([pos(2) 1]));
     xmax = int16(min([pos(1)+pos(3) 1920]));
     ymax = int16(min([pos(2)+pos(4) 1080]));
 
-    seg_img = extract_foreground(image_name, pos);
+    seg_img = extract_foreground(img, pos);
+
     seg_img = seg_img(ymin:ymax, xmin:xmax);
     seg_img = im2bw(seg_img, 2/255);
     [B,L] = bwboundaries(seg_img,'noholes');
@@ -645,6 +654,16 @@ function display_segmentation(image_name, pos)
 
     userData.segmentation = seg_plots;
     set(gcf,'UserData',userData);
+end
+
+function large_bbox = get_larger_bbox(img, bbox, pad)
+    [height, wide, channels] = size(img);
+    xmin = int16(max([bbox(1)-pad 1]));
+    ymin = int16(max([bbox(2)-pad 1]));
+    xmax = int16(min([bbox(1)+bbox(3)+pad wide]));
+    ymax = int16(min([bbox(2)+bbox(4)+pad height]));
+
+    large_bbox = [xmin ymin xmax-xmin ymax-ymin];
 end
 
 function display_recognition_score(score, object)
