@@ -86,7 +86,7 @@ function visualize_everything
                 'bbox_points', [],...
                 'segmentation', cell(1,1),...
                 'views_of_object', [],...
-                'views_indices', [],...
+                'highlighted_view_indices', [],...
                 'name_to_camera_struct', camera_struct_map,...
                 'name_to_point_ids', name_to_point_ids,...
                 'id_to_point', id_to_point);
@@ -138,6 +138,8 @@ function visualize_everything
   dcm_obj = datacursormode(plotfig); % get the data cursor object
   set(dcm_obj, 'UpdateFcn', {@pick_data, view_axes, image_axes, point_axes});
 
+  set(plotfig,'KeyPressFcn', @arrowButtonCallback);
+
   rotate_obj = rotate3d;
   rotate_obj.Enable = 'on';
   rotate_obj.RotateStyle = 'box';
@@ -149,6 +151,34 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%% UI callbacks and other misc. functions %%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% This function is used to navigate around the scene by pressing arrow keys
+% with no mode selected
+function arrowButtonCallback(hObject, eventdata, handles)
+    userData = get(gcf, 'UserData');
+    camera_struct = userData.name_to_camera_struct(userData.names{userData.index});
+    next = -1;
+
+    if strcmp(eventdata.Key,'w')
+        next = camera_struct.translate_forward;
+    elseif strcmp(eventdata.Key,'a')
+        next = camera_struct.rotate_ccw;
+    elseif strcmp(eventdata.Key,'s')
+        next = camera_struct.translate_backward;
+    elseif strcmp(eventdata.Key,'d')
+        next = camera_struct.rotate_cw;
+    elseif strcmp(eventdata.Key,'uparrow')
+        next = camera_struct.translate_up;
+    elseif strcmp(eventdata.Key,'downarrow')
+        next = camera_struct.translate_down;
+    end
+
+    if next == -1
+        return;
+    end
+    index = find(strcmp(userData.names, next), 1);
+    select_view(index);
+end
 
 % This function gets called when the user clicks in data cursor mode.
 % Based on what subplot axes the event came from, choose the correct response.
@@ -171,7 +201,7 @@ end
 function output = switchViewCallback(source, event_data)
   userData = get(gcf, 'UserData');
   num_views = length(userData.names);
-  hviews = userData.views_indices;
+  hviews = userData.highlighted_view_indices;
   idx = userData.index;
   hidx = userData.highlight_index;
 
@@ -283,7 +313,7 @@ function select_view(idx)
   subplot(2,2,1);
 
   userData.index = idx;
-  if ismember(idx, userData.views_indices)
+  if ismember(idx, userData.highlighted_view_indices)
     userdata.highlight_index = idx;
   end
   set(gcf, 'UserData', userData);
@@ -682,7 +712,7 @@ function select_object(x, y)
   y = y + r.Position(2);
 
   views = get_all_views_of_object(userData.names{userData.index}, x, y);
-  userData.views_indices = views;
+  userData.highlighted_view_indices = views;
   set(gcf,'UserData',userData);
 
   highlight_views_of_object(views);

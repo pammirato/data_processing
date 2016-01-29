@@ -1,7 +1,7 @@
 %this files defines file paths, names, and string literals that are used in
 %multiple files, and may need to be changed for different machines.
 
-scene_name = 'FB209';
+scene_name = 'SN208';
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%              DIRECTORIES             %%%%%%%%%%%%%%%
