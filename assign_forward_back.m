@@ -5,11 +5,11 @@ init;
 
 
 
-scene_name = 'SN208'; %make this = 'all' to run all scenes
+scene_name = 'Room15'; %make this = 'all' to run all scenes
 
 dir_angle_thresh = 10;
 move_angle_thresh = 30;
-dist_thresh = 700;
+dist_thresh = 990;
 
 %get the names of all the scenes
 d = dir(BASE_PATH);

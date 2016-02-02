@@ -5,7 +5,7 @@ clear;
 init;
 
 
-scene_name = 'Room15_2';  %make this = 'all' to run all scenes
+scene_name = 'FB341';  %make this = 'all' to run all scenes
 
 %get the names of all the scenes
 d = dir(BASE_PATH);
@@ -30,12 +30,13 @@ for i=1:num_scenes
     
    
     
-    camera_structs = load(fullfile(scene_path, RECONSTRUCTION_DIR, CAMERA_STRUCTS_FILE));
-    scale = camera_structs.scale;
-    camera_structs = camera_structs.(CAMERA_STRUCTS);
+%     camera_structs = load(fullfile(scene_path, RECONSTRUCTION_DIR, NEW_CAMERA_STRUCTS_FILE));
+%     scale = camera_structs.scale;
+%     camera_structs = camera_structs.(CAMERA_STRUCTS);
+%     
+    point_2d_structs = load(fullfile(scene_path, RECONSTRUCTION_DIR, POINT_2D_STRUCTS_FILE));
+    point_2d_structs = point_2d_structs.(POINT_2D_STRUCTS);
     
-%     point_2d_structs = load(fullfile(scene_path, RECONSTRUCTION_DIR, POINT_2D_STRUCTS_FILE));
-%     point_2d_structs = point_2d_structs.(POINT_2D_STRUCTS);
 
     name_map = load(fullfile(scene_path,'name_map.mat'));
     name_map = name_map.name_map;
@@ -44,21 +45,33 @@ for i=1:num_scenes
     values = name_map.values;
     
     name_map = containers.Map(values,keys);
-    
-    for j=1:length(camera_structs)
+%     
+%     for j=1:length(camera_structs)
+%         
+%         cur_struct = camera_structs{j};
+
+    for j=1:length(point_2d_structs)
         
-        cur_struct = camera_structs{j};
+        cur_struct = point_2d_structs{j};
+        
+        cur_name = cur_struct.(IMAGE_NAME);
+        
+        if(~strcmp(cur_name(1:3),'rgb'))
+            continue;
+        end
         
         new_name = name_map(cur_struct.(IMAGE_NAME));
         
         cur_struct.(IMAGE_NAME) = new_name;
         
-        camera_structs{j} = cur_struct;
+%         camera_structs{j} = cur_struct;
+        point_2d_structs{j} = cur_struct;
     
     end
     
     
     
-    save(fullfile(scene_path, RECONSTRUCTION_DIR, NEW_CAMERA_STRUCTS_FILE),CAMERA_STRUCTS,'scale');
+%     save(fullfile(scene_path, RECONSTRUCTION_DIR, NEW_CAMERA_STRUCTS_FILE),CAMERA_STRUCTS,'scale');
+    save(fullfile(scene_path, RECONSTRUCTION_DIR, 'point_2d_structs.mat'),'point_2d_structs');
     
 end

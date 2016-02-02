@@ -54,7 +54,7 @@ for i=1:length(file_names)
     %assert(length(image_names) == length(transform_map.values));
     
     annotations = cur_mat.annotations;
-    for j=2:length(annotations)
+    for j=1:length(annotations)
         %% get info from turkic
         ann = annotations{j};
         
@@ -62,9 +62,9 @@ for i=1:length(file_names)
         frame = ann.frame;
         
         
-%         if(frame(10) == '0')
-%             continue;
-%         end
+         if(strcmp(frame(1:6),'000000'))
+            continue;
+        end
         
         %image_name = strcat(sprintf('%010d',frame),'.png');
         image_name = frame;

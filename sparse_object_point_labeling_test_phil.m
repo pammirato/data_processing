@@ -26,13 +26,13 @@
 init;
 
 
-scene_name = 'SN208';
+scene_name = 'FB341';
+kinect_to_use = '2';
 
-label_box_size = 10;
 
 %should be 1
 step_size = int16(1);%dont make this a multiple of 3 or 24 or 25
-
+label_box_size = 10;
 
 
 %where to get the images from
@@ -89,11 +89,25 @@ image_counter = 1;
 point_counter = 1;
 while image_counter <= length(image_names)
   rgb_name =  image_names{image_counter};
+  
+  if(rgb_name(8) ~= kinect_to_use)
+      image_counter = image_counter+1; 
+      continue;
+  end
+  
   suffix_index = strfind(rgb_name,'b') + 1;
   
   rgb_image = imread(fullfile(scene_path,RGB_IMAGES_DIR,rgb_name));
-  depth_image = imread(fullfile(scene_path, RAW_DEPTH_IMAGES_DIR, ... 
+%   depth_image = imread(fullfile(scene_path, RAW_DEPTH_IMAGES_DIR, ... 
+%                        strcat(rgb_name(1:8),'03.png') ));
+
+  if(exist(fullfile(scene_path, 'filled_depth',strcat(rgb_name(1:8),'04.png') ),'file'))
+    depth_image = imread(fullfile(scene_path, 'filled_depth', ... 
+                       strcat(rgb_name(1:8),'04.png') ));
+  else
+    depth_image = imread(fullfile(scene_path, 'raw_depth', ... 
                        strcat(rgb_name(1:8),'03.png') ));
+  end
     
   %get one point from the user clicking on the image
   %points{point_counter} = readPoints(rgb_images{image_counter},1);
@@ -176,6 +190,28 @@ while image_counter <= length(image_names)
   elseif(strcmp(labels{point_counter},'g'))
       %num_to_move = input('How many images to move: ', 's');
       num_to_move = 100;
+      
+      %get rid of last point, go back to previous next image
+      points =points(1:end-1);
+      images_used = images_used(1:end-1);
+      labels = labels(1:end-1);
+      point_counter = point_counter -1;
+      
+      image_counter = image_counter + num_to_move;
+  elseif(strcmp(labels{point_counter},'b'))
+      %num_to_move = input('How many images to move: ', 's');
+      num_to_move = 20;
+      
+      %get rid of last point, go back to previous next image
+      points =points(1:end-1);
+      images_used = images_used(1:end-1);
+      labels = labels(1:end-1);
+      point_counter = point_counter -1;
+      
+      image_counter = image_counter + num_to_move;
+  elseif(strcmp(labels{point_counter},'v'))
+      %num_to_move = input('How many images to move: ', 's');
+      num_to_move = 10;
       
       %get rid of last point, go back to previous next image
       points =points(1:end-1);

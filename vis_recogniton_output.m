@@ -1,6 +1,4 @@
-%this script plots detection scores for one instance in a scene againts 
-%variation in viewpoint of the instance, and distance from the camera
-%to the instance
+
 
 
 clearvars , close all;
@@ -9,7 +7,7 @@ init;
 
 
 %the scene and instance we are interested in
-scene_name = 'SN208';
+scene_name = 'Room15';
 recognition_system_name = 'fast-rcnn';
 font_size = 10;
 

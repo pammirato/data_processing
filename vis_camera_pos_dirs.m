@@ -3,11 +3,12 @@
 %orientation of the camera at that point
 
 %initialize contants, paths and file names, etc. 
+clear;
 init;
 
 
 
-scene_name = 'SN208'; %make this = 'all' to run all scenes
+scene_name = 'Room31'; %make this = 'all' to run all scenes
 
 %should the lines indicating orientation be drawn?
 view_orientation = 1;
@@ -25,7 +26,7 @@ else
 end
 
 for i=1:num_scenes
-    
+    figure;
     %if we are processing all scenes
     if(num_scenes >1)
         scene_name = d(i).name();
@@ -39,11 +40,11 @@ for i=1:num_scenes
     % [CAM_X CAM_Y CAM_Z DIR_X DIR_Y DIR_Z]
     camera_structs_file =  load(fullfile(scene_path,RECONSTRUCTION_DIR,NEW_CAMERA_STRUCTS_FILE));
     camera_structs = camera_structs_file.(CAMERA_STRUCTS);
-    scale  = camera_structs_file.scale + 50;
+    scale  = camera_structs_file.scale;
 
     
     temp = cell2mat(camera_structs);
-    a = {temp.scaled_world_pos};
+    a = {temp.world_pos};
     b =cell2mat(a);
     
     a = {temp.direction};

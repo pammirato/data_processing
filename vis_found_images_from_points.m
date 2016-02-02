@@ -9,8 +9,8 @@ init;
 
 
 %the scene and instance we are interested in
-scene_name = 'SN208';
-instance_name = 'chair3';
+scene_name = 'FB341';
+instance_name = 'table1';
 
 
 scene_path = fullfile(BASE_PATH,scene_name);
@@ -57,6 +57,13 @@ clear all_image_names;
 for i=1:length(image_names)
     %figure;
     imshow(fullfile(scene_path, RGB_IMAGES_DIR, image_names{i}));
+    
+    name = image_names{i};
+    dimg = imread(fullfile(scene_path,RAW_DEPTH_IMAGES_DIR,strcat(name(1:8),'03.png')));
+    
+    hold on;
+    h = imagesc(dimg);
+    set(h,'AlphaData',.5);
 
 
     ls = label_structs{i};
@@ -65,7 +72,8 @@ for i=1:length(image_names)
     hold off;
 
     cur_name = image_names{i};
-    title(cur_name);
+    %title(cur_name);
+    title(num2str(ls.depth));
     
     ginput(1);
     

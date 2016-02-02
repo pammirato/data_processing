@@ -2,23 +2,23 @@
 %variation in viewpoint of the instance, and distance from the camera
 
 
-clear;
 init;
 
 
 
 %the scene and instance we are interested in
-scene_name = 'SN208';
+scene_name = 'FB341';
 
 
-label_name = 'all';  %make this 'all' to do it for all labels
+label_name = 'red_bull';  %make this 'all' to do it for all labels, bigBIRD to do bigBIRD stuff
+kinect_to_use = '2';
 
 debug = 0;
 
 
-label_box_size = 20;
+label_box_size = 5;
 max_image_dimension = 600;
-start_crop_size = 800;
+start_crop_size = 400;
 do_depth_crop = 1;
 max_images_per_dir = 50;
 min_images_per_dir = 20;
@@ -38,9 +38,16 @@ all_labels = label_to_images_that_see_it_map.keys;
       
 num_labels = 1;
 if(strcmp(label_name,'all'))
- num_labels = length(all_labels);
+    num_labels = length(all_labels);
+elseif(strcmp(label_name,'bigBIRD'))
+    d = dir(fullfile(BIGBIRD_BASE_PATH));
+    d = d(3:end);
+    all_labels = {d.name};
+    breakp=1;
 end
 
+
+% edit all all_labels to just do some custom list of labels
 
 for i =1:num_labels
 
@@ -53,7 +60,12 @@ for i =1:num_labels
 
     %get the structs with IMAGE_NAME, X, Y, DEPTH for images that see this
     %instance
+    try
     label_structs = label_to_images_that_see_it_map(label_name);
+    catch
+        disp(strcat('could not find ',label_name));
+        continue;
+    end
 
     %get all the image names
     temp = cell2mat(label_structs);
@@ -86,6 +98,12 @@ for i =1:num_labels
     for jj=1:length(image_names)
         %figure;
         png_name = image_names{jj};
+        
+        if(png_name(8) ~= kinect_to_use)
+            continue;
+        end
+        
+        
         jpg_name = strcat(png_name(1:end-3),'jpg');
 
         %copyfile(fullfile(scene_path, JPG_RGB_IMAGES_DIR, jpg_name), ...

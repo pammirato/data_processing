@@ -6,27 +6,27 @@ init;
 
 scene_name = 'Room15';
 
-label_name = 'spongebob_squarepants_fruit_snaks';
+label_name = 'bumblebee_albacore';
 
 
 scene_path = fullfile(BASE_PATH,scene_name);
 turk_path = fullfile(scene_path,LABELING_DIR,'turk_boxes');
 
 
-
+save_changes = 0;
 
 %load names of images we care about
-annotations = load(fullfile(turk_path,strcat(label_name,'.mat')));
+ann_file = load(fullfile(turk_path,strcat(label_name,'.mat')));
 
-annotations = annotations.annotations;
-for i=2:5:length(annotations)
+annotations = ann_file.annotations;
+for i=1:1:length(annotations)
     
     ann = annotations{i};
     
     bbox = [ann.xtl, ann.ytl, ann.xbr, ann.ybr];
     frame = ann.frame;
     
-    if(frame ==0)
+    if(frame(8) =='0')
         continue;
     end
     
@@ -40,11 +40,35 @@ for i=2:5:length(annotations)
     imshow(rgb_image);
     hold on;
     
-    
+    title(strcat(num2str(i),'/',num2str(length(annotations))));
     rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], 'LineWidth',2, 'EdgeColor','b');
     
     
-    ginput(1);
+    [x, y, but] = ginput(1);
+    
+    if(but~=1)
+        save_changes = 1;
+        [x, y, but] = ginput(2);
+        
+        if(but(1) ~=1)
+            break;
+        end
+        
+        x(1) = max(1,x(1));
+        x(2) = min(size(rgb_image,2),x(2));
+        y(1) = max(1,y(1));
+        y(2) = min(size(rgb_image,1),y(2));
+        
+        
+        ann.xtl = x(1);
+        ann.ytl = y(1);
+        ann.xbr = x(2);
+        ann.ybr = y(2);
+        
+        
+        annotations{i} = ann;
+        
+    end%if but
 %     ch = getkey();
 %     if(ch == 'q')
 %         break;
@@ -52,6 +76,13 @@ for i=2:5:length(annotations)
     hold off;
 end
 
+
+
+if(save_changes)
+    ann_file.annotations = annotations;
+    
+    save(fullfile(turk_path,strcat(label_name,'.mat')),'-struct','ann_file')
+end
 
 
 

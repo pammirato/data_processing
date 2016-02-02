@@ -3,7 +3,6 @@
 % input - an x,y, image_name   -where x,y are the location in pixels in
 %                                image image_name of the point 
 %
-clear all,close all;
 %initialize contants, paths and file names, etc. 
 init;
 IMAGE_ID = 1;
@@ -17,10 +16,10 @@ TZ = 8;
 
 
 
-scene_name = 'SN208';
-label_to_process = 'chair4'; %make 'all' for every label
-occulsion_threshold = 200;
-scale_add = -200;
+scene_name = 'FB341';
+label_to_process = 'red_bull'; %make 'all' for every label
+occulsion_threshold = 100;
+scale_add = 250;
 
 debug =1;
 
@@ -43,6 +42,8 @@ intrinsic2 = [  1.0582854982177009e+03, 0., 9.5857576622458146e+0; 0., 1.0593799
 intrinsic3 = [ 1.0630462958838500e+03, 0., 9.6260473585485727e+02; 0., 1.0636103172708376e+03, 5.3489949221354482e+02; 0., 0., 1.];
 
      
+intrinsic2  = intrinsic1;
+
 
 scene_path = fullfile(BASE_PATH,scene_name);
 
@@ -64,6 +65,69 @@ fprintf(text_output_fid,['%%hand_labeled_image_name  X Y DEPTH' '\n']);
 fprintf(text_output_fid,['%%label' '\n']);
 fprintf(text_output_fid,['%%--------------' '\n']);
 fprintf(text_output_fid,['%%image_that_sees_that_point_name  X Y DEPTH' '\n' '\n']);
+
+
+load_depths = input('Load all depths?(y/n)' , 's');
+
+
+    
+
+depths_loaded = 0;
+
+if(strcmp(label_to_process,'all') && (load_depths=='y'))
+
+
+    %%%%%%%%%%%%%%%%%  LOAD ALL DEPTH IMAGES  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    d = dir(fullfile(scene_path,'rgb'));
+    d = d(3:end);
+    image_names = {d.name};
+
+
+    depth_images = cell(1,length(d));
+
+    for i=1:length(image_names)
+        rgb_name = image_names{i};
+
+        if(exist(fullfile(scene_path, 'filled_depth',strcat(rgb_name(1:8),'04.png') ),'file'))
+            depth_images{i} = imread(fullfile(scene_path, 'filled_depth', ... 
+                           strcat(rgb_name(1:8),'04.png') ));
+        else
+            depth_images{i} = imread(fullfile(scene_path, 'raw_depth', ... 
+                           strcat(rgb_name(1:8),'03.png') ));
+        end
+
+
+    end% for i, each image name
+    
+    
+    depth_img_map = containers.Map(image_names, depth_images);
+    
+    depths_loaded = 1;
+end
+
+
+if(load_depths == 'n')
+    a = input('Are depths loaded?(y/n)' , 's');
+    
+    if(a=='y')
+        depths_loaded = 1;
+    end
+end
+
+
+
+
+
+%%%%%%%%%%%%%%%%%  END LOAD ALL DEPTH IMAGES  %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+
+
+
 
 
 
@@ -103,13 +167,13 @@ while(ischar(line))
 
 end
 
-%the last line is a blank space, so get rid of the last elements
-%split line based on space, into IMAGE_NAME X Y DEPTH
-labeled_names_and_points = labeled_names_and_points(1:end-1);
-
-
-%get label
-labels = labels(1:end-1);
+% %the last line is a blank space, so get rid of the last elements
+% %split line based on space, into IMAGE_NAME X Y DEPTH
+% labeled_names_and_points = labeled_names_and_points(1:end-1);
+% 
+% 
+% %get label
+% labels = labels(1:end-1);
   
 
 
@@ -218,8 +282,8 @@ for i=1:length(labeled_names_and_points)
 % 
 %     %undistort the 
      undistorted_point = undistortPoints(point,cameraParams1)';
-%     undistorted_point = undistorted_point';
-    undistorted_point = point';
+    undistorted_point = undistorted_point;
+    %undistorted_point = point';
 
 
     %%%%%%%%%%%%%%%%%%%%%% END UNDISTORT FISHEYE CAMERA  %%%%%%%%%%%%%%%%%
@@ -268,9 +332,9 @@ for i=1:length(labeled_names_and_points)
     if(labeled_image_name(8) =='1')
         K = intrinsic1;
     elseif(labeled_image_name(8) =='2')
-        K = intrinsic1;
+        K = intrinsic2;
     else
-        K = intrinsic1;
+        K = intrinsic3;
     end
    
 
@@ -305,8 +369,8 @@ for i=1:length(labeled_names_and_points)
 
     image_names = sort(image_names);
     %for each possible image, see if it contains the labeled point
-    for i=1:length(image_names)
-        cur_name = image_names{i};
+    for j=1:length(image_names)
+        cur_name = image_names{j};
 
         %skip the labeled image    
         if(strcmp(cur_name,labeled_image_name))
@@ -323,9 +387,9 @@ for i=1:length(labeled_names_and_points)
         if(cur_name(8) =='1')
             K = intrinsic1;
         elseif(cur_name(8) =='2')
-            K = intrinsic1;
+            K = intrinsic2;
         else
-            K = intrinsic1;
+            K = intrinsic3;
         end
 
         %get rotation matrix
@@ -373,9 +437,19 @@ for i=1:length(labeled_names_and_points)
 
         %get the depth image
         suffix_index = 4;%strfind(cur_name,'b') + 1;
-        depth_image = imread(fullfile(scene_path, RAW_DEPTH_IMAGES_DIR, ...
-            strcat(cur_name(1:8),'03.png') ));
-
+%         depth_image = imread(fullfile(scene_path, RAW_DEPTH_IMAGES_DIR, ...
+%             strcat(cur_name(1:8),'03.png') ));
+        if(~depths_loaded)
+            if(exist(fullfile(scene_path, 'filled_depth',strcat(cur_name(1:8),'04.png') ),'file'))
+                depth_image = imread(fullfile(scene_path, 'filled_depth', ... 
+                               strcat(cur_name(1:8),'04.png') ));
+            else
+                depth_image = imread(fullfile(scene_path, 'raw_depth', ... 
+                               strcat(cur_name(1:8),'03.png') ));
+            end
+        else
+            depth_image = depth_img_map(cur_name);
+        end
         cur_depth = depth_image(floor(cur_image_point(2)), floor(cur_image_point(1)));
 
         camera_pos = cur_camera_struct.(SCALED_WORLD_POSITION);
@@ -396,7 +470,7 @@ for i=1:length(labeled_names_and_points)
        found_points{length(found_points)+1} = [floor(cur_image_point(1)) floor(cur_image_point(2)) cur_depth];
        
 
-    end%for i  image names
+    end%for j  image names
 
 
 
@@ -476,6 +550,60 @@ for i=1:length(labeled_names_and_points)
 
 
 
+    
+    
+    
+    
+    
+    
+%     
+%     {
+%   dst.clear();
+%   double fx = cameraMatrix.at<double>(0,0);
+%   double fy = cameraMatrix.at<double>(1,1);
+%   double ux = cameraMatrix.at<double>(0,2);
+%   double uy = cameraMatrix.at<double>(1,2);
+% 
+%   double k1 = distorsionMatrix.at<double>(0, 0);
+%   double k2 = distorsionMatrix.at<double>(0, 1);
+%   double p1 = distorsionMatrix.at<double>(0, 2);
+%   double p2 = distorsionMatrix.at<double>(0, 3);
+%   double k3 = distorsionMatrix.at<double>(0, 4);
+%   //BOOST_FOREACH(const cv::Point2d &p, src)
+%   for (unsigned int i = 0; i < src.size(); i++)
+%   {
+%     const cv::Point2d &p = src[i];
+%     double x = p.x;
+%     double y = p.y;
+%     double xCorrected, yCorrected;
+%     //Step 1 : correct distorsion
+%     {     
+%       double r2 = x*x + y*y;
+%       //radial distorsion
+%       xCorrected = x * (1. + k1 * r2 + k2 * r2 * r2 + k3 * r2 * r2 * r2);
+%       yCorrected = y * (1. + k1 * r2 + k2 * r2 * r2 + k3 * r2 * r2 * r2);
+% 
+%       //tangential distorsion
+%       //The "Learning OpenCV" book is wrong here !!!
+%       //False equations from the "Learning OpenCv" book
+%       //xCorrected = xCorrected + (2. * p1 * y + p2 * (r2 + 2. * x * x)); 
+%       //yCorrected = yCorrected + (p1 * (r2 + 2. * y * y) + 2. * p2 * x);
+%       //Correct formulae found at : http://www.vision.caltech.edu/bouguetj/calib_doc/htmls/parameters.html
+%       xCorrected = xCorrected + (2. * p1 * x * y + p2 * (r2 + 2. * x * x));
+%       yCorrected = yCorrected + (p1 * (r2 + 2. * y * y) + 2. * p2 * x * y);
+%     }
+%     //Step 2 : ideal coordinates => actual coordinates
+%     {
+%       xCorrected = xCorrected * fx + ux;
+%       yCorrected = yCorrected * fy + uy;
+%     }
+%     dst.push_back(cv::Point2d(xCorrected, yCorrected));
+%     
+    
+    
+    
+    
+    
     
     
     

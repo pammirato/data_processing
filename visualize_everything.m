@@ -44,12 +44,12 @@ function visualize_everything
   worlddir = [Xdir' Ydir' Zdir'];
 
   % load reconstructed 3d points for the scene
-  points3D_path = fullfile(scene_path, RECONSTRUCTION_DIR, POINTS_3D_MAT_FILE);
-  if (~exist(points3D_path,'file'))
-    save_reconstructed_points;
-  end
-  points3D = load(points3D_path);
-  points3D = points3D.point_matrix;
+%   points3D_path = fullfile(scene_path, RECONSTRUCTION_DIR, POINTS_3D_MAT_FILE);
+%   if (~exist(points3D_path,'file'))
+%     save_reconstructed_points;
+%   end
+%   points3D = load(points3D_path);
+%   points3D = points3D.point_matrix;
 
   % set up the display figure with subplots for camera positions, images, etc
   plotfig = figure;
@@ -80,7 +80,8 @@ function visualize_everything
   print(save_figure_path,'-djpeg'); % save a JPEG image of the figure
   savefig(save_figure_path); % save figure in FIG format
 
-  point_axes = display_reconstructed_points(points3D);
+%   point_axes = display_reconstructed_points(points3D);
+point_axes = view_axes;
 
   % link axes together so they rotate together in rotate3d mode
   hlink = linkprop([view_axes,point_axes],{'CameraPosition','CameraUpVector',...

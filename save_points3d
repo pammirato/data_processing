@@ -1,0 +1,76 @@
+
+
+clear;
+init;
+
+
+
+
+
+
+
+scene_name = 'Room15'; %make this = 'all' to run all scenes
+
+%should the lines indicating orientation be drawn?
+view_orientation = 1;
+
+
+%get the names of all the scenes
+d = dir(BASE_PATH);
+d = d(3:end);
+
+%determine if just one or all scenes are being processed
+if(strcmp(scene_name,'all'))
+    num_scenes = length(d);
+else
+    num_scenes = 1;
+end
+
+for i=1:num_scenes
+    
+    %if we are processing all scenes
+    if(num_scenes >1)
+        scene_name = d(i).name();
+    end
+
+    scene_path =fullfile(BASE_PATH, scene_name);
+
+
+    fid_points3d = fopen(fullfile(scene_path,RECONSTRUCTION_DIR,'points3D.txt'),'r');
+    
+    %get the header
+    line = fgetl(fid_points3d);
+    line = fgetl(fid_points3d);
+    
+    %get first line
+    line = fgetl(fid_points3d);
+    
+    all_structs = cell(0);
+    
+    while(ischar(line))
+        line = split(line);
+        
+        
+        id = num2str(line{1});
+        x = num2str(line{2});
+        y = num2str(line{3});
+        z = num2str(line{4});
+        r = num2str(line{5});
+        g = num2str(line{6});
+        b = num2str(line{7});
+        error = num2str(line{8});
+        
+        track = line{9:end};
+        
+        cur_struct = struct('id',id,'x',x,'y',y,'z',z,'r',r,'g',g,'b',b,...
+                            'error',error,'track',track);
+                        
+        all_structs{end+1} = cur_struct;
+        
+        
+    end%while is char
+    
+    
+    
+    
+end
