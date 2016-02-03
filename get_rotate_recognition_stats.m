@@ -61,20 +61,21 @@ for i=1:num_scenes
     image_names = cell2mat(image_names');
     
     
-    
+    %only use the images from one kinect, K1
     k1_structs = structs(find(image_names(:,8)=='1'));
     structs = k1_structs;
     
-    
+    %get the number of clusters
     max_cluster_id = max([structs.cluster_id]);
     
     num_boxes_diff = -ones(2,max_cluster_id);
     num_boxes = -ones(2,max_cluster_id);
     
     
-    
+    %for each cluster
     for j=1:max_cluster_id
 
+        %get all the structs for this cluster
         cur_cluster = structs(find([structs.cluster_id] == j));
         
         if(length(cur_cluster) == 0)
@@ -87,10 +88,12 @@ for i=1:num_scenes
         nb_cluster = -ones(1,length(cur_cluster));
         
         
-        
+        %make a map from image names to recogintion output
         image_names = {cur_cluster.image_name};
         rec_map = containers.Map(image_names, cell(1,length(image_names)));
         
+        
+        %for each point in the cluster
         for k=1:length(cur_cluster)
             cur_struct = cur_cluster(k);
             
@@ -104,7 +107,7 @@ for i=1:num_scenes
             end
             
             
-            %now get rotate output
+            %now get rec output from point rotated ccw
             ccw_struct = structs_map(cur_struct.rotate_ccw);      
             ccw_rec = rec_map(ccw_struct.image_name);
             if(isempty(ccw_rec))
@@ -114,6 +117,8 @@ for i=1:num_scenes
                 rec_map(ccw_struct.image_name) = ccw_rec;
             end
             
+            
+            % now get rec output from point rotated cw
 %             clock_struct = structs_map(cur_struct.rotate_cw);      
 %             clock_rec = rec_map(clock_struct.image_name);
 %             if(isempty(clock_rec))
@@ -123,6 +128,8 @@ for i=1:num_scenes
 %                 rec_map(clock_struct.image_name) = clock_rec;
 %             end
             
+
+            %only use the specified category
             if(strcmp(category_name, 'all'))
                 rec_mat = cell2mat(struct2cell(rec_mat));
                 ccw_rec = cell2mat(struct2cell(ccw_rec));
@@ -134,10 +141,12 @@ for i=1:num_scenes
             end
             
             
-            
+            %threshold the boxes
             rec_mat = rec_mat(rec_mat(:,5)>score_threshold,:);
             ccw_rec= ccw_rec(ccw_rec(:,5)>score_threshold,:);
             
+            
+            %get the number of boxes
             cur_num= size(rec_mat,1);
             ccw_num= size(ccw_rec,1);
 %             clock_num= size(cell2mat(struct2cell(clock_rec)),1);
@@ -161,9 +170,13 @@ for i=1:num_scenes
             
         end%for k, each point in cluster
         
+        
+        %take the average difference for each cluster
         num_boxes_diff(1,j) = mean(nbd_cluster);
         num_boxes_diff(2,j) = std(nbd_cluster);
         
+        
+        %get average total for each point in each cluster
         num_boxes(1,j) = mean(nb_cluster);
         num_boxes(2,j) = std(nb_cluster);
         
