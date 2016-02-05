@@ -56,17 +56,12 @@ for i=1:num_scenes
         load_path = fullfile(scene_path,RGB_IMAGES_DIR);
     end
 
-   
+    %struct_one = structs(1);
+    %cur_image_name = struct_one.image_name;
     
-    if(rec_images)
-        temp = dir(fullfile(load_path, '*.jpg'));
-        valid_image_names = {temp.name};
-        cur_image_name = valid_image_names{1};
-        cur_image_name = strcat(cur_image_name(1:8),'01.png');
-    else
-        struct_one = structs(1);
-        cur_image_name = struct_one.image_name;
-    end
+    temp = dir(fullfile(load_path, '*.jpg'));
+    valid_image_names = {temp.name};
+    cur_image_name = valid_image_names{1};
     
     move_command = 'r';
 
@@ -75,7 +70,7 @@ for i=1:num_scenes
 
           if(rec_images)
             rec_name = strcat(cur_image_name(1:8),'11.jpg');
-            img = imread(fullfile(load_path,rec_name));
+            img = imread(fullfile(load_path,cur_image_name));
           else
             img = imread(fullfile(load_path,cur_image_name));
           end
@@ -99,21 +94,14 @@ for i=1:num_scenes
           if(strcmp(move_command, 'q'))
               disp('quiting...');
               break;
-          elseif(strcmp(move_command,'a'))
-              %random
-              if(rec_images)
-                index = randi(length(valid_image_names),1);
-                cur_image_name = valid_image_names{index};
-                cur_image_name = strcat(cur_image_name(1:8),'01.png');
-              end
 
           elseif(strcmp(move_command,'e'))
-              %rotate ccw
+              %move forward one image 
 
               cur_image_name = cur_struct.rotate_ccw;
 
           elseif(strcmp(move_command,'r'))
-              %rotate clockwise 
+              %move forward one image 
                 cur_image_name = cur_struct.rotate_cw;
           elseif(strcmp(move_command,'f'))
               %move forward one image 
@@ -124,7 +112,7 @@ for i=1:num_scenes
                     title('cant move forward here!');
                 end
           elseif(strcmp(move_command,'b'))
-              %move backward one image 
+              %move forward one image 
                backward_name = cur_struct.translate_backward;
                 if(backward_name ~= -1)
                     cur_image_name = backward_name;
@@ -132,7 +120,7 @@ for i=1:num_scenes
                     title('cant move backward here!');
                 end
           elseif(strcmp(move_command,'x'))
-              %move up 
+              %move forward one image 
                up_name = cur_struct.translate_up;
                 if(up_name ~= -1)
                     cur_image_name = up_name;
@@ -140,7 +128,7 @@ for i=1:num_scenes
                     title('cant move up here!');
                 end
           elseif(strcmp(move_command,'c'))
-              %move down 
+              %move forward one image 
                down_name = cur_struct.translate_down;
                 if(down_name ~= -1)
                     cur_image_name = down_name;
@@ -164,11 +152,8 @@ for i=1:num_scenes
           
           
           %ccheck tp see if the next image actually exists
-          if(rec_images)
-            rec_name = strcat(cur_image_name(1:8),'11.jpg');
-            if(~exist(fullfile(load_path, rec_name),'file'))
+          if(~exist(fullfile(load_path, cur_image_name),'file'))
               cur_image_name= prev_image_name;
-            end
           end
     end %while cur_image_index < 
 

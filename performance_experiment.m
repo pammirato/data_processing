@@ -19,21 +19,27 @@ score_threshold = .1;
 save_rec_output_vis = 0;
 
 
+
+%set some paths
 scene_path = fullfile(BASE_PATH,scene_name);
 image_path = fullfile(scene_path, RGB_IMAGES_DIR);
  results_path = fullfile(scene_path, RECOGNITION_DIR, FAST_RCNN_DIR);
  
  
  
- %load data about psition of each image in this scene
+ %load data about position of each image in this scene
 camera_structs_file =  load(fullfile(scene_path,RECONSTRUCTION_DIR,NEW_CAMERA_STRUCTS_FILE));
 camera_structs = camera_structs_file.(CAMERA_STRUCTS);
 scale  = camera_structs_file.scale;
+
+
 
 %get a list of all the image file names in the entire scene
 temp = cell2mat(camera_structs);
 all_image_names = {temp.(IMAGE_NAME)};
 clear temp;
+
+
 
 %make a map from image name to camera_struct
 camera_struct_map = containers.Map(all_image_names, camera_structs);
@@ -50,7 +56,7 @@ label_to_images_that_see_it_map = load(fullfile(scene_path,LABELING_DIR,...
 label_to_images_that_see_it_map = label_to_images_that_see_it_map.(LABEL_TO_IMAGES_THAT_SEE_IT_MAP);
              
              
-
+%are we doing this for all labels or just one label?
 if(strcmp(label_name,'all'))
     d = dir(fullfile(scene_path,LABELING_DIR,'turk_boxes','*.mat'));
     label_names = {d.name};
@@ -61,9 +67,10 @@ end
 
 
 
-
+%for each label
 for i=1:num_labels
-    
+   
+    %get the label/category name 
     if(num_labels > 1)
         label_name = label_names{i};
         label_name = label_name(1:end-4);
@@ -80,7 +87,7 @@ for i=1:num_labels
     %instance
     label_structs = label_to_images_that_see_it_map(label_name);
 
-    %get all the image names
+    %get all the image names of the images that see this instance
     temp = cell2mat(label_structs);
     image_names = {temp.(IMAGE_NAME)};
     clear temp;
@@ -92,8 +99,10 @@ for i=1:num_labels
     turk_boxes= load(fullfile(scene_path,LABELING_DIR, 'turk_boxes', strcat(label_name, '.mat')));
     turk_annotations = cell2mat(turk_boxes.annotations);
 
+    %get all the names of annotated images
     image_names = {turk_annotations.frame};
 
+    %maybe get rid of the first image if it was a BIGBird image
     image_name = image_names{1};
     if(image_name(10)=='0')
             image_names = image_names(2:end);
@@ -101,13 +110,17 @@ for i=1:num_labels
 
 
 
+
+
+
     %%%%%%%%%%%%%%%%%% GET WORLD  COORDS OF INSTANCE  %%%%%%%%%%%%%%%%
 
 
-    %get the data for the labeled image
-
+    %get the data for a point in a labeled image
     done = 0;
     counter = 1;
+
+    %make sure the depth >0
     while(~done)
         ls = label_structs{counter};
         if(ls.depth > 0)
@@ -117,16 +130,6 @@ for i=1:num_labels
     end
     view_zero_camera_struct = camera_struct_map(image_names{counter});
 
-    %intrinsic matrix of kinect1
-    %decide which intrinsic matrix to use
-    %     K = eye(3);
-    %     if(labeled_image_name(end-4) =='1')
-    %         K = intrinsic1;
-    %     elseif(labeled_image_name(end-4) =='2')
-    %         K = intrinsic2;
-    %     else
-    %         K = intrinsic3;
-    %     end
     K = intrinsic1;
 
     t = view_zero_camera_struct.(TRANSLATION_VECTOR);
@@ -141,7 +144,7 @@ for i=1:num_labels
 
 
 
-
+    %calculate the world cordinates of the instance
     instance_world_coords = R' * depth * pinv(K) *  [pt;1] - R'*t;
 
 
@@ -153,24 +156,9 @@ for i=1:num_labels
 
 
 
+
+    %figure for the positions of all the cameras used
     positions_fig = figure('Visible','off');
-    % data = struct('link',[],...
-    %             'index',1,...
-    %             'names',cell(1,1),...
-    %             'image_path',image_path,...
-    %             'bboxes',cell(1,1),...
-    %             'scores',cell(1,1),...
-    %             'categories',cell(1,1),...
-    %             'points',[],...
-    %             'selected_view',[],...
-    %             'selected_bbox',[],...
-    %             'selected_point',[],...
-    %             'bbox_img',[]);
-    % data.names = image_names;
-    % set(plotfig,'UserData',data);
-
-
-
 
     title('position/score (plus direction and object position)');
     hold on;
@@ -186,6 +174,8 @@ for i=1:num_labels
 
     %% setup for computing viewing angle
     if(exist(fullfile(scene_path,LABELING_DIR,DATA_FOR_LABELING_DIR,label_name,'view_0_struct.mat') ,'file'))
+
+       %get the labeled view_zero camera struct if it exists
         view_zero_struct = load(fullfile(scene_path,LABELING_DIR,DATA_FOR_LABELING_DIR,label_name,'view_0_struct.mat'));
         zero_point = view_zero_struct.scaled_world_pos;
         plot3(zero_point(1),zero_point(3),0 ,'r.','MarkerSize',35);
@@ -194,6 +184,7 @@ for i=1:num_labels
         zero_vec = zero_point - instance_world_coords([1,3]) ;
 
     elseif(exist(fullfile(scene_path,LABELING_DIR,DATA_FOR_LABELING_DIR,label_name,'view_180_struct.mat') ,'file'))
+        %get the labeled view_180 camera struct if it exists
         view_180_struct = load(fullfile(scene_path,LABELING_DIR,DATA_FOR_LABELING_DIR,label_name,'view_180_struct.mat'));
         point_180 = view_180_struct.scaled_world_pos; 
         plot3(point_180(1),point_180(3),0 ,'g.','MarkerSize',35);
@@ -208,7 +199,7 @@ for i=1:num_labels
         continue;
     end
 
-
+    %more stuff for calculating angles later
     zero_vec = zero_vec/norm(zero_vec);
     zero_slope = zero_vec(2)/zero_vec(1);
     zero_b = zero_point(2) - zero_slope*zero_point(1);
@@ -224,34 +215,43 @@ for i=1:num_labels
 
 
 
-
+    %store recognition scores, camera positons, camera angles, camera distances
     rec_scores = -ones(1,length(turk_annotations));
     cam_points = zeros(2,length(turk_annotations));
     view_angles = -ones(1,length(turk_annotations));
     %zero_vec = -1;
     distances = -ones(1,length(turk_annotations));
 
+
+
+    
     if(save_rec_output_vis)
+
+        %figure to save rec boxes and turk box on image
         save_fig = figure('Visible','off');
         mkdir(fullfile(scene_path,RECOGNITION_DIR,recognition_system,'performance_images',label_name));
     end
-    
+   
+
+
+ 
     flag = 1;
+    %for each turk annotation
     for j=1:length(turk_annotations)
-
+        
         ann = turk_annotations(j);
-
+        
+        %get the bbox dimensions and image name
         turk_box = double([ann.xtl, ann.ytl, ann.xbr, ann.ybr]);
         image_name = ann.frame;
 
 
-
-
+        %skip a BIG BIRD image
         if(image_name(10)=='0')
             continue;
         end
 
-
+        %skip K2 and K3 images
         if(image_name(8) ~= '1')
             continue;
         end
@@ -262,6 +262,8 @@ for i=1:num_labels
         %%  get struct info
         cur_struct = camera_struct_map(image_name);
 
+
+        
         swp = cur_struct.scaled_world_pos;
         direction = cur_struct.direction;
 
@@ -281,7 +283,9 @@ for i=1:num_labels
         rec_mat = load(fullfile(scene_path,'recognition_results',recognition_system,...
                                 'scores',strcat(image_name(1:10),'.mat')));
         rec_dets = rec_mat.dets;
-        
+       
+
+        %make sure this category/label is in this recognition system 
         try
             rec_category_dets = rec_dets.(category_name);
         catch
@@ -298,12 +302,14 @@ for i=1:num_labels
 
         %% get 'best' box
         best_det = zeros(1,5);
+
+        %for each bbox from rec output
         for k=1:size(rec_category_dets,1)
             cur_bbox = double(rec_category_dets(k,1:4)); 
 
 
 
-
+             %find its Intersertion over Union with the turk labeld box
              x_p = cur_bbox(1);
              y_p = cur_bbox(2);
              x_g = turk_box(1);
@@ -326,6 +332,8 @@ for i=1:num_labels
 
              cur_iou=intersectionArea/unionArea; %This should be greater than 0.5 to consider it as a valid detection.
 
+
+            %if IOU < .5 don't consider this box
             if(cur_iou < .5)
                 continue;
             end
@@ -338,16 +346,23 @@ for i=1:num_labels
             end
 
         end% for j, each detection
-        
+       
+
+
+        %idk  
         if(~flag)
             continue;
         end
         
 
+
+        %save everything for this image
         rec_scores(j) = best_det(5);
         score = best_det(5)*2000;
         %% plot
 
+
+        %%plot in the positions_fig
         plot3(swp(1),swp(3),score,'r.');
         quiver3(swp(1),swp(3),score,direction(1)*scale,direction(3)*scale,0, 'ShowArrowHead','off','Color' ,'b');
 
@@ -374,16 +389,11 @@ for i=1:num_labels
             angle = 360 - angle;
         end
 
-%         if(angle < 5 && angle > 2.5)
-%             breakp = 1;
-%         end
-%         
+        %save the angle
         view_angles(j) = angle;
 
-
+        %calulate and save the distance to the object
         distance = sqrt( sum(([instance_world_coords(1),instance_world_coords(3)] - [swp(1),swp(3)]).^2) );
-
-
 
         distances(j) = distance;
 
@@ -392,13 +402,22 @@ for i=1:num_labels
 
 
         %%
+
+        %if we want the rec boxes vs. turk box overlayed on the image
         if(save_rec_output_vis)
+            %set the current figure
             set(0,'CurrentFigure',save_fig); 
 
+
+            %show the image
             imshow(imread(fullfile(scene_path,JPG_RGB_IMAGES_DIR,strcat(image_name(1:10),'.jpg'))));
             title(strcat(category_name,'  > ', num2str(score_threshold), '    (truth in red)'));
+
+            %draw the turk bbox
             rectangle('Position',[turk_box(1) turk_box(2) (turk_box(3)-turk_box(1)) (turk_box(4)-turk_box(2))], 'LineWidth',3, 'EdgeColor','r');
 
+
+            %draw all the rec bboxes
             font_size = 10;
             for k =1:size(rec_category_dets,1)
                bbox = double(rec_category_dets(k,1:5)); 
@@ -413,6 +432,7 @@ for i=1:num_labels
             saveas(save_fig,fullfile(scene_path,RECOGNITION_DIR,recognition_system,'performance_images',label_name,strcat(image_name(1:8),'11.jpg')));
 
 
+            %set the figure back to popsitions_fig
             set(0,'CurrentFigure',positions_fig); 
         end
 
@@ -425,7 +445,7 @@ for i=1:num_labels
 
 
 
-
+    %%for positions fig to look nice
     hold off;
     axis equal;
 
@@ -443,7 +463,7 @@ for i=1:num_labels
 
 
 
-
+    %make save directiories
     mkdir(fullfile(scene_path,RECOGNITION_DIR,recognition_system,'plots',label_name));
 
 
