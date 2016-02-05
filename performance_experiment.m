@@ -11,7 +11,7 @@ init;
  
 %the scene and instance we are interested in
 scene_name = 'Room15';
-instance_name = 'all';
+instance_name = 'chair1';
 label_name = instance_name;
 category_name = 'chair'; %usually the only difference is this has no index
 recognition_system = 'fast-rcnn';
