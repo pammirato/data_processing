@@ -638,7 +638,6 @@ function display_image_portion(idx, pos)
   hold on;
 
   % overlay depth image
-  suffix_index = 11;
   depth_name = [image_name(1:9) '3.png'];
   raw_depth = imread(fullfile(userData.scene_path, ['raw_depth/' depth_name]));
   depth_image = imagesc(raw_depth(ymin:ymax, xmin:xmax, :));
@@ -659,7 +658,6 @@ function display_segmentation(image_name, pos)
         end
     end
 
-
     img = imread([userData.image_path image_name]);
     pos = get_larger_bbox(img, pos, userData.bbox_img_pad);
 
@@ -668,12 +666,15 @@ function display_segmentation(image_name, pos)
     xmax = int16(min([pos(1)+pos(3) 1920]));
     ymax = int16(min([pos(2)+pos(4) 1080]));
 
-    seg_img = extract_foreground(img, pos);
+    depth_name = [image_name(1:9) '3.png'];
+    raw_depth = imread(fullfile(userData.scene_path, ['raw_depth/' depth_name]));
+    img = cat(3, img, raw_depth);
 
-    seg_img = seg_img(ymin:ymax, xmin:xmax);
-    seg_img = im2bw(seg_img, 2/255);
-    [B,L] = bwboundaries(seg_img,'noholes');
-    seg_img = seg_img .* 85;
+    trimap = extract_foreground(img, pos);
+    trimap = trimap(ymin:ymax, xmin:xmax);
+    trimap = im2bw(trimap, 2/255);
+
+    [B,L] = bwboundaries(trimap,'noholes');
 
     seg_plots = cell(1,1);
     for k = 1:length(B)
