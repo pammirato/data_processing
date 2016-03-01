@@ -2,12 +2,12 @@ clear;
 init;
 
 
-
+density = 0;
 scene_name = 'Room15'; %make this = 'all' to run all scenes
 
 
 rec_images = 1;
-label_name = 'chair1';
+label_name = 'chair4';
 recognition_system = 'fast-rcnn';
 
 
@@ -30,6 +30,9 @@ for i=1:num_scenes
     end
 
     scene_path =fullfile(BASE_PATH, scene_name);
+    if(density)
+        scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+    end
 
 
     %load a map from image name to camera data
@@ -105,16 +108,30 @@ for i=1:num_scenes
                 index = randi(length(valid_image_names),1);
                 cur_image_name = valid_image_names{index};
                 cur_image_name = strcat(cur_image_name(1:8),'01.png');
+              else
+                index = randi(length(structs),1);
+                cur_struct = structs(index);
+                cur_image_name = cur_struct.image_name;
               end
+              
 
           elseif(strcmp(move_command,'e'))
               %rotate ccw
-
-              cur_image_name = cur_struct.rotate_ccw;
+              rotate_name = cur_struct.rotate_ccw;
+              if(rotate_name ~= -1)
+                 cur_image_name = rotate_name; 
+              else
+                  
+              end
 
           elseif(strcmp(move_command,'r'))
               %rotate clockwise 
-                cur_image_name = cur_struct.rotate_cw;
+              rotate_name = cur_struct.rotate_cw;
+              if(rotate_name ~= -1)
+                 cur_image_name = rotate_name; 
+              else
+                  
+              end
           elseif(strcmp(move_command,'f'))
               %move forward one image 
                 forward_name = cur_struct.translate_forward;

@@ -1,14 +1,13 @@
 
 
 
-clearvars , close all;
 init;
 
 
-
+density = 1;
 %the scene and instance we are interested in
-scene_name = 'Room15';
-recognition_system_name = 'fast-rcnn';
+scene_name = 'SN208';
+recognition_system_name = 'results_fast_rcnn';
 font_size = 10;
 
 %any of the fast-rcnn categories
@@ -17,9 +16,12 @@ category_name = 'chair'; %make this 'all' to see all categories
 score_threshold = .1;
 
 scene_path = fullfile(BASE_PATH,scene_name);
+if(density)
+    scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+end
 
 
-image_names = dir(fullfile(scene_path,JPG_RGB_IMAGES_DIR,'*0101.jpg'));
+image_names = dir(fullfile(scene_path,RGB_IMAGES_DIR,'*0101.png'));
 image_names = {image_names.name};
 
 
@@ -37,40 +39,68 @@ while(cur_image_index < length(image_names) )
     
     
     rgb_name = image_names{cur_image_index};
-    rgb_image = imread(fullfile(scene_path,JPG_RGB_IMAGES_DIR,rgb_name));
+    rgb_image = imread(fullfile(scene_path,RGB_IMAGES_DIR,rgb_name));
     
     imshow(rgb_image);
     
-    
+    title(rgb_name);
     rec_name = strcat(rgb_name(1:10),'.mat');
-    rec_mat = load(fullfile(scene_path,RECOGNITION_DIR,recognition_system_name,rec_name));
-   
+     rec_mat = load(fullfile(scene_path,RECOGNITION_DIR,recognition_system_name,rec_name));
+%     rec_mat = load(fullfile(scene_path,RECOGNITION_DIR,'bboxes',rec_name));
+%rec_mat = load(fullfile(scene_path,LABELING_DIR,'chair_boxes_per_image_concat',rec_name));
     
     all_detections = rec_mat.dets;
+%     all_detections = rec_mat.boxes;
     categories = fields(all_detections);
     
-    dets_to_show = [];
+%     dets_to_show = [];
     for j=1:length(categories)
         cur_label = categories{j};
+        
+        if(~strcmp(cur_label,category_name))
+            continue;
+        end
         
         cur_dets = (all_detections.(cur_label));
         
         cur_dets = cur_dets(cur_dets(:,5)>score_threshold,:);
         
-        
+%         
+%         for k=1:size(all_detections,1)
+%             bbox = double(all_detections(k,:));
+%             
+%             if(bbox(3)- bbox(1) < 0)
+%                 continue;
+%             end
+%             rectangle('Position',[bbox(2) bbox(1) (bbox(4)-bbox(2)) (bbox(3)-bbox(1))], 'LineWidth',2, 'EdgeColor','b');
+% 
+% %             text(bbox(1), bbox(2)-font_size,strcat(num2str(bbox(5)),cur_label),  ...
+% %                                     'FontSize',font_size, 'Color','white');
+% 
+%         end%for k      
+
+
         for k=1:size(cur_dets,1)
             bbox = double(cur_dets(k,:));
+            
+            if(bbox(4)- bbox(2) < 0)
+                continue;
+            end
             rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], 'LineWidth',2, 'EdgeColor','b');
 
             text(bbox(1), bbox(2)-font_size,strcat(num2str(bbox(5)),cur_label),  ...
                                     'FontSize',font_size, 'Color','white');
 
-        end%for k      
+        end%for k 
+
+
 %         if(length(dets_to_show) > 0)
 %             dets_to_show = cat(1,dets_to_show,cur_dets);
 %         else
 %             dets_to_show = cur_dets;
 %         end
+
+
     end%for j
     
 
@@ -104,10 +134,10 @@ while(cur_image_index < length(image_names) )
 
     elseif(strcmp(move_command,'n'))
       %move forward one image 
-      cur_image_index = cur_image_index+25;   
+      cur_image_index = cur_image_index+11;   
     elseif(strcmp(move_command,'p'))
       %move backward one image 
-      cur_image_index = cur_image_index-25;
+      cur_image_index = cur_image_index-11;
       if(cur_image_index < 1)
         cur_image_index = 1;
       end

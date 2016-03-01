@@ -29,8 +29,8 @@ CAM_ID = 9;
 NAME = 10;
 
 
-
-scene_name = 'Room15_2';  %make this = 'all' to run all scenes
+density = 1;
+scene_name = 'FB209';  %make this = 'all' to run all scenes
 
 %get the names of all the scenes
 d = dir(BASE_PATH);
@@ -51,9 +51,16 @@ for i=1:num_scenes
     end
 
     scene_path =fullfile(BASE_PATH, scene_name);
+%     positions_path =fullfile( scene_path, RECONSTRUCTION_DIR);
 
-
+    if(density)
+        scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+    end
     positions_path =fullfile( scene_path, RECONSTRUCTION_DIR);
+
+    
+    
+    
     %get the camera positions and orientations for the given images
 
     fid_images = fopen(fullfile(positions_path, IMAGES_RECONSTRUCTION)); 
@@ -68,7 +75,8 @@ for i=1:num_scenes
     %skip header
     fgetl(fid_images); 
     fgetl(fid_images); 
-    line = fgetl(fid_images); 
+    fgetl(fid_images); 
+    fgetl(fid_images); 
   
     %holds all the structs, one per image, for this scene
     camera_structs = cell(1,num_total_rgb_images); 
@@ -82,10 +90,11 @@ for i=1:num_scenes
 
     j = 1;
 
+    line = fgetl(fid_images);
     while(ischar(line))
 
       %get image info
-      line = fgetl(fid_images);
+      %line = fgetl(fid_images);
       line = strsplit(line);
 
       %get t and quat for this image
@@ -140,7 +149,7 @@ for i=1:num_scenes
           line = fgetl(fid_images);
       end
                       
-      
+      line = fgetl(fid_images);
 
     end
 
@@ -162,82 +171,83 @@ for i=1:num_scenes
     
 
 
+    scale = 0;
 
         % 
     % %%%%%%%%%%%%%%% DETERMINE SCALE  OF RECONSTRUCTION  %%%%%%%%%%%%%%%%%%
     % 
     % 
     %hold the distances between camera positions for kinect1 to kinect2, and K2 to K3
-    distances_k1k2 = cell(1,1);
-    distances_k2k3 = cell(1,1);
-    
-    %keep track of where we are in the matrices
-    k1k2_counter =1;
-    k2k3_counter =1;
-    
-    %find all the distances from the reconstruction
-    for jj=1:length(image_names)
-    
-      cur_name = image_names{jj};
-    
-    
-      %if this is a k1, store the distance to the k2 above it 
-      if( cur_name(end-4) == '1')
-        %get name of image for k2 at same point
-        k2_name = cur_name;
-        k2_name(end -4) = '2';
-        k2_name(end -4) = '3';
-    
-        %get camera positions
-        k1_data = camera_struct_map(cur_name);
-        
-        %this image might not exist
-        try
-          k2_data = camera_struct_map(k2_name);
-        catch
-          continue;
-        end
-        
-        
-        distances_k1k2{k1k2_counter} = pdist2(k2_data.(WORLD_POSITION)', k1_data.(WORLD_POSITION)');
-        k1k2_counter =k1k2_counter+1;
-    
-      elseif( cur_name(end-4) == '2')
-        %get name of image for k3 at same point
-        k3_name = cur_name;
-        k3_name(end -4) = '3';
-    
-        %get camera positions
-        k2_data = camera_struct_map(cur_name);
-    
-        %this image might not exist
-        try
-          k3_data = camera_struct_map(k3_name);
-        catch
-          continue;
-        end
-        
-    
-        distances_k2k3{k2k3_counter} = pdist2(k3_data.(WORLD_POSITION)' ,k2_data.(WORLD_POSITION)');
-        k2k3_counter =k2k3_counter+1;
-    
-    
-      end %if cur_name == k1
-    
-    
-    end%for i keys
-    
-    
-    
-    %get scale from ratio of actual_distance / average_reconstructed_distance
-    scale_k1k2 = kDistanceK1K2 / mean(cell2mat(distances_k1k2));
-    scale_k2k3 = kDistanceK2K3 / mean(cell2mat(distances_k2k3));
-    
-    %get the overall scale as a weighted average from the above
-    scale  = ( length(distances_k1k2)*scale_k1k2  + length(distances_k2k3)*scale_k2k3 )...
-              / ( length(distances_k1k2) + length(distances_k2k3) );
-
-    scale = scale_k1k2;
+%     distances_k1k2 = cell(1,1);
+%     distances_k2k3 = cell(1,1);
+%     
+%     %keep track of where we are in the matrices
+%     k1k2_counter =1;
+%     k2k3_counter =1;
+%     
+%     %find all the distances from the reconstruction
+%     for jj=1:length(image_names)
+%     
+%       cur_name = image_names{jj};
+%     
+%     
+%       %if this is a k1, store the distance to the k2 above it 
+%       if( cur_name(end-4) == '1')
+%         %get name of image for k2 at same point
+%         k2_name = cur_name;
+%         k2_name(end -4) = '2';
+%         k2_name(end -4) = '3';
+%     
+%         %get camera positions
+%         k1_data = camera_struct_map(cur_name);
+%         
+%         %this image might not exist
+%         try
+%           k2_data = camera_struct_map(k2_name);
+%         catch
+%           continue;
+%         end
+%         
+%         
+%         distances_k1k2{k1k2_counter} = pdist2(k2_data.(WORLD_POSITION)', k1_data.(WORLD_POSITION)');
+%         k1k2_counter =k1k2_counter+1;
+%     
+%       elseif( cur_name(end-4) == '2')
+%         %get name of image for k3 at same point
+%         k3_name = cur_name;
+%         k3_name(end -4) = '3';
+%     
+%         %get camera positions
+%         k2_data = camera_struct_map(cur_name);
+%     
+%         %this image might not exist
+%         try
+%           k3_data = camera_struct_map(k3_name);
+%         catch
+%           continue;
+%         end
+%         
+%     
+%         distances_k2k3{k2k3_counter} = pdist2(k3_data.(WORLD_POSITION)' ,k2_data.(WORLD_POSITION)');
+%         k2k3_counter =k2k3_counter+1;
+%     
+%     
+%       end %if cur_name == k1
+%     
+%     
+%     end%for i keys
+%     
+%     
+%     
+%     %get scale from ratio of actual_distance / average_reconstructed_distance
+%     scale_k1k2 = kDistanceK1K2 / mean(cell2mat(distances_k1k2));
+%     scale_k2k3 = kDistanceK2K3 / mean(cell2mat(distances_k2k3));
+%     
+%     %get the overall scale as a weighted average from the above
+%     scale  = ( length(distances_k1k2)*scale_k1k2  + length(distances_k2k3)*scale_k2k3 )...
+%               / ( length(distances_k1k2) + length(distances_k2k3) );
+% 
+%     scale = scale_k1k2;
     % 
     % 
     % %%%%%%%%%%%%%%% END DETERMINE SCALE OF  RECONSTRUCTION  %%%%%%%%%%%%%%%%%%
@@ -250,21 +260,21 @@ for i=1:num_scenes
     % %%%%%%%%%%%%%%% APPLY SCALE    %%%%%%%%%%%%%%%%%%
     
     
-    
-    for jj=1:length(camera_structs)
-        
-        cur_struct = camera_structs{jj};
-        
-        t = cur_struct.(TRANSLATION_VECTOR);
-        R = cur_struct.(ROTATION_MATRIX);
-        
-        t = t*scale;
-        
-        cur_struct.(SCALED_WORLD_POSITION) = (-R' *t);
-        
-        camera_structs{jj} = cur_struct;
-        
-    end%for camera_structs
+%     
+%     for jj=1:length(camera_structs)
+%         
+%         cur_struct = camera_structs{jj};
+%         
+%         t = cur_struct.(TRANSLATION_VECTOR);
+%         R = cur_struct.(ROTATION_MATRIX);
+%         
+%         t = t*scale;
+%         
+%         cur_struct.(SCALED_WORLD_POSITION) = (-R' *t);
+%         
+%         camera_structs{jj} = cur_struct;
+%         
+%     end%for camera_structs
     
     
     
@@ -277,7 +287,7 @@ for i=1:num_scenes
     
     
     
-    save(fullfile(scene_path, RECONSTRUCTION_DIR, CAMERA_STRUCTS_FILE), CAMERA_STRUCTS, SCALE);
+    save(fullfile(scene_path, RECONSTRUCTION_DIR, NEW_CAMERA_STRUCTS_FILE), CAMERA_STRUCTS, SCALE);
 
     save(fullfile(scene_path, RECONSTRUCTION_DIR, POINT_2D_STRUCTS_FILE), POINT_2D_STRUCTS);
     

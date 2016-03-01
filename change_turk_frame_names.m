@@ -1,13 +1,17 @@
 clear;
 init;
 
-scene = 'Room15';
+density = 1;
+scene_name = 'SN208';
 
 
 
 
 
-scene_path = fullfile(BASE_PATH,scene);
+scene_path = fullfile(BASE_PATH,scene_name);
+if(density)
+    scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+end
 
 
 vid_names = dir(fullfile(scene_path,LABELING_DIR,'turk_boxes','*.mat'));

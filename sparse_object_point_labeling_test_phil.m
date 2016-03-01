@@ -25,9 +25,10 @@
 
 init;
 
+density = 1;
 
-scene_name = 'FB341';
-kinect_to_use = '2';
+scene_name = 'SN208';
+%kinect_to_use = '1';
 
 
 %should be 1
@@ -37,6 +38,9 @@ label_box_size = 10;
 
 %where to get the images from
 scene_path = fullfile(BASE_PATH, scene_name);
+if(density)
+    scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+end
 %where to write our output to
 write_path = fullfile(scene_path, LABELING_DIR, DATA_FOR_LABELING_DIR);
 

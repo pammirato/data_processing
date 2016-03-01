@@ -264,3 +264,321 @@
 
 
 
+
+% 
+% 
+% for i=1:11
+%    img_name = camera_structs(i);
+%    cur_struct = structs_map(img_name.image_name);
+%    
+%    cur_struct.cluster_id = i-1;
+%    
+%    structs_map(img_name.image_name) = cur_struct;
+%    
+%    
+% end
+% 
+
+% 
+% x_dist = ones(1,grid_size*length(all_score_thresholds));
+% for qq=1:grid_size
+%     start_i = (length(all_score_thresholds)*(qq-1) + 1);
+%     end_i = start_i + length(all_score_thresholds)-1;
+%     x_dist(start_i:end_i) = qq;
+% end%for qq
+
+
+
+
+
+
+
+
+
+
+
+
+
+% 
+% 
+% 
+% rgb_image = imread(fullfile(scene_path,JPG_RGB_IMAGES_DIR,rgb_name));
+%     
+%     imshow(rgb_image);
+%     
+%     title(rgb_name);
+%     rec_name = strcat(rgb_name(1:10),'.mat');
+%     rec_mat = load(fullfile(scene_path,'labeling','chair_boxes_per_image',rec_name));
+%    
+%     
+%     anns = rec_mat.annotations;
+% 
+%     for k=1:size(anns,1)
+%         bbox = double(anns(k,:));
+%         rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], 'LineWidth',2, 'EdgeColor','b');
+% 
+% %         text(bbox(1), bbox(2)-font_size,strcat(num2str(bbox(5)),cur_label),  ...
+% %                                 'FontSize',font_size, 'Color','white');
+% 
+%     end%for k      
+% %         if(length(dets_to_show) > 0)
+% %             dets_to_show = cat(1,dets_to_show,cur_dets);
+% %         else
+% %             dets_to_show = cur_dets;
+% %         end
+% 
+%     
+%     
+%     [x, y, but] = ginput(1);
+%     
+%     if(but~=1)
+%         save_changes = 1;
+%         
+%         
+%         while(but~=1)
+%         
+%             [x, y, ~] = ginput(2);
+% 
+%             x = floor(x);
+%             y = floor(y);
+%             
+%             x(1) = max(1,x(1));
+%             x(2) = min(size(rgb_image,2),x(2));
+%             y(1) = max(1,y(1));
+%             y(2) = min(size(rgb_image,1),y(2));
+% 
+%             bbox = [x(1), y(1), x(2), y(2)];
+%             rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], 'LineWidth',2, 'EdgeColor','b');
+%             anns(size(anns,1)+1,:) = single(bbox);
+%             
+%             [x, y, but] = ginput(1);
+%         end%whjile
+%         
+%         
+%         
+%     end%if but
+% %     ch = getkey();
+% %     if(ch == 'q')
+% %         break;
+% %     end
+%     hold off;
+%     
+%     if(save_changes)
+%         annotations = anns;
+%         save(fullfile(scene_path,'labeling','chair_boxes_per_image',rec_name),'annotations');
+%     end
+% 
+% 
+
+
+
+
+
+
+
+
+
+% % 
+% % 
+% density = 1;
+% scene_name = 'SN208';
+% 
+% label_name = 'table2';
+% 
+% 
+% scene_path = fullfile(BASE_PATH,scene_name);
+% if(density)
+%     scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+% end
+% % boxes_path = fullfile(scene_path,RECOGNITION_DIR,'bboxes');
+% boxes_path_load = fullfile(scene_path,'labeling','chair_boxes_per_image');
+% boxes_path_save = fullfile(scene_path,'labeling','chair_boxes_per_image_concat');
+% 
+% 
+% boxes_name = dir(fullfile(boxes_path_load,'*.mat'));
+% boxes_name = {boxes_name.name};
+% 
+% for i=1:length(boxes_name)
+%     box_name= boxes_name{i};
+% 
+%     a = load(fullfile(boxes_path_load,box_name));
+%     
+%     boxes = cell(0);
+%     
+%     cats = fields(a);
+%     for j=1:length(cats)
+%         c = cats{j};
+%         
+%         boxes{end+1} = a.(c);
+%     end
+% 
+%     boxes = cell2mat(boxes');
+%     
+%     boxes2 = boxes(:,2);
+%     boxes4 = boxes(:,4);
+%     
+%     boxes(:,2) = boxes(:,1);
+%     boxes(:,1) = boxes2;
+%     boxes(:,4) = boxes(:,3);
+%     boxes(:,3) = boxes4;
+%     
+%     save(fullfile(boxes_path_save,box_name),'boxes');
+% end
+% 
+% 
+% 
+% 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% 
+% 
+% scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+% 
+% 
+% %load a map from image name to camera data
+% %camera data is an arraywith the camera position and a point along is orientation vector
+% % [CAM_X CAM_Y CAM_Z DIR_X DIR_Y DIR_Z]
+% camera_structs_file =  load(fullfile(scene_path,RECONSTRUCTION_DIR,NEW_CAMERA_STRUCTS_FILE));
+% %camera_structs = camera_structs_file.(CAMERA_STRUCTS);
+% camera_structs = cell2mat(camera_structs_file.(CAMERA_STRUCTS));
+% scale  = camera_structs_file.scale;
+% 
+% write_path = fullfile(scene_path,'rgb_new');
+% mkdir(write_path);
+% 
+% image_names = {camera_structs.image_name};
+% structs_map = containers.Map(image_names,camera_structs_file.(CAMERA_STRUCTS));
+% 
+% 
+% for i=253:length(image_names)
+%     
+%     image_name = image_names{i};
+%     
+%     cur_struct = structs_map(image_name);
+%     
+%     img= imread(fullfile(scene_path,'rgb',image_name));
+%     
+%     new_image_name = strcat('000',num2str(i),'0101.png');
+%     
+%     cur_struct.image_name = new_image_name;
+%     cur_struct.cluster_id = i;
+%     
+%     structs_map(image_name) = cur_struct;
+%     
+%     imwrite(img,fullfile(write_path,new_image_name));
+%     
+%     
+% end %for i
+% 
+% 
+% camera_structs = structs_map.values;
+% 
+% save(fullfile(scene_path, RECONSTRUCTION_DIR, NEW_CAMERA_STRUCTS_FILE), CAMERA_STRUCTS, SCALE);
+% 
+
+
+
+% 
+% 
+% 
+% scene_name = 'SN208_2';
+% scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+% image_names = dir(fullfile(scene_path,RECOGNITION_DIR,'bboxes_selective_search','*.mat'));
+% image_names = {image_names.name};
+% 
+% 
+% for i=253:length(image_names)
+%     
+%     image_name = image_names{i};
+%     
+%     new_image_name = strcat('000',num2str(i),'0101.mat');
+%     
+%     ss_boxes = load(fullfile(scene_path,RECOGNITION_DIR,'bboxes_selective_search',image_name));
+%     boxes = ss_boxes.boxes;
+%     
+%     
+%     dets = load(fullfile(scene_path,RECOGNITION_DIR,'results_fast_rcnn',image_name));
+%     dets = dets.dets;
+%     
+%     save(fullfile(scene_path,RECOGNITION_DIR,'bboxes_selective_search_new',new_image_name),'boxes');
+%     save(fullfile(scene_path,RECOGNITION_DIR,'results_fast_rcnn_new',new_image_name),'dets');
+%     
+%     
+% end %for i
+% 
+% 
+% camera_structs = structs_map.values;
+% 
+% save(fullfile(scene_path, RECONSTRUCTION_DIR, NEW_CAMERA_STRUCTS_FILE), CAMERA_STRUCTS, SCALE);
+% 
+% 
+% 
+% 
+% 
+
+
+% 
+% aa = zeros(1,63);
+%  for i=1:63%length(image_names) 
+% 
+%     aa(i) = 21*(floor((i-1)/3)) +  mod((i-1)+3,3)*10 +1 ;
+%     
+%  end
+
+
+
+
+
+
+% 
+% dd = '/playpen/ammirato/Data/Density/SN208_3/cloud/';
+% 
+% 
+% d=  dir('/playpen/ammirato/Data/Density/SN208_3/cloud/*.pcd');
+% image_names = {d.name};
+% 
+% mkdir('/playpen/ammirato/Data/Density/SN208_3/unreg_depth_new/*.png');
+% 
+% for i =1:length(image_names)
+%     
+%    cur_name = image_names{i};
+%    
+%    cur_index = str2num(cur_name(1:6));
+%    
+%    new_index = cur_index - 83;
+%    
+%    new_name = strcat(sprintf('%06d',new_index),cur_name(7:end));
+%     
+%    
+%    img = imread(fullfile(dd,cur_name));
+%    
+%    imwrite(img, fullfile(new_dd,new_name));
+% end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

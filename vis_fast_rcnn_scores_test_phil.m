@@ -5,7 +5,7 @@
 %initialize contants, paths and file names, etc. 
 init;
 
-
+density  = 1;
 
 scene_name = 'SN208'; %make this = 'all' to run all scenes
 
@@ -34,7 +34,9 @@ for i=1:num_scenes
     end
 
     scene_path =fullfile(BASE_PATH, scene_name);
-
+    if(density)
+        scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+    end
 
     %get a list of all the image names
     rgb_dir = dir(fullfile(scene_path,RGB_IMAGES_DIR));     
@@ -60,7 +62,7 @@ for i=1:num_scenes
     imshow(img);
     
 
-    detections_all = load(fullfile(scene_path,RECOGNITION_DIR, FAST_RCNN_RESULTS,...  
+    detections_all = load(fullfile(scene_path,RECOGNITION_DIR,'fast-rcnn',...  
                               strcat(file_prefix,mat_suffix)));
     detections_all = detections_all.dets;
 

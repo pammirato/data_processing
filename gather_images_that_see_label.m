@@ -5,26 +5,29 @@
 init;
 
 
-
+density  = 1;
 %the scene and instance we are interested in
-scene_name = 'FB341';
+scene_name = 'SN208';
 
 
-label_name = 'red_bull';  %make this 'all' to do it for all labels, bigBIRD to do bigBIRD stuff
-kinect_to_use = '2';
+label_name = 'table1';  %make this 'all' to do it for all labels, bigBIRD to do bigBIRD stuff
+kinect_to_use = '1';
 
 debug = 0;
 
 
-label_box_size = 5;
+label_box_size = 10;
 max_image_dimension = 600;
-start_crop_size = 400;
+start_crop_size = 1500;
 do_depth_crop = 1;
 max_images_per_dir = 50;
 min_images_per_dir = 20;
 
 
 scene_path = fullfile(BASE_PATH,scene_name);
+if(density)
+    scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+end
 
 
 %get the map to find all the interesting images
@@ -118,9 +121,9 @@ for i =1:num_labels
 
         ls = label_structs{jj};
         
-        if(jpg_name(8) == '1' || jpg_name(8) == '2')
-            ls.(X)  = min(1920,ls.x + 40);
-        end
+%         if(jpg_name(8) == '1' || jpg_name(8) == '2')
+%             ls.(X)  = min(1920,ls.x + 40);
+%         end
         
         depth = ls.depth;
         
@@ -208,10 +211,11 @@ for i =1:num_labels
     ref_img = imresize(ref_img,[size(scale_img,1),size(scale_img,2)]);
 
 
+     num_buckets = 0;
      if(length(image_names) > max_images_per_dir)
         num_images = length(image_names);
 
-        num_buckets = 0;
+        
 
         if(mod(num_images,max_images_per_dir) < min_images_per_dir)
             num_buckets = floor(num_images/max_images_per_dir);
@@ -270,7 +274,10 @@ for i =1:num_labels
     
     
     if(num_buckets  > 1)
+        try
         rmdir(fullfile(scene_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, label_name));
+        catch
+        end
     end  
 
 end%for i, each label_naem

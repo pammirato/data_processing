@@ -17,12 +17,16 @@ SLASH="/";
 #  convert -compress Zip $ORG_PATH$ROOM_NAME$image $COMPRESS_PATH$ROOM_NAME$image 
 #done
 
-rm -rf $2
-mkdir -p $2
+input_dir=$1/"rgb"/
+output_dir=$1/"jpg_rgb"/
+
+rm -rf $output_dir
+mkdir -p $output_dir
 
 
-for image in $(ls $1); do
-  convert -compress JPEG $1$image $2${image/png/jpg} 
+
+for image in $(ls $input_dir); do
+  convert -compress JPEG $input_dir$image $output_dir${image/png/jpg} 
 done
 
 #for image in $(ls $1); do

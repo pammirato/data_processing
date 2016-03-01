@@ -4,12 +4,16 @@ clear;
 init;
 
 
+density = 1;
 
-scene_name = 'Room15'; %make this = 'all' to run all scenes
+scene_name = 'SN208'; %make this = 'all' to run all scenes
+
+thresh_distance = 1;
 
 dir_angle_thresh = 10;
 move_angle_thresh = 30;
-dist_thresh = 990;
+point_angle_thresh = 10;
+dist_thresh = 150;
 
 %get the names of all the scenes
 d = dir(BASE_PATH);
@@ -30,14 +34,16 @@ for i=1:num_scenes
     end
 
     scene_path =fullfile(BASE_PATH, scene_name);
-
+    if(density)
+        scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+    end
 
     %load a map from image name to camera data
     %camera data is an arraywith the camera position and a point along is orientation vector
     % [CAM_X CAM_Y CAM_Z DIR_X DIR_Y DIR_Z]
     camera_structs_file =  load(fullfile(scene_path,RECONSTRUCTION_DIR,NEW_CAMERA_STRUCTS_FILE));
     structs = camera_structs_file.(CAMERA_STRUCTS);
-    scale  = camera_structs_file.scale + 50;
+    scale  = camera_structs_file.scale;
     
     
 
@@ -61,7 +67,7 @@ for i=1:num_scenes
     
     
     
-    for j=1:max_cluster_id
+    for j=0:max_cluster_id
 
         cur_cluster = structs(find([structs.cluster_id] == j));
         
@@ -80,8 +86,10 @@ for i=1:num_scenes
             
             forward_angle = 0+move_angle_thresh;
             forward_name = -1;
+            forward_dist = dist_thresh;
             backward_angle = 180-move_angle_thresh;
             backward_name = -1;
+            backward_dist = dist_thresh;
             for l=1:length(other_structs)
                 o_struct = other_structs(l);
                 o_world = o_struct.scaled_world_pos;
@@ -108,17 +116,30 @@ for i=1:num_scenes
 %                     back = 1;
 %                 end
                 
-                
-                if(dir_angle < dir_angle_thresh && distance<dist_thresh)
-                    if(point_angle < forward_angle)
-                        forward_angle = point_angle;
-                        forward_name = o_struct.image_name;
+                if(thresh_distance)
+                    if(dir_angle < dir_angle_thresh && distance<dist_thresh)
+                        if(point_angle < forward_angle)
+                            forward_angle = point_angle;
+                            forward_name = o_struct.image_name;
+                        end
+                        if(point_angle > backward_angle)
+                            backward_angle = point_angle;
+                            backward_name = o_struct.image_name;
+                        end
+
                     end
-                    if(point_angle > backward_angle)
-                        backward_angle = point_angle;
-                        backward_name = o_struct.image_name;
+                else
+                    if(dir_angle < dir_angle_thresh && point_angle<point_angle_thresh)
+                        if(distance < forward_dist)
+                            forward_dist = distance;
+                            forward_name = o_struct.image_name;
+                        end
+                        if(distance > backward_dist)
+                            backward_dist = distance;
+                            backward_name = o_struct.image_name;
+                        end
+
                     end
-                    
                 end
                
             

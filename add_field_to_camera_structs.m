@@ -2,8 +2,8 @@
 init;
 
 
-
-scene_name = 'SN208'; %make this = 'all' to run all scenes
+density = 1;
+scene_name = 'FB209'; %make this = 'all' to run all scenes
 
 %should the lines indicating orientation be drawn?
 view_orientation = 1;
@@ -28,6 +28,9 @@ for i=1:num_scenes
     end
 
     scene_path =fullfile(BASE_PATH, scene_name);
+    if(density)
+        scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+    end
 
 
     %load a map from image name to camera data

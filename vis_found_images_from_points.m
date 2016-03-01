@@ -2,18 +2,20 @@
 %variation in viewpoint of the instance, and distance from the camera
 %to the instance
 
-
-clearvars -except 'depth_images_*', close all;
+%        clearvars -except 'depth_images_*', close all;
 init;
 
-
+density = 1;
 
 %the scene and instance we are interested in
-scene_name = 'FB341';
-instance_name = 'table1';
+scene_name = 'SN208';
+instance_name = 'chair4';
 
 
 scene_path = fullfile(BASE_PATH,scene_name);
+if(density)
+    scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+end
 
 
 %get the map to find all the interesting images
@@ -37,7 +39,7 @@ clear temp;
 
 
 %load data about psition of each image in this scene
-camera_structs_file =  load(fullfile(scene_path,RECONSTRUCTION_DIR,CAMERA_STRUCTS_FILE));
+camera_structs_file =  load(fullfile(scene_path,RECONSTRUCTION_DIR,NEW_CAMERA_STRUCTS_FILE));
 camera_structs = camera_structs_file.(CAMERA_STRUCTS);
 camera_structscale  = camera_structs_file.scale;
 

@@ -15,11 +15,11 @@ TY = 7;
 TZ = 8;
 
 
-
-scene_name = 'FB341';
-label_to_process = 'red_bull'; %make 'all' for every label
+density = 1;
+scene_name = 'SN208';
+label_to_process = 'table2'; %make 'all' for every label
 occulsion_threshold = 100;
-scale_add = 250;
+scale_add = 0;
 
 debug =1;
 
@@ -46,7 +46,9 @@ intrinsic2  = intrinsic1;
 
 
 scene_path = fullfile(BASE_PATH,scene_name);
-
+if(density)
+    scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+end
 
 
 %end result
@@ -283,7 +285,7 @@ for i=1:length(labeled_names_and_points)
 %     %undistort the 
      undistorted_point = undistortPoints(point,cameraParams1)';
     undistorted_point = undistorted_point;
-    %undistorted_point = point';
+    undistorted_point = point';
 
 
     %%%%%%%%%%%%%%%%%%%%%% END UNDISTORT FISHEYE CAMERA  %%%%%%%%%%%%%%%%%
@@ -1084,14 +1086,14 @@ end %for i , every labeled point from file
 if(exist(fullfile(scene_path,LABELING_DIR, ...
          DATA_FOR_LABELING_DIR,LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE),'file'))
      
-     values = label_to_images_that_see_it_map.values;
+     vvalues = label_to_images_that_see_it_map.values;
      key = label_to_images_that_see_it_map.keys;
      
      label_to_images_that_see_it_map = load(fullfile(scene_path,LABELING_DIR, ...
          DATA_FOR_LABELING_DIR,LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE));
      label_to_images_that_see_it_map = label_to_images_that_see_it_map.label_to_images_that_see_it_map;
      
-     label_to_images_that_see_it_map(key{1}) = values{1};
+     label_to_images_that_see_it_map(key{1}) = vvalues{1};
 end
 
 save(fullfile(scene_path,LABELING_DIR, ...

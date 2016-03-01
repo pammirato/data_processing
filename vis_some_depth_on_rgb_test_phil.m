@@ -3,11 +3,13 @@
 init; 
 
 
-images_per_room = 101;
-scene_name = 'Room15';  %make this = 'all' to go through all rooms
+density = 1;
 
 
+scene_name = 'SN208';  %make this = 'all' to go through all rooms
 
+
+%images_per_room = 101;
 
 
 
@@ -26,14 +28,20 @@ for i=1:num_rooms
         scene_name = d(i).name();
     end
     
-    dr = dir(fullfile(BASE_PATH, scene_name,'/rgb/'));
+    
+    scene_path = fullfile(BASE_PATH,scene_name);
+    if(density)
+        scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+    end
+
+    
+    dr = dir(fullfile(scene_path,'/rgb/'));
     dr = dr(3:end);
 
 
     cur_image_index = 1;
     move_command = 'n';
 
-    scene_path = fullfile(BASE_PATH,scene_name);
 
     while(cur_image_index < length(dr) ) 
     
@@ -43,11 +51,11 @@ for i=1:num_rooms
         
         fullfile(BASE_PATH, scene_name,'rgb/', rgb_name)
         
-        img = imread(fullfile(BASE_PATH, scene_name,'rgb/', rgb_name));
+        img = imread(fullfile(scene_path,'rgb/', rgb_name));
 %         depth_name =strcat(rgb_name(1:8),'04.png');
 %         raw_depth = imread(fullfile(BASE_PATH,scene_name,'/filled_depth/',depth_name));
         depth_name =strcat(rgb_name(1:8),'03.png');
-        raw_depth = imread(fullfile(BASE_PATH,scene_name,'/raw_depth/',depth_name));
+        raw_depth = imread(fullfile(scene_path,'/raw_depth/',depth_name));
         
         %fullfile(base_path,scene_name,'/raw_depth/',['raw_depth' index])
         

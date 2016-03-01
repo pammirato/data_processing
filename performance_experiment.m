@@ -10,7 +10,8 @@ init;
 
  
 %the scene and instance we are interested in
-scene_name = 'Room15';
+density = 1;
+scene_name = 'SN208';
 instance_name = 'chair1';
 label_name = instance_name;
 category_name = 'chair'; %usually the only difference is this has no index
@@ -22,8 +23,12 @@ save_rec_output_vis = 0;
 
 %set some paths
 scene_path = fullfile(BASE_PATH,scene_name);
+if(density)
+    scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+end
+
 image_path = fullfile(scene_path, RGB_IMAGES_DIR);
- results_path = fullfile(scene_path, RECOGNITION_DIR, FAST_RCNN_DIR);
+results_path = fullfile(scene_path, RECOGNITION_DIR, FAST_RCNN_DIR);
  
  
  

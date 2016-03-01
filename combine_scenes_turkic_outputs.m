@@ -5,9 +5,14 @@ init;
 
 
 
+
 %the scene and instance we are interested in
-scene_name = 'Room15';
+density = 1;
+scene_name = 'SN208';
 scene_path = fullfile(BASE_PATH,scene_name);
+if(density)
+    scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+end
 
 
 
