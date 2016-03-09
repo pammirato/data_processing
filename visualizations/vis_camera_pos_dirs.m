@@ -2,6 +2,11 @@
 %possibly also show a line coming from each point indicating the 
 %orientation of the camera at that point
 
+
+%TODO:     - add option to plot reconstructed points, and save those figs/images
+
+
+
 %initialize contants, paths and file names, etc. 
 init;
 
