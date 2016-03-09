@@ -4,7 +4,7 @@
 
 
 %TODO:     - add option to plot reconstructed points, and save those figs/images
-
+%          - add option to list image names next to points(or click point and get image name)           
 
 
 %initialize contants, paths and file names, etc. 
