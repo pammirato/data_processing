@@ -7,7 +7,7 @@ init;
 
 
 density = 1;
-scene_name = 'FB209'; %make this = 'all' to run all scenes
+scene_name = 'SN208_3'; %make this = 'all' to run all scenes
 
 
 %should the lines indicating orientation be drawn?

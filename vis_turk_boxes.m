@@ -5,9 +5,9 @@
 init;
 
 density = 1;
-scene_name = 'SN208';
+scene_name = 'SN208_3';
 
-label_name = 'table2';
+label_name = 'chair3';
 
 
 scene_path = fullfile(BASE_PATH,scene_name);

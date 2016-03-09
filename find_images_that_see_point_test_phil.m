@@ -16,12 +16,12 @@ TZ = 8;
 
 
 density = 1;
-scene_name = 'SN208';
-label_to_process = 'table2'; %make 'all' for every label
-occulsion_threshold = 100;
+scene_name = 'SN208_3';
+label_to_process = 'chair4'; %make 'all' for every label
+occulsion_threshold = 20000;  %make > 12000 to remove occulsion thresholding 
 scale_add = 0;
 
-debug =1;
+debug =0;
 
  x = 0;
  y = 0;
@@ -76,7 +76,7 @@ load_depths = input('Load all depths?(y/n)' , 's');
 
 depths_loaded = 0;
 
-if(strcmp(label_to_process,'all') && (load_depths=='y'))
+if((load_depths=='y')) % && strcmp(label_to_process,'all'))
 
 
     %%%%%%%%%%%%%%%%%  LOAD ALL DEPTH IMAGES  %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -231,6 +231,10 @@ for i=1:length(labeled_names_and_points)
     point = floor([str2double(cur_data{2}) str2double(cur_data{3})]);
     depth = str2double(cur_data{4});
     
+    if(depth == 0)
+        continue;
+    end
+    
     label = labels{i}
     
     if(~strcmp(label_to_process,'all'))
@@ -379,7 +383,9 @@ for i=1:length(labeled_names_and_points)
             continue;
         end
 
-
+        if(cur_name(5:6) == '22')
+            breakp = 1;
+        end
 
         cur_camera_struct = camera_struct_map(cur_name);
         

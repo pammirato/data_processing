@@ -7,19 +7,28 @@ init;
 
 density  = 1;
 %the scene and instance we are interested in
-scene_name = 'SN208';
+scene_name = 'SN208_3';
 
 
-label_name = 'table1';  %make this 'all' to do it for all labels, bigBIRD to do bigBIRD stuff
+label_name = 'all';%make this 'all' to do it for all labels, bigBIRD to do bigBIRD stuff
+use_custom_labels = 1;
+custom_labels = {'chair4', 'chair6'};
+
 kinect_to_use = '1';
 
 debug = 0;
 
 
-label_box_size = 10;
+label_box_size = 5;
 max_image_dimension = 600;
-start_crop_size = 1500;
-do_depth_crop = 1;
+start_crop_size = 400;
+do_depth_crop = 0;
+
+select_certain_grid_positions = 1;
+grid_size = [21 21];
+positions_in_each_row = zeros(grid_size(1),grid_size(2));
+positions_in_each_row([1,11,21],:) = 1;
+
 max_images_per_dir = 50;
 min_images_per_dir = 20;
 
@@ -47,17 +56,22 @@ elseif(strcmp(label_name,'bigBIRD'))
     d = d(3:end);
     all_labels = {d.name};
     breakp=1;
+else 
+    all_labels = {label_name};
 end
 
-
+if(use_custom_labels)
+    all_labels = custom_labels;
+end
 % edit all all_labels to just do some custom list of labels
 
-for i =1:num_labels
+for i =1:length(all_labels) %num_labels
 
-    if(num_labels > 1)
-        label_name = all_labels{i}
-    end
+%     if(num_labels > 1)
+%         label_name = all_labels{i}
+%     end
        
+    label_name = all_labels{i}
 
 
 
@@ -106,11 +120,19 @@ for i =1:num_labels
             continue;
         end
         
+        if(select_certain_grid_positions)
+            image_index = str2double(png_name(1:6)) -1;
+            col = 1 + floor(image_index/grid_size(2));
+            row = mod(image_index,grid_size(1)) +1;
+            
+            if(~positions_in_each_row(row,col))
+                continue;
+            end
+        end
+        
         
         jpg_name = strcat(png_name(1:end-3),'jpg');
 
-        %copyfile(fullfile(scene_path, JPG_RGB_IMAGES_DIR, jpg_name), ...
-        %         fullfile(scene_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, label_name,jpg_name) );
 
 
         if( ~ (exist(fullfile(scene_path, JPG_RGB_IMAGES_DIR, jpg_name),'file')==2))
@@ -134,10 +156,10 @@ for i =1:num_labels
 
 
         %first draw the label dot
-        x_dot_min = max(1,ls.(X) - label_box_size/2);
-        x_dot_max = min(size(img,2),ls.(X) + label_box_size/2);
-        y_dot_min = max(1,ls.(Y) - label_box_size/2);
-        y_dot_max = min(size(img,1),ls.(Y) + label_box_size/2);
+        x_dot_min = max(1,floor(ls.(X) - label_box_size/2));
+        x_dot_max = min(size(img,2),floor(ls.(X) + label_box_size/2));
+        y_dot_min = max(1,floor(ls.(Y) - label_box_size/2));
+        y_dot_max = min(size(img,1),floor(ls.(Y) + label_box_size/2));
 
 
         temp =  img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,1);
@@ -212,8 +234,9 @@ for i =1:num_labels
 
 
      num_buckets = 0;
-     if(length(image_names) > max_images_per_dir)
-        num_images = length(image_names);
+     num_images = length(dir(fullfile(scene_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, label_name,'*.jpg')));
+     if(num_images > max_images_per_dir)
+        %num_images = length(image_names);
 
         
 

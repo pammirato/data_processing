@@ -9,7 +9,7 @@ debug = 0;
 
 density = 1;
 %the scene and instance we are interested in
-scene_name = 'SN208_2';
+scene_name = 'SN208_3';
 recognition_system_name = 'fast-rcnn';
 font_size = 10;
 
@@ -28,7 +28,7 @@ image_names = dir(fullfile(scene_path,RGB_IMAGES_DIR,'*0101.png'));
 image_names = {image_names.name};
 
 
-
+boxes_dir = 'boxes_per_image';
 
 
 
@@ -39,12 +39,12 @@ image_names = {image_names.name};
     image_index = str2double(rgb_name(1:6));
     
     rec_name1 = strcat(rgb_name(1:10),'.mat');
-    anns1 = load(fullfile(scene_path,'labeling','chair_boxes_per_image',rec_name1));
+    anns1 = load(fullfile(scene_path,'labeling','boxes_per_image',rec_name1));
     
     
-    anns11 = load(fullfile(scene_path,'labeling','chair_boxes_per_image', ...
+    anns11 = load(fullfile(scene_path,'labeling','boxes_per_image', ...
                     strcat(sprintf('%06d',image_index+10),'0101.mat')));
-    anns21 = load(fullfile(scene_path,'labeling','chair_boxes_per_image', ...
+    anns21 = load(fullfile(scene_path,'labeling','boxes_per_image', ...
         strcat(sprintf('%06d',image_index+20),'0101.mat')));
     
     
@@ -170,12 +170,12 @@ image_names = {image_names.name};
 
         two_name = strcat(sprintf('%06d',image_index + k),'0101.mat');
         annotations = two_struct;
-        save(fullfile(scene_path,'labeling','chair_boxes_per_image',two_name),'-struct','annotations');
+        save(fullfile(scene_path,'labeling','boxes_per_image',two_name),'-struct','annotations');
 
         
         twelve_name = strcat(sprintf('%06d',image_index + k + 10),'0101.mat');
         annotations = twelve_struct;
-        save(fullfile(scene_path,'labeling','chair_boxes_per_image',twelve_name),'-struct','annotations');
+        save(fullfile(scene_path,'labeling','boxes_per_image',twelve_name),'-struct','annotations');
         
         
     end

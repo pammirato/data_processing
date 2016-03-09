@@ -2,7 +2,7 @@ clear;
 init;
 
 density = 1;
-scene_name = 'SN208';
+scene_name = 'SN208_3';
 
 
 

@@ -27,7 +27,7 @@ init;
 
 density = 1;
 
-scene_name = 'SN208';
+scene_name = 'SN208_3';
 %kinect_to_use = '1';
 
 
@@ -94,10 +94,10 @@ point_counter = 1;
 while image_counter <= length(image_names)
   rgb_name =  image_names{image_counter};
   
-  if(rgb_name(8) ~= kinect_to_use)
-      image_counter = image_counter+1; 
-      continue;
-  end
+%   if(rgb_name(8) ~= kinect_to_use)
+%       image_counter = image_counter+1; 
+%       continue;
+%   end
   
   suffix_index = strfind(rgb_name,'b') + 1;
   
@@ -127,6 +127,10 @@ while image_counter <= length(image_names)
   x = floor(xi);
   y = floor(yi);
   try
+    if(depth_image(y,x) == 0)
+        disp('ZERO DEPTH');
+        continue;
+    end
     points{point_counter} = [x y depth_image(y,x)];
   catch ME
         breakp =1;

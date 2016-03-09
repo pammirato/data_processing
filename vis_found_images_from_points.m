@@ -8,8 +8,8 @@ init;
 density = 1;
 
 %the scene and instance we are interested in
-scene_name = 'SN208';
-instance_name = 'chair4';
+scene_name = 'SN208_3';
+instance_name = 'chair1';
 
 
 scene_path = fullfile(BASE_PATH,scene_name);

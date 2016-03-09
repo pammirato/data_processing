@@ -6,7 +6,7 @@ init;
 density = 1;
 
 
-scene_name = 'SN208';  %make this = 'all' to go through all rooms
+scene_name = 'SN208_3';  %make this = 'all' to go through all rooms
 
 
 %images_per_room = 101;
@@ -61,6 +61,7 @@ for i=1:num_rooms
         
         imshow(img);
         hold on;
+        title(rgb_name);
         h = imagesc(raw_depth);
         set(h,'AlphaData',.5);
         hold off; 

@@ -572,6 +572,43 @@
 
 
 
+% d = dir(BASE_PATH);
+% d = d(3:end);
+% 
+% for i=1:length(d)
+%     
+%     a = d(i).name;
+%     scene_path = fullfile(BASE_PATH,a);
+%     meta_path = fullfile(META_BASE_PATH,a);
+%     
+%     if(isdir(scene_path))
+%         try
+% %            movefile(fullfile(scene_path,'odom.txt'), fullfile(meta_path,'odom.txt'));
+% %             movefile(fullfile(scene_path,UNREG_DEPTH_IMAGES_DIR), fullfile(scene_path,'raw_depth'));
+% %           movefile(fullfile(meta_path,RECONSTRUCTION_DIR,'misc'),fullfile(meta_path,'misc'));
+% %           movefile(fullfile(scene_path,'name_map.mat'),fullfile(meta_path,RECONSTRUCTION_DIR,'name_map.mat'));
+% %         movefile(fullfile(scene_path,RECOGNITION_DIR),fullfile(meta_path,RECOGNITION_DIR));
+% %         movefile(fullfile(scene_path,RECONSTRUCTION_DIR),fullfile(meta_path,RECONSTRUCTION_DIR));
+% %         movefile(fullfile(scene_path,LABELING_DIR),fullfile(meta_path,LABELING_DIR));
+% %         movefile(fullfile(scene_path,'tar_files'),fullfile(meta_path,'tar_files'));
+%         catch
+%         end    
+%     end
+%     
+% end%for i
+
+% 
+% d = dir(BIGBIRD_BASE_PATH);
+% d = d(3:end);
+% 
+% for i=1:length(d)
+%     
+%    instance_path = fullfile(BIGBIRD_BASE_PATH,d(i).name);
+%    
+%    mkdir(fullfile(instance_path,'sift'));
+%    movefile(fullfile(instance_path,'*sift.mat'), fullfile(instance_path,'sift'));
+% end
+% 
 
 
 
@@ -580,5 +617,21 @@
 
 
 
+d = dir(ROHIT_BASE_PATH);
+d = d(3:end);
 
-
+for i=1:length(d)
+   
+  a = d(i).name;
+  scene_path = fullfile(ROHIT_BASE_PATH,a);
+  
+  if(isdir(scene_path))
+    try
+    image_structs_file = load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
+    image_structs = image_structs_file.camera_structs;
+    scale = image_structs_file.scale;
+    save(fullfile(scene_path,IMAGE_STRUCTS_FILE),IMAGE_STRUCTS,SCALE);   
+    catch
+    end
+  end
+end

@@ -3,25 +3,24 @@
 
 
 
+addpath(genpath('./'));
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%              DIRECTORIES             %%%%%%%%%%%%%%%
 
 %directory that holds one directory per scene
-BASE_PATH = '/playpen/ammirato/Data/RohitData';
+ROHIT_BASE_PATH = '/playpen/ammirato/Data/RohitData';
+
+ROHIT_META_BASE_PATH = '/playpen/ammirato/Data/RohitMetaData';
 
 BIGBIRD_BASE_PATH = '/playpen/ammirato/Data/BigBIRD';
 
 
 
-RGB_IMAGES_DIR = 'rgb/';
-
-JPG_RGB_IMAGES_DIR = 'jpg_rgb/';
-
-%holds original 424x512 depth images
-UNREG_DEPTH_IMAGES_DIR = 'unreg_depth/';
-
-%holds raw, registered depth images(1080x1920, but has 0's)
-RAW_DEPTH_IMAGES_DIR = 'raw_depth/';
+RGB = 'rgb';
+JPG_RGB = 'jpg_rgb';
+RAW_DEPTH = 'raw_depth';
+HIGH_RES_DEPTH_DIR = 'raw_depth/';
 
 %holds outputs from reconstruction, and other data structures that relate
 RECONSTRUCTION_DIR = 'reconstruction_results/';
@@ -65,7 +64,7 @@ POINTS_3D = 'points3D.txt';
 
 POINTS_3D_MAT_FILE = 'points3D.mat';
 
-CAMERA_STRUCTS_FILE = 'camera_structs.mat';
+IMAGE_STRUCTS_FILE = 'image_structs.mat';
 NEW_CAMERA_STRUCTS_FILE = 'new_camera_structs.mat';
 POINT_2D_STRUCTS_FILE = 'point_2d_structs.mat';
 NEW_POINT_2D_STRUCTS_FILE = 'new_point_2d_structs.mat';
@@ -78,6 +77,8 @@ LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE = 'label_to_images_that_see_it_map.mat';
 
 NAME_MAP_FILE = 'name_map.mat';
 
+CAMERA_POS_DIR_FIG = 'camera_pos_dir.fig';
+CAMERA_POS_DIR_IMAGE = 'camera_pos_dir.jpg';
 
 
 
@@ -85,7 +86,7 @@ NAME_MAP_FILE = 'name_map.mat';
 %%%%%%%%%%%%              VARIABLE  NAMES             %%%%%%%%%%%%%
 NAME_TO_POS_DIRS_MAP = 'name_to_pos_dirs_map';
 POINTS_3D_MATRIX = 'point_matrix';
-CAMERA_STRUCTS = 'camera_structs';
+IMAGE_STRUCTS = 'image_structs';
 POINT_2D_STRUCTS = 'point_2d_structs';
 
 SCALE = 'scale';

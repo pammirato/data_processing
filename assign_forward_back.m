@@ -57,64 +57,73 @@ for i=1:num_scenes
     image_names = cell2mat(image_names');
     
     
-    
+    %just pick structures fo camera 1    
     k1_structs = structs(find(image_names(:,8)=='1'));
     structs = k1_structs;
     
-    
+    %find max number of clusters 
     max_cluster_id = max([structs.cluster_id]);
     
     
     
-    
+    %for each cluster 
     for j=0:max_cluster_id
 
         cur_cluster = structs(find([structs.cluster_id] == j));
         
         other_structs = structs(find([structs.cluster_id] ~= j));
-       
+      
+        %for each image in this cluster 
         for k=1:length(cur_cluster)
             cur_struct = cur_cluster(k);
-            
+           
+              %get this image's world position and direciton 
             cur_world = cur_struct.scaled_world_pos;
             cur_world = [cur_world(1), cur_world(3)];
             
             cur_dir = cur_struct.direction;
-            
+           
+            %make direction 2d, and normalize 
             cdv = [cur_dir(1),cur_dir(3)]; 
             cdv = cdv/norm(cdv);
-            
+
+
+            %variables for comparisions            
             forward_angle = 0+move_angle_thresh;
             forward_name = -1;
             forward_dist = dist_thresh;
             backward_angle = 180-move_angle_thresh;
             backward_name = -1;
             backward_dist = dist_thresh;
+
+
+
+            %for each image not in the current cluster
             for l=1:length(other_structs)
+
+                %get world position/direction for other image
                 o_struct = other_structs(l);
                 o_world = o_struct.scaled_world_pos;
                 o_world = [o_world(1) o_world(3)];
                 o_dir = o_struct.direction;
-                
+               
+                %make direction 2d, and normalize 
                 odv = [o_dir(1),o_dir(3)];
-                
                 odv = odv/norm(odv);
                 
-
+                %calculate angle between directions
                 dir_angle = acosd(dot(cdv,odv));
                 
-                
+                %get direction from current point to 'other' point 
                 point_vec =o_world - cur_world;
                 point_vec = point_vec/norm(point_vec);
-                
+
+                %calculate angle between cur_direction and point direction
                 point_angle = acosd(dot(cdv,point_vec));
-                
+               
+                %calculate distance between cur point and 'other' point 
                 distance = sqrt( sum((o_world - cur_world).^2) );
                 
-%                 back = 0;
-%                 if(point_vec(3) < 0)
-%                     back = 1;
-%                 end
                 
                 if(thresh_distance)
                     if(dir_angle < dir_angle_thresh && distance<dist_thresh)

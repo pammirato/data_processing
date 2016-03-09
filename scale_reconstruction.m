@@ -10,7 +10,7 @@ density  = 1;
 density_res = 100;
 
 
-scene_name = 'FB209'; %make this = 'all' to run all scenes
+scene_name = 'SN208_3'; %make this = 'all' to run all scenes
 
 %should the lines indicating orientation be drawn?
 view_orientation = 1;
