@@ -34,7 +34,12 @@ RECOGNITION_DIR = 'recognition_results/';
 MISC_DIR = 'misc/';
 
 %holds labels and data used for labeling
-LABELING_DIR = 'labeling';
+LABELING_DIR = 'labels';
+
+    BBOXES_BY_INSTANCE_DIR = 'bounding_boxes_by_instance';
+    BBOXES_BY_IMAGE_INSTANCE_DIR = 'bounding_boxes_by_image_instance_level';
+    BBOXES_BY_IMAGE_CLASS_DIR = 'bounding_boxes_by_image_class_level';
+    BBOXES_BY_CATEGORY_DIR = 'bounding_boxes_by_category';
 
     %data_for_labeling
     DATA_FOR_LABELING_DIR = 'data_for_labeling';
