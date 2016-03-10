@@ -1,37 +1,67 @@
-clear;
+%changes frame name in turk annotation structs to names that match image names in rgb directory 
+
+
+%initialize contants, paths and file names, etc. 
 init;
 
-density = 1;
-scene_name = 'SN208_3';
+%TODO - test
+
+
+%% USER OPTIONS
+
+scene_name = 'SN208_Density_1by1'; %make this = 'all' to run all scenes
+use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {};%populate this 
 
 
 
 
+%% SET UP GLOBAL DATA STRUCTURES
 
-scene_path = fullfile(BASE_PATH,scene_name);
-if(density)
-    scene_path =fullfile('/home/ammirato/Data/Density', scene_name);
+
+%get the names of all the scenes
+d = dir(ROHIT_BASE_PATH);
+d = d(3:end);
+all_scenes = {d.name};
+
+
+%determine which scenes are to be processed 
+if(use_custom_scenes && ~isempty(custom_scenes_list))
+  %if we are using the custom list of scenes
+  all_scenes = custom_scenes_list;
+elseif(~strcmp(scene_name, 'all'))
+  %if not using custom, or all scenes, use the one specified
+  all_scenes = {scene_name};
 end
 
 
-vid_names = dir(fullfile(scene_path,LABELING_DIR,'turk_boxes','*.mat'));
-vid_names = {vid_names.name};
 
 
-for i=1:length(vid_names)
-    v_name = vid_names{i};
+%% MAIN LOOP
 
-    v_mat = load(fullfile(scene_path,LABELING_DIR,'turk_boxes',v_name));
+for i=1:length(all_scenes)
+ 
+  %% set scene specific data structures
+  scene_name = all_scenes{i};
+  scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
+  meta_path =fullfile(ROHIT_META_BASE_PATH, scene_name);
 
 
-    image_names = dir(fullfile(scene_path,LABELING_DIR,'images_for_labeling',v_name(1:end-4),'*.jpg'));
-    image_names = {image_names.name};
+  instance_names = get_names_of_X_for_scene(scene_path,'instance_labels');
+
+  for j=1:length(instance_names)
+    i_name = instance_names{j};
+
+    i_mat = load(fullfile(scene_path,LABELING_DIR,BBOXES_BY_INSTANCE_DIR,i_name));
 
 
-    annotations = v_mat.annotations;
+    image_names = get_names_of_X_for_scene(meta_path,'images_for_labeling');
 
-    for j=1:length(annotations)
-        ann = annotations{j};
+
+    annotations = i_mat.annotations;
+
+    for k=1:length(annotations)
+        ann = annotations{k};
 
         cur_name = image_names{ann.frame + 1}; 
 
@@ -39,12 +69,16 @@ for i=1:length(vid_names)
         ann.frame = strcat(cur_name(1:10),'.png');
 
         annotations{j} = ann;
+    end%for k, each annotation
 
-    end 
+    i_mat.annotations = annotations;
 
-    v_mat.annotations = annotations;
+    save(fullfile(scene_path,LABELING_DIR,BBOXES_BY_INSTANCE_DIR,i_name),'-struct','i_mat');
 
-    save(fullfile(scene_path,LABELING_DIR,'turk_boxes',v_name),'-struct','v_mat');
+  end%for j ,each instance 
+end%for i,  each scene
 
-end    
+
+
+
 
