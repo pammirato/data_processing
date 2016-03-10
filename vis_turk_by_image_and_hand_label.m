@@ -1,12 +1,13 @@
 
 
 
+
+%initialize some constants, paths, and string literals
 init;
 
 
-density = 1;
 %the scene and instance we are interested in
-scene_name = 'SN208_3';
+scene_name = 'SN208';
 recognition_system_name = 'fast-rcnn';
 font_size = 10;
 

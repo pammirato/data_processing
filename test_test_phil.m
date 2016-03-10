@@ -627,10 +627,10 @@ for i=1:length(d)
   
   if(isdir(scene_path))
     try
-    image_structs_file = load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
-    image_structs = image_structs_file.camera_structs;
-    scale = image_structs_file.scale;
-    save(fullfile(scene_path,IMAGE_STRUCTS_FILE),IMAGE_STRUCTS,SCALE);   
+      mkdir(fullfile(scene_path,'labels'));
+      mkdir(fullfile(scene_path,'labels','bounding_boxes_by_image'));
+      mkdir(fullfile(scene_path,'labels','bounding_boxes_by_instance'));
+      mkdir(fullfile(scene_path,'labels','bounding_boxes_by_category'));
     catch
     end
   end
