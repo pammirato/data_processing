@@ -668,9 +668,14 @@ function display_segmentation(image_name, pos)
 
     depth_name = [image_name(1:9) '3.png'];
     raw_depth = imread(fullfile(userData.scene_path, ['raw_depth/' depth_name]));
+
+    multiplier = 256.0 / double(max(raw_depth(:)));
+    raw_depth = raw_depth .* multiplier;
+    raw_depth = uint8(raw_depth);
+
     img = cat(3, img, raw_depth);
 
-    trimap = extract_foreground(img, pos);
+    trimap = extract_foreground_rgbd(img, pos);
     trimap = trimap(ymin:ymax, xmin:xmax);
     trimap = im2bw(trimap, 2/255);
 
