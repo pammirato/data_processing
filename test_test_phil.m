@@ -616,20 +616,19 @@
 
 
 
-%
+
 %d = dir(ROHIT_BASE_PATH);
 %d = d(3:end);
 %
 %for i=1:length(d)
 %   
 %  a = d(i).name;
-%  scene_path = fullfile(ROHIT_BASE_PATH,a);
+%  scene_path = fullfile(ROHIT_META_BASE_PATH,a);
 %  
 %  if(isdir(scene_path))
 %    try
-%      movefile(fullfile(scene_path,'labels','bounding_boxes_by_image'), ...
-%               fullfile(scene_path,'labels','bounding_boxes_by_image_instance_level'));
-%      mkdir(fullfile(scene_path,'labels','bounding_boxes_by_image_class_level'));
+%      movefile(fullfile(scene_path,'labeling'), ...
+%               fullfile(scene_path,'labels'));
 %    catch
 %    end
 %  end

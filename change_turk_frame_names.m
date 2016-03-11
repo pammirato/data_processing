@@ -55,7 +55,7 @@ for i=1:length(all_scenes)
     i_mat = load(fullfile(scene_path,LABELING_DIR,BBOXES_BY_INSTANCE_DIR,i_name));
 
 
-    image_names = get_names_of_X_for_scene(meta_path,'images_for_labeling');
+    image_names = get_names_of_X_for_scene(meta_path,'images_for_labeling', i_name(1:end-4));
 
 
     annotations = i_mat.annotations;

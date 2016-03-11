@@ -12,7 +12,7 @@ function  [all_names] = get_names_of_X_for_scene(scene_path, items, items2)
       all_names = {temp.name};
     case 'images_for_labeling'
       if(exist('items2','var'))
-        temp = dir(fullfile(scene_path,LABELING_DIR,'images_for_labeling', items2,'*.mat'));
+        temp = dir(fullfile(scene_path,LABELING_DIR,'images_for_labeling', items2,'*.jpg'));
         all_names = {temp.name};
       end
     otherwise
