@@ -1,4 +1,4 @@
-function [score] = get_score_for_box(box,rec_boxes,iou_threshold)
+function [score] = get_best_scored_intersecting_box(box,rec_boxes,iou_threshold)
 %takes a given bounding box, and a bunch of other bounding boxes
 %with scores, and finds returns the box with the highest score that
 %also has intersection over union > .5 with the given box.
