@@ -1,18 +1,20 @@
-function  [all_names] = get_names_of_X_for_scene(scene_path, items, items2)
+function  [all_names] = get_names_of_X_for_scene(scene_name, items, items2)
 
   init;
   all_names = {};
 
   switch items
     case 'rgb_images'
-      temp = dir(fullfile(scene_path,RGB,'*.png'));
+      temp = dir(fullfile(ROHIT_BASE_PATH,scene_name,RGB,'*.png'));
       all_names = {temp.name}; 
     case 'instance_labels'
-      temp = dir(fullfile(scene_path,LABELING_DIR,BBOXES_BY_INSTANCE_DIR,'*.mat'));
+      temp = dir(fullfile(ROHIT_BASE_PATH,scene_name, ...
+                          LABELING_DIR,BBOXES_BY_INSTANCE_DIR,'*.mat'));
       all_names = {temp.name};
     case 'images_for_labeling'
       if(exist('items2','var'))
-        temp = dir(fullfile(scene_path,LABELING_DIR,'images_for_labeling', items2,'*.jpg'));
+        temp = dir(fullfile(ROHIT_META_BASE_PATH,scene_name, ...
+                            LABELING_DIR,'images_for_labeling', items2,'*.jpg'));
         all_names = {temp.name};
       end
     otherwise

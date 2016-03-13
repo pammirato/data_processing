@@ -47,7 +47,7 @@ for i=1:length(all_scenes)
   scene_path = fullfile(ROHIT_BASE_PATH, scene_name);
 
   %get a list of all the instances in the scene
-  all_instance_names = get_names_of_X_for_scene(scene_path,'instance_labels'); 
+  all_instance_names = get_names_of_X_for_scene(scene_name,'instance_labels'); 
 
 
   %for each instance, remove the reference image label 

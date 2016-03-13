@@ -48,11 +48,11 @@ for i=1:length(all_scenes)
   scene_path = fullfile(ROHIT_BASE_PATH, scene_name);
 
   %get a list of all the instances in the scene
-  all_instance_names = get_names_of_X_for_scene(scene_path,'instance_labels'); 
+  all_instance_names = get_names_of_X_for_scene(scene_name,'instance_labels'); 
 
 
   %get names of all the images in the scene
-  all_image_names  = get_names_of_X_for_scene(scene_path, 'rgb_images');
+  all_image_names  = get_names_of_X_for_scene(scene_name, 'rgb_images');
 
   %make a struct for each image, and put them all in a map based on name
 
