@@ -8,6 +8,8 @@
 %TODO  - optimize speed
 %      - add parameters for other kinects to be loaded
 %      - add loading of 'filled' depth images
+%      - get rid of text files
+
 
 %initialize contants, paths and file names, etc. 
 init;
