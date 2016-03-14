@@ -20,7 +20,7 @@ BIGBIRD_BASE_PATH = '/playpen/ammirato/Data/BigBIRD';
 RGB = 'rgb';
 JPG_RGB = 'jpg_rgb';
 RAW_DEPTH = 'raw_depth';
-HIGH_RES_DEPTH_DIR = 'raw_depth/';
+HIGH_RES_DEPTH = 'high_res_depth/';
 
 %holds outputs from reconstruction, and other data structures that relate
 RECONSTRUCTION_DIR = 'reconstruction_results/';

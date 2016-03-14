@@ -24,7 +24,7 @@ custom_scenes_list = {};%populate this
 label_to_process = 'chair4'; %make 'all' for every label
 occulsion_threshold = 20000;  %make > 12000 to remove occulsion thresholding 
 
-debug =0;
+debug =1;
 
 kinect_to_use = 1;
 
@@ -97,7 +97,7 @@ for i=1:length(all_scenes)
   if((load_depths=='y'))
 
     %get names of all the rgb images in the scene
-    image_names = get_names_of_X_for_scene('rgb_images');
+    image_names = get_names_of_X_for_scene(scene_name,'rgb_images');
 
     %will hold all the depth images
     depth_images = cell(1,length(d));
@@ -106,7 +106,7 @@ for i=1:length(all_scenes)
     for i=1:length(image_names)
         rgb_name = image_names{i};
 
-        depth_images{i} = imread(fullfile(scene_path, 'raw_depth', ... 
+        depth_images{i} = imread(fullfile(scene_path, HIGH_RES_DEPTH, ... 
                  strcat(rgb_name(1:8),'03.png') ));
     end% for i, each image name
     
@@ -176,7 +176,7 @@ for i=1:length(all_scenes)
     %get the next point, image, and label       
     cur_data = labeled_image_names_and_points{j};
     labeled_image_name = cur_data{1};
-    point = floor([str2double(cur_data{2}) str2double(cur_data{3})]);
+    labeled_point = floor([str2double(cur_data{2}) str2double(cur_data{3})])';
     depth = str2double(cur_data{4});
     label = labels{j}
    
@@ -210,7 +210,7 @@ for i=1:length(all_scenes)
     t = t*scale;
 
     %calculate the world cordinates
-    world_coords = R' * depth * pinv(K) *  [undistorted_point;1] - R'*t;
+    world_coords = R' * depth * pinv(K) *  [labeled_point;1] - R'*t;
 
 
     %%FIND IMAGES THAT SEE THAT 3D Point
@@ -229,7 +229,7 @@ for i=1:length(all_scenes)
       end
 
       %get the camera infor for this image
-      cur_image_struct = image_struct_map(cur_name);
+      cur_image_struct = image_structs_map(cur_name);
      
       %same setup as above 
       K = intrinsic; 
@@ -270,7 +270,7 @@ for i=1:length(all_scenes)
 
       %get the depth image
       if(~depths_loaded)
-        depth_image = imread(fullfile(scene_path, 'raw_depth', ... 
+        depth_image = imread(fullfile(scene_path, HIGH_RES_DEPTH, ... 
                        strcat(cur_name(1:8),'03.png') ));
       else
         depth_image = depth_img_map(cur_name);
@@ -316,7 +316,7 @@ for i=1:length(all_scenes)
           %preload all the images
           images = cell(1,length(found_image_names));
           for i=1:length(images)
-            images{i} = imread(fullfile(scene_path,RGB_IMAGES_DIR,found_image_names{i})); 
+            images{i} = imread(fullfile(scene_path,RGB,found_image_names{i})); 
           end
 
           for i=1:length(images)
@@ -338,7 +338,7 @@ for i=1:length(all_scenes)
 
           while(cur_image_index < length(found_image_names) ) 
             %show the image
-            imshow(imread(fullfile(scene_path,RGB_IMAGES_DIR, ...
+            imshow(imread(fullfile(scene_path,RGB, ...
                      found_image_names{cur_image_index}))); 
      
             %plot the found point on the image 
@@ -461,7 +461,7 @@ for i=1:length(all_scenes)
     cur_keys = label_to_images_that_see_it_map.keys;
     
     %load previous data 
-    label_to_images_that_see_it_map = load(fullfile(scene_path,LABELING_DIR, ...
+    label_to_images_that_see_it_map = load(fullfile(meta_path,LABELING_DIR, ...
          DATA_FOR_LABELING_DIR,LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE));
     label_to_images_that_see_it_map = label_to_images_that_see_it_map.label_to_images_that_see_it_map;
     
@@ -472,7 +472,7 @@ for i=1:length(all_scenes)
   end
 
   %save it!
-  save(fullfile(scene_path,LABELING_DIR, ...
+  save(fullfile(meta_path,LABELING_DIR, ...
       DATA_FOR_LABELING_DIR,LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE), ...
       LABEL_TO_IMAGES_THAT_SEE_IT_MAP);
 
