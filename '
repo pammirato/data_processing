@@ -2,12 +2,9 @@
 %folders, organized for uploading to vatic tool. 
 %For use after find_images_that_see_point script 
 
+
 %works by cropping around the labeled point in each image, 
 %then resizing the image(effectively a zoom in)
-
-
-%TODO   - draw label dot after crop?
-%       - change max/min images per dir relationship
 
 
 %initialize contants, paths and file names, etc. 
@@ -140,65 +137,62 @@ for i=1:length(all_scenes)
 
           %get info about label in this image
           ls = label_structs{jj};
-         
-
-          %% DEPTH CROP
-          %get the depth of the labeled point, and crop accordingly 
-          label_depth = ls.depth;
-         
-          %for points further away, make the crop region smaller(more zoom) 
+          
+  %         if(jpg_name(8) == '1' || jpg_name(8) == '2')
+  %             ls.(X)  = min(1920,ls.x + 40);
+  %         end
+          
+          depth = ls.depth;
+          
           crop_size = start_crop_size;
-          if(do_depth_crop && label_depth >1000)
+          if(do_depth_crop && depth >1000)
               crop_size = crop_size - crop_size*(1000/depth)/3;
           end
 
 
-          %% draw the label dot
+          %first draw the label dot
           x_dot_min = max(1,floor(ls.(X) - label_box_size/2));
           x_dot_max = min(size(img,2),floor(ls.(X) + label_box_size/2));
           y_dot_min = max(1,floor(ls.(Y) - label_box_size/2));
           y_dot_max = min(size(img,1),floor(ls.(Y) + label_box_size/2));
+
 
           temp =  img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,1);
           img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,1) = 255*ones(size(temp));
           img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,2) = zeros(size(temp));
           img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,3) = zeros(size(temp));
 
-          %display image with point drawn for debugging
           if(debug)
               imshow(img);
               ginput(1);
           end
+          %imshow(img);
 
 
-          %% make it so the labeled point is in the center of the image
-          %make a larger image(4X) of white. Place the rgb img in it so
-          %the labeled point is in the center
-
-          %make big image and get center coordinates
+          %now center the label
           display_image = uint8(255*ones(2*size(img,1),2*size(img,2),3));
           center_pos = [size(img,1), size(img,2)];
 
-          %get original label position, and difference from desired location
           label_pos = double([ls.y ls.x]);
+
           diff_pos = center_pos - label_pos ;
 
-          %shift the entire original image by diff_pos in new image
           start_row = 1+diff_pos(1);
           end_row = start_row+size(img,1)-1;
           start_col = 1+diff_pos(2);
           end_col = start_col+size(img,2)-1;
 
-          %put the orginial image in
+
           display_image(start_row:end_row,start_col:end_col,:) = img;
 
 
-          %% now crop the image around the label
+          %now crop the image around the label
           y_crop_min = max(1,floor(start_row + label_pos(1) - (crop_size/2)));
           y_crop_max = min(size(display_image,1),floor(start_row + label_pos(1) + (crop_size/2)));
 
           x_crop_min = max(1,floor(start_col + label_pos(2) - (crop_size/2)));
           x_crop_max = min(size(display_image,2),floor(start_col + label_pos(2) + (crop_size/2)));
+
 
           crop_img = display_image(y_crop_min:y_crop_max,x_crop_min:x_crop_max,:);
 
@@ -206,30 +200,25 @@ for i=1:length(all_scenes)
 
 
 
-          %% now resize the image
+          %now resize the image
           scale = max_image_dimension/max(size(crop_img));
           scale_img = imresize(crop_img,scale);
 
-          if(debug)
-            imshow(scale_img);
-            ginput(1);
-          end
+          %imshow(scale_img);
 
-          %save the processed image
-          imwrite(scale_img,fullfile(scene_path, LABELING_DIR,...
-                     IMAGES_FOR_LABELING_DIR, label_name,jpg_name));
+          imwrite(scale_img,fullfile(scene_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, label_name,jpg_name));
 
-  
-          %make the transform struct to allow inverse processing
+
           t_struct = struct('label_struct',ls,'centering_offset',diff_pos, ...
                           'crop_dimensions', [x_crop_min,x_crop_max,y_crop_min,y_crop_max], ...
                           'big_image_place', [start_row,end_row,start_col,end_col], ...
                            'resize_scale', scale);
 
-          transform_structs{k} = t_struct;
-      end%for k in image_names
+          transform_structs{jj} = t_struct;
 
-      %% add in reference image
+      end%for i in image_names
+
+      %add in reference image
       if(exist(fullfile(BIGBIRD_BASE_PATH,label_name,'NP1_0.jpg'),'file'))
           ref_img = imread(fullfile(BIGBIRD_BASE_PATH,label_name,'NP1_0.jpg'));
       else
@@ -239,27 +228,21 @@ for i=1:length(all_scenes)
       ref_img = imresize(ref_img,[size(scale_img,1),size(scale_img,2)]);
 
 
-
-
-
-
-      %% now split up the processed images according to min/max images per dir
-
-
-       num_buckets = 0;%number of sub_groups needed
-       num_images = length(dir(fullfile(scene_path, LABELING_DIR, ...
-                            IMAGES_FOR_LABELING_DIR, label_name,'*.jpg')));
-
-       %if we have too many images for in group
+       num_buckets = 0;
+       num_images = length(dir(fullfile(scene_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, label_name,'*.jpg')));
        if(num_images > maxish_images_per_dir)
-          %get how many sub_groups we need to fit the 
+          %num_images = length(image_names);
+
+          
+
           if(mod(num_images,maxish_images_per_dir) < min_images_per_dir)
               num_buckets = floor(num_images/maxish_images_per_dir);
           else
               num_buckets = ceil(num_images/maxish_images_per_dir);
           end
       
-          %if we have more than one sub_group 
+          
+
           if(num_buckets > 1)
               images_moved_so_far = 0;
               

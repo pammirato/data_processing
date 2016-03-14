@@ -7,7 +7,7 @@
 
 
 %TODO   - draw label dot after crop?
-%       - change max/min images per dir relationship
+
 
 
 %initialize contants, paths and file names, etc. 
@@ -259,7 +259,7 @@ for i=1:length(all_scenes)
               num_buckets = ceil(num_images/maxish_images_per_dir);
           end
       
-          %if we have more than one sub_group 
+          
           if(num_buckets > 1)
               images_moved_so_far = 0;
               
