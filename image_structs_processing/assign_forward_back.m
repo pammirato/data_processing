@@ -8,7 +8,7 @@ init;
 
 
 %TODO  - test
-
+%      - remove dependancy on cluster_ids(min dist apart)
 
 
 

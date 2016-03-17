@@ -1,4 +1,4 @@
-function [] = add_field_to_image_structs(new_field, inital_value)
+function [] = add_field_to_image_structs(new_field, inital_value,scene_name)
 
 %TODO  - make sure the new_field doesn't already exist
 %      - add a remove field feature
