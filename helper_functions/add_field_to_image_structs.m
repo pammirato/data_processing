@@ -17,6 +17,10 @@ function [] = add_field_to_image_structs(new_field, inital_value,scene_name)
 
   all_scenes = {d.name};
 
+  if(exist(scene_name))
+    all_scenes = {scene_name};
+  end
+
   for i=1:length(all_scenes)
     %get scene info 
     scene_name = d(i).name();
