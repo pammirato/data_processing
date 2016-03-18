@@ -12,9 +12,9 @@ For a single scene(set of images), use the following **procedure**:
 
 1. get the .mat files from vatic _dump_ 
 1. put the .mat files in SCENE/labels/bounding-boxes-by-instance/
-1. run *remove-reference-images-from-boxes-by-instance* for the scene
-1. run *change-vatic-label-frame-names* for the scene
-1. run *combine-instance-vatic-outputs* for the scene
-1. run *transform-vatic-output* for the scene
-1. run *convert-boxes-by-instance-to-boxes-by-image* for the scene
+1. run **remove-reference-images-from-boxes-by-instance** for the scene
+1. run **change-vatic-label-frame-names** for the scene
+1. run **combine-instance-vatic-outputs** for the scene
+1. run **transform-vatic-output** for the scene
+1. run **convert-boxes-by-instance-to-boxes-by-image** for the scene
 
