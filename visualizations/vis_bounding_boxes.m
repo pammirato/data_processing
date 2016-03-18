@@ -4,7 +4,7 @@
 %TODO  - add scores to rec bboxes
 %      - add labels to rec bboxes
 %      - move picking labels to show outside of loop
-
+%      - add ability to hand alter vatic output
 
 %initialize contants, paths and file names, etc. 
 init;
