@@ -56,7 +56,7 @@ LABELING_DIR = 'labels';
 
    LABELED_BBOXES_DIR = 'labeled_bboxes';
 
-
+   REFERENCE_IMAGES_DIR = 'reference_images'
 
 %%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%              FILE  NAMES             %%%%%%%%%%%%%%%
