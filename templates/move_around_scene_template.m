@@ -36,53 +36,50 @@ while(cur_image_index <= length(image_names))
   disp('Enter move command: ');
   move_command = getkey(1);
 
-  if(move_command == 'q'))
+  if(move_command == 'q')
       disp('quiting...');
       break;
 
-  elseif(move_command =='w'))
+  elseif(move_command =='w')
       %move forward 
       next_image_name = cur_struct.translate_forward;
       cur_image_index = str2num(next_image_name(1:6));
 
-  elseif(move_command =='s'))
+  elseif(move_command =='s')
       %move backward 
       next_image_name = cur_struct.translate_backward;
       cur_image_index = str2num(next_image_name(1:6));
   
-  elseif(move_command =='d'))
+  elseif(move_command =='d')
       %rotate clockwise
       next_image_name = cur_struct.rotate_cw;
       cur_image_index = str2num(next_image_name(1:6));
-  elseif(move_command =='a'))
+  elseif(move_command =='a')
       %rotate counter clockwise 
       next_image_name = cur_struct.rotate_ccw;
       cur_image_index = str2num(next_image_name(1:6));
 
-  elseif(move_command =='n'))
+  elseif(move_command =='n')
       %go forward one image 
       cur_image_index = cur_image_index+1;  
  
-  elseif(move_command =='p'))
+  elseif(move_command =='p')
       %go backward one image 
       cur_image_index = cur_image_index-1;
-      if(cur_image_index < 1)
-        cur_image_index = 1;
-      end
 
-  elseif(move_command =='m'))
+  elseif(move_command =='m')
       %let the user decide how much to go(forward or back) 
       num_to_move = input('How many images to move: ', 's');
       num_to_move = str2num(num_to_move);
       
       cur_image_index = cur_image_index + num_to_move;
-  elseif(move_command =='f'))
+  elseif(move_command =='f')
       %move forward 50 iamges
       cur_image_index = cur_image_index + 50;
-  elseif(move_command =='g'))
+  elseif(move_command =='g')
       %move forward 100 images
       cur_image_index = cur_image_index + 100;
-  elseif(move_command =='h'))
+  elseif(move_command =='h')
     disp('help: ');
 
     disp('	q  - to quit and save labels so far ');
@@ -98,13 +95,14 @@ while(cur_image_index <= length(image_names))
     disp('	g  - move forward 100 images ');
   end    
 
-
+  %make sure index is in bounds
   if(cur_image_index < 1)
     cur_image_index = 1;
   elseif(cur_image_index > length(image_names))
     cur_image_index = length(image_names);
   end
 
+  %update variables
   cur_image_name = image_names(cur_image_index);
   cur_image_struct = image_structs_map(cur_image_name);
 
