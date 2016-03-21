@@ -9,7 +9,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_1by1'; %make this = 'all' to run all scenes
+scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -68,7 +68,7 @@ for i=1:length(all_scenes)
         %ann.frame = str2num(cur_name(1:10));
         ann.frame = strcat(cur_name(1:10),'.png');
 
-        annotations{j} = ann;
+        annotations{k} = ann;
     end%for k, each annotation
 
     i_mat.annotations = annotations;

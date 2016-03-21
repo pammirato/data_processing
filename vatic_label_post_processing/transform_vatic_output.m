@@ -11,12 +11,12 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_1by1'; %make this = 'all' to run all scenes
+scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-debug =1;
+debug =0;
 
 
 
@@ -132,7 +132,7 @@ for i=1:length(all_scenes)
           ann.xbr = bbox(3);
           ann.ybr = bbox(4);
          
-          annotations{j} = ann;
+          annotations{k} = ann;
           
       end%for k, each annotation 
       

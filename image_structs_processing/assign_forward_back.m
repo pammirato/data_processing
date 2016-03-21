@@ -2,7 +2,6 @@
 %representing forward or backward movements. Takes into account  direction of camera for each
 %image, and does not assign pointers within a cluster
 
-
 %initialize contants, paths and file names, etc. 
 init;
 
@@ -18,19 +17,19 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Room14'; %make this = 'all' to run all scenes
+scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 %whether to threshold on distance, then find the smallest angle, or 
 %           threshold on angle, then find the smallest distance
-threshold_on_distance = 1;
+threshold_on_distance = 0;
 
 
 dir_angle_thresh = 10; %difference between direction of camera at images
-move_angle_thresh = 30; %maximum allowed difference between point angle and direction angle
+move_angle_thresh = 10; %maximum allowed difference between point angle and direction angle
 point_angle_thresh = 10;%angle between camera direction of org and vector from org to other point
-dist_thresh = 150;%distance threshold in mm
+dist_thresh = 150;%distance threshold in mm, (must be closer than this)
 
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -147,15 +146,19 @@ for i=1:length(all_scenes)
             end
           end
         else%if we are thresholding on the direction angle
-          if(dir_angle < dir_angle_thresh && point_angle<point_angle_thresh)
+          if(dir_angle < dir_angle_thresh) 
+            %point angle determines forward or backward.
+            %a point_angle near 0 means forward, near 180 means backward
+
+
             %want the closest point to current point that passes thresholds
-            if(distance < forward_dist)
+            if(distance < forward_dist && point_angle < point_angle_thresh)
               forward_dist = distance;
               forward_name = o_struct.image_name;
             end
             %if 'other' point is behind current point, distance will be negative,
             %and so closest point will be the least negative, or largest
-            if(distance > backward_dist)
+            if(distance < backward_dist && point_angle > (180-point_angle_thresh))
               backward_dist = distance;
               backward_name = o_struct.image_name;
             end

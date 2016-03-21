@@ -10,7 +10,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_1by1'; %make this = 'all' to run all scenes
+scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -61,7 +61,7 @@ for i=1:length(all_scenes)
 
     first_label = cur_instance_labels{1};
 
-    if(strcmp(first_label.frame, '0000000000.png'))
+    if(strcmp(first_label.frame, '0000000000.png') || first_label.frame == 0)
       cur_instance_labels = cur_instance_labels(2:end);
       
       cur_instance_labels_file.num_frames = length(cur_instance_labels);

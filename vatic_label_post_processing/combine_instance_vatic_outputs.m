@@ -15,7 +15,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'all'; %make this = 'all' to run all scenes
+scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -79,7 +79,7 @@ for i=1:length(all_scenes)
 
 
     %get a cell array of all parts of the file name separated by '_' character 
-    split_file_name = strplit(cur_file_name, '_');
+    split_file_name = strsplit(cur_file_name, '_');
 
     
     if(length(split_file_name) == 1)
@@ -102,11 +102,11 @@ for i=1:length(all_scenes)
       
         %put this sub-group name into the list of sub_group names for this group 
         try
-          sub_names = group_names_to_sub_group_names_map(group_name);
+          sub_names = group_name_to_sub_group_names_map(group_name);
           sub_names{end+1} = cur_file_name;
-          group_names_to_sub_group_names_map(group_name) = sub_names;
+          group_name_to_sub_group_names_map(group_name) = sub_names;
         catch%if this is the first sub_group for this group, add it to the map
-          group_names_to_sub_group_names_map(group_name) = {cur_file_name}; 
+          group_name_to_sub_group_names_map(group_name) = {cur_file_name}; 
         end
       else
         %this is not a sub-group
@@ -132,23 +132,30 @@ for i=1:length(all_scenes)
                             'temp_to_delete');
   mkdir(to_delete_dir);
 
-  all_group_names = keys(group_names_to_sub_group_names_map);
+  all_group_names = keys(group_name_to_sub_group_names_map);
 
   
   for j=1:length(all_group_names)
     
     cur_group_name = all_group_names{j}; 
-    all_sub_group_names = group_names_to_sub_group_names_map(cur_group_name);
+    all_sub_group_names = group_name_to_sub_group_names_map(cur_group_name);
 
-
-    
+    %just double check this does need to be combined
+    if(length(all_sub_group_names) <2)
+      continue;
+    end
 
     %will hold data for entire group
     group_data = load(fullfile(scene_path,LABELING_DIR,BBOXES_BY_INSTANCE_DIR, ...
-                                 all_sub_group_names{k}));
+                                 all_sub_group_names{1}));
+                               
+    %move first file to be deleted                       
+    movefile(fullfile(scene_path,LABELING_DIR, ... 
+                        BBOXES_BY_INSTANCE_DIR,all_sub_group_names{1}), ...
+               fullfile(to_delete_dir,all_sub_group_names{1}));
 
     %load all the annotations for each sub_group
-    for k=1:length(all_sub_group_names)
+    for k=2:length(all_sub_group_names)
       vatic_file = load(fullfile(scene_path,LABELING_DIR,BBOXES_BY_INSTANCE_DIR, ...
                                  all_sub_group_names{k}));
 
@@ -161,7 +168,7 @@ for i=1:length(all_scenes)
                fullfile(to_delete_dir,all_sub_group_names{k}));
     end %for k, each sub group name
 
-    group_data.num_frames =  length(group_data.annotations;
+    group_data.num_frames =  length(group_data.annotations);
 
     save(fullfile(scene_path,LABELING_DIR, BBOXES_BY_INSTANCE_DIR, ...
                   strcat(cur_group_name,'.mat')),'-struct','group_data');
@@ -172,7 +179,7 @@ for i=1:length(all_scenes)
   end%for , each group name 
 
   %delete all the subgroups
-  rmdir(to_delete_dir);
+  rmdir(fullfile(to_delete_dir) , 's');
 end%for i, each scene 
 
 

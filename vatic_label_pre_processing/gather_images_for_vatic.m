@@ -11,7 +11,8 @@
 
 %TODO   - draw label dot after crop?
 %       - change max/min images per dir relationship
-
+%       - fix depth crop
+%       - do something about start crop size
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -19,7 +20,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_1by1'; %make this = 'all' to run all scenes
+scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -30,9 +31,18 @@ custom_labels = {'chair4', 'chair6'};
 
 
 max_image_dimension = 600;%how big images will be at the end
-start_crop_size = 400;%how big of a square to crop around labeled point
-do_depth_crop = 0;%whether or not to adjust crop size based on depth to labeled point
+start_crop_size = 1000;%how big of a square to crop around labeled point
+do_depth_crop = 1;%whether or not to adjust crop size based on depth to labeled point
+depth_crop_thresh = 2500;%distance in mm object must be to do depth crop
 label_box_size = 5;%size of box drawn on image(before crop)
+
+
+gather_method = 1;   % 0 - gather all images
+                     % 1 - gather images without forward AND backward pointers. 
+
+min_gather_percent = .25; %minimum percent of images in the scene that must be gathered
+
+
 
 %how many images are in a sub group (each sub_group is one vatic task)
 min_images_per_dir = 20;
@@ -73,7 +83,22 @@ for i=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
-  %get the map to find all the interesting images
+
+  %load image_structs for all images
+  image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
+  image_structs = image_structs_file.(IMAGE_STRUCTS);
+  scale  = image_structs_file.scale;
+
+  %make this for easy access to data 
+  mat_image_structs = cell2mat(image_structs); 
+  
+  %make a map from image_name to image struct for easy saving later
+  image_structs_map = containers.Map({mat_image_structs.image_name}, image_structs);
+
+
+
+
+  %get the map to find all the images that 'see' each label
   label_to_images_that_see_it_map = load(fullfile(meta_path,LABELING_DIR,...
                                       DATA_FOR_LABELING_DIR, ...
                                       LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE));
@@ -113,20 +138,97 @@ for i=1:length(all_scenes)
       continue;
     end
 
-    %get all the image names
-    temp = cell2mat(label_structs);
-    image_names = {temp.(IMAGE_NAME)};
+    %% choose which images to gather
 
+    %get all the image names,and make a map to label structs
+    temp = cell2mat(label_structs);
+    all_image_names = {temp.(IMAGE_NAME)};
+    label_structs_map = containers.Map(all_image_names, label_structs); 
+
+
+    images_to_gather = cell(1,length(all_image_names));
+
+    %use the chosen method 
+    if(gather_method == 0)%use all the images
+      images_to_gather = all_image_names;
+    
+    elseif(gather_method == 1)%only pick those withOUT forward AND back pointers
+
+      %keep track of which image names are used
+      indices_used = zeros(1,length(all_image_names));
+ 
+      %for each image, load its struct and check its pointers   
+      for k=1:length(all_image_names)
+        cur_image_name = all_image_names{k};
+  
+        %get the image struct and pointers 
+        cur_image_struct = image_structs_map(cur_image_name); 
+        forward_pointer = cur_image_struct.translate_forward;
+        backward_pointer = cur_image_struct.translate_backward;
+
+        %check if both the pointers are valid
+        try
+          %for the pointer to be valid, it must be the name 
+          %of an image the sees this label. Therefore it must
+          %be in the label structs map. 
+          temp = label_structs_map(forward_pointer);
+          temp = label_structs_map(backward_pointer); 
+
+          %if we have both pointers, skip this image
+          continue;
+        catch
+          %we want to use this image
+          indices_used(k) = 1;
+          images_to_gather{k} = cur_image_name;
+        end%try
+      end%for k, each image_name 
+
+      %clear out empty spaces in the array
+      images_to_gather = images_to_gather(~cellfun('isempty',images_to_gather));
+
+      %now make sure the minium amount of images were chosen
+      min_num_images = ceil(length(all_image_names) * min_gather_percent);
+      if(length(images_to_gather) < min_num_images)
+        %how many more images we need
+        num_extra_images = min_num_images - length(images_to_gather);
+
+        %get indices of names not used yet
+        indices_not_used = find(indices_used ==0);
+
+        %get a random selection of these not used indices
+        rand_indices = randi([1,length(indices_not_used)],[1,num_extra_images]);
+         
+        images_to_add = all_image_names(indices_not_used(rand_indices));
+      
+        %concatenate the image names
+        images_to_gather = cat(2,images_to_gather, images_to_add); 
+      end%if there aren't enough images to gather 
+    else
+      disp('gather method not supported');
+      return;
+    end
+      
+
+
+
+
+
+
+
+
+
+
+    %%gather the images
 
     %make a directiory to store all the processed images
     mkdir(fullfile(meta_path, LABELING_DIR, IMAGES_FOR_LABELING_DIR, label_name));
 
     %for each image, save a struct that details what processing(crops, etc.) was done
-    transform_structs = cell(1,length(image_names));
+    transform_structs = cell(1,length(images_to_gather));
     
     %for each image
-    for k=1:length(image_names)
-      png_name = image_names{k};
+    for k=1:length(images_to_gather)
+      png_name = images_to_gather{k};
       
       
       jpg_name = strcat(png_name(1:end-3),'jpg');
@@ -142,17 +244,17 @@ for i=1:length(all_scenes)
       img = imread(fullfile(scene_path, JPG_RGB, jpg_name));
 
       %get info about label in this image
-      ls = label_structs{k};
+      ls = label_structs_map(png_name);
      
 
       %% DEPTH CROP
       %get the depth of the labeled point, and crop accordingly 
-      label_depth = ls.depth;
+      label_depth = double(ls.depth);
      
       %for points further away, make the crop region smaller(more zoom) 
       crop_size = start_crop_size;
-      if(do_depth_crop && label_depth >1000)
-        crop_size = crop_size - crop_size*(1000/depth)/3;
+      if(do_depth_crop && label_depth >depth_crop_thresh)
+        crop_size = crop_size*(depth_crop_thresh/label_depth);
       end
 
 
@@ -229,8 +331,12 @@ for i=1:length(all_scenes)
                       'big_image_place', [start_row,end_row,start_col,end_col], ...
                        'resize_scale', scale);
 
+       if(strcmp(jpg_name(1:6),'000007'))
+        breakp = 1;
+        end
+
       transform_structs{k} = t_struct;
-    end%for k in image_names
+    end%for k in images_to_gather
 
     %% add in reference image
     if(exist(fullfile(BIGBIRD_BASE_PATH,label_name,'NP1_0.jpg'),'file'))
@@ -317,7 +423,7 @@ for i=1:length(all_scenes)
     mkdir(fullfile(meta_path,LABELING_DIR,DATA_FOR_LABELING_DIR,label_name));
 
     %make a map of the transform structs fore easy access later 
-    transform_map = containers.Map(image_names, transform_structs);
+    transform_map = containers.Map(images_to_gather, transform_structs);
     save(fullfile(meta_path,LABELING_DIR,DATA_FOR_LABELING_DIR,...
                   label_name,'transform_map.mat'), 'transform_map');
     

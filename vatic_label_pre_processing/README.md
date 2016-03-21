@@ -14,6 +14,8 @@ For a single scene(set of images), use the following **procedure**:
 1. edit the reference images (maybe crop image and draw bounding box)
   * this should eventually be added to gather reference images script
 1. run **gather-images-for-vatic** for the scene
+  * be sure to manually tune parameters
+  * may be best to run for each instance, or least big vs. small objects
 1. upload the gathered directories/images to the server with vatic
 1. **format**, **load**, and **publish**, the images using vatic
 

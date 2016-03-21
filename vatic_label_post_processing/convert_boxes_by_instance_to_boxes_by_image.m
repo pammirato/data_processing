@@ -11,7 +11,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_1by1'; %make this = 'all' to run all scenes
+scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -73,10 +73,12 @@ for i=1:length(all_scenes)
     cur_instance_name = cur_instance_file_name(1:end-4);   
  
     %load the boxes for this instance
-    cur_instance_labels = get_bounding_boxes_struct_array(scene_path,cur_instance_file_name);
+    cur_instance_labels_file = load(fullfile(scene_path,LABELING_DIR, ...
+                                  BBOXES_BY_INSTANCE_DIR, cur_instance_file_name));
+    cur_instance_labels = cell2mat(cur_instance_labels_file.annotations);
 
     %for each instance label, add it to the corresponding image struct
-    for k=1:size(cur_instance_labels,1)
+    for k=1:length(cur_instance_labels)
       cur_label = cur_instance_labels(k);
 
       %get the name of the image for this label
