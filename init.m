@@ -16,7 +16,7 @@ ROHIT_META_BASE_PATH = '/playpen/ammirato/Data/RohitMetaData';
 BIGBIRD_BASE_PATH = '/playpen/ammirato/Data/BigBIRD';
 
 
-
+%image directories
 RGB = 'rgb';
 JPG_RGB = 'jpg_rgb';
 RAW_DEPTH = 'raw_depth';

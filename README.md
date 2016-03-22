@@ -1,6 +1,11 @@
 This project is contains MATLAB scripts for building and running experiments on our dataset. 
 Our dataset is not yet released.
 
+
+## Setup
+Make sure you set all the __BASE-PATH__ variables in **init.m**. More on init.m and our datasets
+directory structure below.
+
 ## Building the Data
 
 This section details how we processed and organized our images and labels for the dataset.
@@ -24,10 +29,10 @@ The last two digits determine the type of the file, if the extension is not enou
 
 Last two digits:
 
-   01 - rgb image
-   02 - raw depth image (low res)
-   03 - high res depth image
-   04 - filled in high res depth image
+    01 - rgb image
+    02 - raw depth image (low res)
+    03 - high res depth image
+    04 - filled in high res depth image
 
 
 
@@ -42,6 +47,11 @@ Examples:
 #### Reconstruction
 We use the RGB Structure from Motion program Colmap. It will be released soon. All that is really needed is the 3D world **position and direction** of the camera for each image. Instructions on using a system other than colmap are coming.
 
+
+
+1. Run colmap
+1. Follow the instructions in the **reconstruction-post-processing** directory
+1. Follow the instructions in the **image-structs-processing** directory
 
 
 
@@ -75,18 +85,37 @@ Experiments are not done yet.
 
 
 ##what else is here?
-
-1. bash-scripts  - scripts to help process data
-1. Visualizations  - ways to visualize data, labels, experiments, etc. 
-
-
-
-##Dataset directory structure
-
+1. **bash-scripts**  - scripts to help process data, and move it around
+1. **visualizations**  - ways to visualize data, labels, experiments, etc. 
+1. **test.m**  - an empty script for testing code out
+1. **file-exchange-helper-functions** - files from [matlab file exchange](http://www.mathworks.com/matlabcentral/fileexchange/)
+1. **helper-functions** - functions used in other scripts, never on their own
+1. **templates** - templates for starting new files
 
 
 
+#### Directory structure and  init.m
+This script initializes constants based on the directory structure and file names.
 
+If you download our dataset, you should only need to change the __BASE-PATH__ variables.
+
+1. **ROHIT-BASE-PATH** - full path to the parent directory of all scene's basic data
+1. **ROHIT-META-BASE-PATH** - full path to the parent directory of all scene's meta data
+1. **BIGBIRD-BASE-PATH** - full path to the parent directory of all BIGBIRD data
+  
+
+
+**Basic Data**:  everything you need to simulate moving around the scene, and test recognition
+  * rgb images
+  * jpg rgb images
+  * raw depth images
+  * high res depth images
+  * filled depth images
+  * labels
+  * image-structs
+ 
+**Meta Data**:  everything else
+  *
 
 
  
