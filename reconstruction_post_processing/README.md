@@ -19,7 +19,10 @@ After collecting RGB-D data, use the follow **procedure** to process the images 
 
 
 
-it is very important to scale the reconstruction, because the initial
+It is **very important to scale the reconstruction**, because the initial
 output from colmap is in arbitrary units.
 
+
+There should be no need to tune any parameters in these scripts.
+Each should have detailed comments to explain how they work.
 

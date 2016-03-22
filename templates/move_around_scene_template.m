@@ -19,6 +19,10 @@ while(cur_image_index <= length(image_names))
   %%%%%%
   %%%%%%
   %%% VIEWING CODE
+  %%%  put whatever you want to display here, 
+  %%%  keeping in mind that cur_image_name and
+  %%%  cur_image_struct have the info for which
+  %%%  rgb image to show. 
   %%%%%%
   %%%%%%
 
