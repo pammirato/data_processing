@@ -2,7 +2,7 @@
 % bounding box for that instance in the image. 
 
 
-%TODO  - add option to just add a single instance to existing img_structs 
+%TODO  - add option to just add a single instance to existing ann_structs 
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -61,7 +61,7 @@ for i=1:length(all_scenes)
   all_structs = mat2cell(temp,repmat(1,length(all_image_names),1),1);
 
   %make the struct
-  img_structs_map = containers.Map(all_image_names,all_structs);  
+  annotation_structs_map = containers.Map(all_image_names,all_structs);  
 
    
 
@@ -85,26 +85,26 @@ for i=1:length(all_scenes)
       cur_image_name = cur_label.frame;
 
       %get the struct for this image, add this label, update the struct map
-      cur_img_struct = img_structs_map(cur_image_name);
-      cur_img_struct.(cur_instance_name) = [cur_label.xtl, cur_label.ytl, ...
+      cur_ann_struct = annotation_structs_map(cur_image_name);
+      cur_ann_struct.(cur_instance_name) = [cur_label.xtl, cur_label.ytl, ...
                                             cur_label.xbr, cur_label.ybr];
-      img_structs_map(cur_image_name) = cur_img_struct;
+      annotation_structs_map(cur_image_name) = cur_ann_struct;
 
 
     end% for k, each instance label 
   end%for j, each instance 
   
 
-  %now save each struct in img_structs_map to its own file
+  %now save each struct in annotation_structs_map to its own file
   for j=1:length(all_image_names)
   
     cur_image_name = all_image_names{j};
-    cur_img_struct = img_structs_map(cur_image_name);
+    cur_ann_struct = annotation_structs_map(cur_image_name);
 
 
 
     save(fullfile(scene_path,LABELING_DIR,BBOXES_BY_IMAGE_INSTANCE_DIR, ...
-                  strcat(cur_image_name(1:10),'.mat')), '-struct', 'cur_img_struct');
+                  strcat(cur_image_name(1:10),'.mat')), '-struct', 'cur_ann_struct');
 
   end %for j
 
