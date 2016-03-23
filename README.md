@@ -1,9 +1,9 @@
-This project is contains MATLAB scripts for building and running experiments on our dataset. 
+This project contains MATLAB scripts for building and running experiments on our dataset. 
 Our dataset is not yet released.
 
 
 ## Setup
-Make sure you set all the __BASE-PATH__ variables in **init.m**. More on init.m and our datasets
+Make sure you set all the __BASE-PATH__ variables in **init.m**. More on init.m and our dataset's
 directory structure below.
 
 ## Building the Data
@@ -23,8 +23,8 @@ As long as you have RGB images, a high-res depth image that corresponds to each 
 
 ##### File naming conventions
 Every image file should have 10 digits then an extension.
-The first 6 digits are and index, i.e the first 6 digits = i for the ith image.
-The next two images are the index of the camera that took the image. This is important for loading camera parameters later.
+The first 6 digits are an index, i.e the first 6 digits = i for the ith image.
+The next two dgits are the index of the camera that took the image. This is important for loading camera parameters later.
 The last two digits determine the type of the file, if the extension is not enough.
 
 Last two digits:
@@ -41,7 +41,7 @@ Examples:
     0001540101.png  - the 154th image from camera 1, RGB
     0001540103.png  - the 154th image from camera 1, High Res Depth
     0001540101.jpg  - the 154th image from camera 1, RGB, jpg compressed
-    0003060301.jpg  - the 306th image from camera 3, RGB
+    0003060301.png  - the 306th image from camera 3, RGB
  
 
 #### Reconstruction
