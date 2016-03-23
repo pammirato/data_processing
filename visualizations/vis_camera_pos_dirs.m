@@ -16,12 +16,12 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'all'; %make this = 'all' to run all scenes
+scene_name = 'SN208'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-view_direction = 0;%should the lines indicating camera direction be drawn?
+view_direction = 1;%should the lines indicating camera direction be drawn?
 
 
 plot_type = 1; %  0 - 3D point plot 
@@ -119,11 +119,11 @@ for i=1:length(all_scenes)
         case 0 %3D plot
           quiver3(world_poses(1,:),world_poses(2,:),world_poses(3,:), ...
              direcrtions(1,:),direcrtions(2,:),direcrtions(3,:), ...
-             'ShowArrowHead','on','Color' ,'b');
+             'ShowArrowHead','off','Color' ,'b');
         case 1  %2D plot
           quiver(world_poses(1,:),world_poses(3,:), ...
-             direcrtions(1,:),direcrtions(2,:), ...
-             'ShowArrowHead','on','Color' ,'b');
+             directions(1,:),directions(2,:), ...
+             'ShowArrowHead','off','Color' ,'b');
       end%switch
       hold off;
   end%if view_direction
