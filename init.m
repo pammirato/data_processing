@@ -58,6 +58,22 @@ LABELING_DIR = 'labels';
 
    REFERENCE_IMAGES_DIR = 'reference_images';
 
+
+
+
+
+  DENSITY_EXPERIMENT_DIR = 'density_experiments';
+  DENSITY_EXPERIMENT_STRUCTS_DIR = 'density_experiment_structs';
+
+
+
+
+
+
+
+
+
+
 %%%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%              FILE  NAMES             %%%%%%%%%%%%%%%
 
@@ -128,6 +144,23 @@ FILLED_DEPTH_INDEX = 4;
 
 
 NAME_MAP = 'name_map';
+
+
+
+
+
+
+
+%% density experiment struct fields
+
+%these are all maps based on iou threshold (0-1)
+NUM_IOU_WITH_GT_BOXES = 'num_iou_gt';
+NUM_GT_BOXES = 'num_gt';
+PERCENT_IOU_WITH_GT_BOXES = 'percent_iou_gt';
+
+
+
+
 
 
 

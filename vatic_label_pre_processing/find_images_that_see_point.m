@@ -18,12 +18,12 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_1by1'; %make this = 'all' to run all scenes
+scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-label_to_process = 'chair4'; %make 'all' for every label
+label_to_process = 'chair'; %make 'all' for every label
 occulsion_threshold = 20000;  %make > 12000 to remove occulsion thresholding 
 
 debug =1;

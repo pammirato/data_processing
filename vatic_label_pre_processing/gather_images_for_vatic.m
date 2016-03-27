@@ -25,19 +25,19 @@ use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-label_name = 'chair2';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
-use_custom_labels = 0;
-custom_labels = {'chair4', 'chair6'};
+label_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
+use_custom_labels = 1;
+custom_labels_list = {'chair5','chair6'};
 
 
 max_image_dimension = 600;%how big images will be at the end
-start_crop_size = 1000;%how big of a square to crop around labeled point
-do_depth_crop = 1;%whether or not to adjust crop size based on depth to labeled point
+start_crop_size = 300;%how big of a square to crop around labeled point
+do_depth_crop = 0;%whether or not to adjust crop size based on depth to labeled point
 depth_crop_thresh = 2500;%distance in mm object must be to do depth crop
 label_box_size = 5;%size of box drawn on image(before crop)
 
 
-gather_method = 1;   % 0 - gather all images
+gather_method = 0;   % 0 - gather all images
                      % 1 - gather images without forward AND backward pointers. 
 
 min_gather_percent = .25; %minimum percent of images in the scene that must be gathered
@@ -117,7 +117,7 @@ for i=1:length(all_scenes)
     temp = temp(3:end);
     all_labels = {temp.name};
   elseif(strcmp(label_name, 'all'))
-    all_labels = {label_name};
+    all_labels = all_labels;
   else
     all_labels = {label_name};
   end
