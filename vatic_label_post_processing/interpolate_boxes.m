@@ -18,7 +18,7 @@ use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-label_name = 'chair2';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
+label_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
 use_custom_labels = 0;
 custom_labels = {};
 
@@ -136,6 +136,24 @@ for i=1:length(all_scenes)
                                                                     annotations_map, ...
                                                                     cur_label_name, ...
                                                                     'forward');
+
+
+
+      %make sure we got valid annotations
+      skip = 0;
+      if(isempty(backward_bbox))
+        disp(strcat('must label ', backward_image_struct.image_name, ' for ', cur_label_name));
+        skip =1;
+      end
+      if(isempty(forward_bbox))
+        disp(strcat('must label ', forward_image_struct.image_name, ' for ', cur_label_name));
+        skip =1;
+      end
+
+      %if we can not interpolate for this image
+      if(skip)
+        continue;
+      end
 
 
       %%interpolate a box for the current image from the forward and backward images

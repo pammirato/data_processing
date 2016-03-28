@@ -9,16 +9,26 @@ function [image_struct, annotation] = get_next_labeled_image(base_image_name,...
 
 
   %get the image struct for the starting image
-  base_image_struct = image_structs_map(base_image_name);
+  cur_image_struct = image_structs_map(base_image_name);
 
   %move next until we hit an image that has been labeled
   %there is a next pointer by the main assumption of this method
-  cur_image_name = get_next_image_name(base_image_struct, direction);
+  cur_image_name = get_next_image_name(cur_image_struct, direction);
   cur_annotation = [];
 
   while(isempty(cur_annotation))
     %get the annotation struct and see if it has the label
-    cur_ann_struct = annotations_map(cur_image_name);
+    try
+      cur_ann_struct = annotations_map(cur_image_name);
+    catch
+      %there isn't an annotation in this direction!!!, 
+      %reset the image name to the last image in this direction, 
+      %and keep the annotation empty
+      %the user should annotate this image
+      cur_image_name = cur_image_struct.image_name;
+      cur_annotation = []; 
+      break;
+    end
 
     %see if this image was annotated
     if(struct_has_bbox(cur_ann_struct,label_name))
