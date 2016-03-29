@@ -37,7 +37,8 @@ score_threshold = .1;
 %% SET UP GLOBAL DATA STRUCTURES
 
 
-%get the names of all the scenes d = dir(ROHIT_BASE_PATH);
+%get the names of all the scenes 
+d = dir(ROHIT_BASE_PATH);
 d = d(3:end);
 all_scenes = {d.name};
 
@@ -208,7 +209,7 @@ for i=1:length(all_scenes)
         %insert a new label or replace an old one
 
         %make sure ground truth boxes are being show
-        if(~show_vatic_ouput)
+        if(~show_vatic_output)
           disp('must be showing vatic ouput to add or replace boxes')
           continue;
         end
@@ -235,15 +236,38 @@ for i=1:length(all_scenes)
         bbox = [x(1), y(1), x(2), y(2)];
        
         
+        %update bbox by instance annotations
+        try 
+          %attempt to load the instance label file
+          instance_annotations_file = load(fullfile(scene_path, LABELING_DIR, ...
+                                           BBOXES_BY_INSTANCE_DIR, ...
+                                            strcat(inserted_label_name, '.mat')));         
+
+          instance_annotations = instance_annotations_file.annotations;
+
+
+          %add the new label
+          instance_annotations(end+1)  = struct('image_name', cur_image_name, ...
+                                                'bbox',  bbox);
+
+          %save the new annotations
+          annotations = instance_annotations;
+          save(fullfile(scene_path, LABELING_DIR,BBOXES_BY_INSTANCE_DIR, ...
+                       strcat(inserted_label_name, '.mat')), 'annotations');         
+
+        catch
+          disp('not a valid label name!');
+          continue;
+        end
+       
+        %update bbox by image instance annotations 
         %add the bbox to the current boxes
-        vatic_boxes.(inserted_label_name) = bbox; 
+        vatic_bboxes.(inserted_label_name) = bbox; 
          
         save(fullfile(scene_path,LABELING_DIR,BBOXES_BY_IMAGE_INSTANCE_DIR, ...
-                           strcat(cur_image_name(1:10),'.mat')), '-struct', 'vatic_boxes');
+                           strcat(cur_image_name(1:10),'.mat')), '-struct', 'vatic_bboxes');
 
 
-        %must also save the other label formats!!!!
-        
 
 
         
