@@ -37,8 +37,7 @@ score_threshold = .1;
 %% SET UP GLOBAL DATA STRUCTURES
 
 
-%get the names of all the scenes
-d = dir(ROHIT_BASE_PATH);
+%get the names of all the scenes d = dir(ROHIT_BASE_PATH);
 d = d(3:end);
 all_scenes = {d.name};
 
@@ -92,6 +91,7 @@ for i=1:length(all_scenes)
     rgb_image = imread(fullfile(scene_path,RGB,cur_image_name));
     imshow(rgb_image);
     hold on;
+    title(cur_image_name);
     
     %draw vatic bounding boxes
     if(show_vatic_output)
@@ -204,6 +204,49 @@ for i=1:length(all_scenes)
     elseif(move_command =='g')
         %move forward 100 images
         cur_image_index = cur_image_index + 100;
+    elseif(move_command =='i')
+        %insert a new label or replace an old one
+
+        %make sure ground truth boxes are being show
+        if(~show_vatic_ouput)
+          disp('must be showing vatic ouput to add or replace boxes')
+          continue;
+        end
+
+        %get two mouse clicks for top left and bottom right of box
+        [x, y, ~] = ginput(2);
+
+        inserted_label_name = input('Enter label: ', 's');
+  
+        %allow user to recover from mistake
+        if(inserted_label_name == 'q')
+          continue;
+        end
+     
+        %make sure box coordinates are within image 
+        x = floor(x);
+        y = floor(y);
+
+        x(1) = max(1,x(1));
+        x(2) = min(size(rgb_image,2),x(2));
+        y(1) = max(1,y(1));
+        y(2) = min(size(rgb_image,1),y(2));
+
+        bbox = [x(1), y(1), x(2), y(2)];
+       
+        
+        %add the bbox to the current boxes
+        vatic_boxes.(inserted_label_name) = bbox; 
+         
+        save(fullfile(scene_path,LABELING_DIR,BBOXES_BY_IMAGE_INSTANCE_DIR, ...
+                           strcat(cur_image_name(1:10),'.mat')), '-struct', 'vatic_boxes');
+
+
+        %must also save the other label formats!!!!
+        
+
+
+        
     elseif(move_command =='h')
       disp('help: ');
 

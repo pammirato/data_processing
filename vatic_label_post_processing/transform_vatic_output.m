@@ -136,11 +136,11 @@ for i=1:length(all_scenes)
           
       end%for k, each annotation 
       
-      cur_mat.annotations = annotations;
+      cur_instance_labels.annotations = annotations;
      
       %save this instance 
       save(fullfile(scene_path,LABELING_DIR, BBOXES_BY_INSTANCE_DIR,...
-             cur_name), '-struct','cur_mat');
+             cur_name), '-struct','cur_instance_labels');
 
  end%for j, each 
 end%for i, each scene
