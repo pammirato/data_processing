@@ -75,19 +75,18 @@ for i=1:length(all_scenes)
     %load the boxes for this instance
     cur_instance_labels_file = load(fullfile(scene_path,LABELING_DIR, ...
                                   BBOXES_BY_INSTANCE_DIR, cur_instance_file_name));
-    cur_instance_labels = cell2mat(cur_instance_labels_file.annotations);
+    cur_instance_labels = cur_instance_labels_file.annotations;
 
     %for each instance label, add it to the corresponding image struct
     for k=1:length(cur_instance_labels)
       cur_label = cur_instance_labels(k);
 
       %get the name of the image for this label
-      cur_image_name = cur_label.frame;
+      cur_image_name = cur_label.image_name;
 
       %get the struct for this image, add this label, update the struct map
       cur_ann_struct = annotation_structs_map(cur_image_name);
-      cur_ann_struct.(cur_instance_name) = [cur_label.xtl, cur_label.ytl, ...
-                                            cur_label.xbr, cur_label.ybr];
+      cur_ann_struct.(cur_instance_name) = [cur_label.bbox,] ; 
       annotation_structs_map(cur_image_name) = cur_ann_struct;
 
 
