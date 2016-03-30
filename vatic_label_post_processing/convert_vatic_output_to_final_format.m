@@ -63,8 +63,8 @@ for i=1:length(all_scenes)
 
 
     %get the bounding box and image name
-    bboxes = [cur_instance_labels.xtl; cur_instance_labels.ytl; ...
-              cur_instance_labels.xbr;cur_instance_labels.ybr];
+    bboxes = double([cur_instance_labels.xtl; cur_instance_labels.ytl; ...
+              cur_instance_labels.xbr;cur_instance_labels.ybr]');
     image_names = {cur_instance_labels.frame};
 
     %remove unwanted fields
@@ -82,7 +82,7 @@ for i=1:length(all_scenes)
 
 
     %prepare bboxes for addition to struct
-    bboxes_cell = mat2cell(bboxes,4,ones(1,size(bboxes,2)));
+    bboxes_cell = mat2cell(bboxes,ones(1,size(bboxes,1)),4);
 
     %add the wanted fields
     [cur_instance_labels.image_name] = image_names{:};

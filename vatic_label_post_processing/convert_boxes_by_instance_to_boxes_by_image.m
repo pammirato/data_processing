@@ -86,7 +86,13 @@ for i=1:length(all_scenes)
 
       %get the struct for this image, add this label, update the struct map
       cur_ann_struct = annotation_structs_map(cur_image_name);
-      cur_ann_struct.(cur_instance_name) = [cur_label.bbox,] ; 
+     
+      bbox = double([cur_label.bbox]);
+      if(size(bbox,1) ~=1)
+        bbox = bbox';
+      end
+      cur_ann_struct.(cur_instance_name) = bbox ; 
+      
       annotation_structs_map(cur_image_name) = cur_ann_struct;
 
 

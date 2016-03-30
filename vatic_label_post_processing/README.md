@@ -16,5 +16,6 @@ For a single scene(set of images), use the following **procedure**:
 1. run **change-vatic-label-frame-names** for the scene
 1. run **combine-instance-vatic-outputs** for the scene
 1. run **transform-vatic-output** for the scene
+1. run **convert-vatic-output-to-final-format** for the scene
 1. run **convert-boxes-by-instance-to-boxes-by-image** for the scene
 
