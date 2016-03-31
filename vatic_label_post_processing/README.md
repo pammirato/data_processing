@@ -18,4 +18,9 @@ For a single scene(set of images), use the following **procedure**:
 1. run **transform-vatic-output** for the scene
 1. run **convert-vatic-output-to-final-format** for the scene
 1. run **convert-boxes-by-instance-to-boxes-by-image** for the scene
+1. run **interpolate-boxes** for the scene
+  * this may output images that need to be labeled in order to complete interpolation
+  * label these images using **vis-bounding-boxes** in _visualizations_ directory
+  * if these images do not actually have the instance, use **vis-images-that-see-label** in _visualizations_ directory to double check and remove them.
 
+  
