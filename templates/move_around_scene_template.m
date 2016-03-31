@@ -11,7 +11,7 @@ cur_image_index = 1;
 cur_image_name  = image_names{cur_image_index};
 cur_image_struct =  image_structs_map(cur_image_name);
 move_command = 'w';
-
+num_to_play = 0;
 while(cur_image_index <= length(image_names)) 
 
 
@@ -35,10 +35,10 @@ while(cur_image_index <= length(image_names))
 
 
 
-
-
-  disp('Enter move command: ');
-  move_command = getkey(1);
+  %get user input command if a video is not playing
+  if((num_to_play == 0))
+    move_command = input('Enter move command: ', 's');
+  end
 
   if(move_command == 'q')
       disp('quiting...');
@@ -83,6 +83,20 @@ while(cur_image_index <= length(image_names))
   elseif(move_command =='g')
       %move forward 100 images
       cur_image_index = cur_image_index + 100;
+  
+
+  elseif(move_command =='v')
+      %play a video of X images
+      
+      if(num_to_play == 0)%if we are not already playing a video
+        num_to_play_s = input('How many images to play: ', 's');
+        num_to_play = str2num(num_to_play_s);
+      else
+        num_to_play = num_to_play -1;
+        cur_image_index = cur_image_index +1;
+        pause(.1);
+      end
+
   elseif(move_command =='h')
     disp('help: ');
 
@@ -107,7 +121,7 @@ while(cur_image_index <= length(image_names))
   end
 
   %update variables
-  cur_image_name = image_names(cur_image_index);
+  cur_image_name = image_names{cur_image_index};
   cur_image_struct = image_structs_map(cur_image_name);
 
 end %while cur_image_index < 

@@ -173,6 +173,7 @@ for i=1:length(all_scenes)
       diff_bbox = double(forward_bbox - backward_bbox);  
       cur_bbox =int64( double(forward_bbox) - forward_dist*(diff_bbox/total_dist)); 
 
+
       %set the interpolated box to this images annotation struct
       cur_annotations.(cur_label_name) = cur_bbox;
   

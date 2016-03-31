@@ -4,7 +4,6 @@
 %TODO  - add scores to rec bboxes
 %      - add labels to rec bboxes
 %      - move picking labels to show outside of loop
-%      - add ability to hand alter vatic output
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -18,12 +17,14 @@ use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-show_vatic_output = 1;
+%OPTIONS for ground truth bounding boxes
+show_vatic_output = 1; %
 vatic_label_to_show = 'all'; 
 use_custom_vatic_labels = 0;
 custom_vatic_labels = {};
 
 
+%options for FAST-RCNN bounding boxes
 show_recognition_output = 0;
 recognition_system_to_show = 'results_fast_rcnn';
 recognition_label_to_show = 'chair';
@@ -83,7 +84,7 @@ for i=1:length(all_scenes)
   cur_image_name  = image_names{cur_image_index};
   cur_image_struct =  image_structs_map(cur_image_name);
   move_command = 'w';
-
+  num_to_play = 0;%images to play in a movie
   while(cur_image_index <= length(image_names)) 
 
 
@@ -159,8 +160,10 @@ for i=1:length(all_scenes)
 
 
 
-    %get user input
-    move_command = input('Enter move command: ', 's');
+    %get user input command if a video is not playing
+    if((num_to_play == 0))
+      move_command = input('Enter move command: ', 's');
+    end
 
     if(move_command == 'q')
         disp('quiting...');
@@ -205,6 +208,20 @@ for i=1:length(all_scenes)
     elseif(move_command =='g')
         %move forward 100 images
         cur_image_index = cur_image_index + 100;
+   
+
+    elseif(move_command =='v')
+      %play a video of X images
+      
+      if(num_to_play == 0)%if we are not already playing a video
+        num_to_play_s = input('How many images to play: ', 's');
+        num_to_play = str2num(num_to_play_s);
+      else
+        num_to_play = num_to_play -1;
+        cur_image_index = cur_image_index +1;
+        pause(.1);
+      end
+
     elseif(move_command =='i')
         %insert a new label or replace an old one
 

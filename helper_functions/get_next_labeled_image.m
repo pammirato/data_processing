@@ -47,7 +47,7 @@ function [image_struct, annotation] = get_next_labeled_image(base_image_name,...
 
   %set return values
   image_struct= image_structs_map(cur_image_name);
-  annotation = cur_annotation;
+  annotation = double(cur_annotation);
 end%function, get next labeled image
 
 
