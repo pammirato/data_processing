@@ -1,7 +1,9 @@
-%displays an image representing the scores for each image in the scene
+%shows bounding boxes by image, with many options.  Can view vatic outputted boxes,
+%results from a recognition system, or both. Also allows changing of vatic boxes. 
 
-
-%TODO  - what to add next
+%TODO  - add scores to rec bboxes
+%      - add labels to rec bboxes
+%      - move picking labels to show outside of loop
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -10,27 +12,25 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'all'; %make this = 'all' to run all scenes
+scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-custom_categories_list = {'chair','bottle'}; %which categories to use
-group_by_category = 0;%whether to group instances by category or not
+grid_size = 21;
 
+recognition_system_name = 'fast_rcnn';
 
+group_by_class = 1;
+classes = {'chair','bottle'};
 
-label_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
-use_custom_labels = 1;
-custom_labels_list = {'chair5','chair6'};
-
-
-
+show_figures = 0;
+save_figures = 1;
 
 %% SET UP GLOBAL DATA STRUCTURES
 
 
-%get the names of all the scenes
+%get the names of all the scenes 
 d = dir(ROHIT_BASE_PATH);
 d = d(3:end);
 all_scenes = {d.name};
@@ -57,36 +57,118 @@ for i=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
+  %get all the instance labels in this scene
+  all_instance_names = get_names_of_X_for_scene(scene_name, 'instance_labels');
 
-  %get names of all labels           
-  all_labels = get_names_of_X_for_scene('instance_labels');
+  %get all the image names in the scene
+  all_image_names = get_names_of_X_for_scene(scene_name,'rgb_images'); 
+
   
-  %decide which labels to process    
-  if(use_custom_labels && ~isempty(custom_labels_list))
-    all_labels = custom_labels_list;
-  elseif(strcmp(label_name,'bigBIRD'))
-    temp = dir(fullfile(BIGBIRD_BASE_PATH));
-    temp = temp(3:end);
-    all_labels = {temp.name};
-  elseif(strcmp(label_name, 'all'))
-    all_labels = all_labels;
-  else
-    all_labels = {label_name};
-  end
+  instance_images_map = containers.Map(all_instance_names, cell(1,length(all_instance_names)));
 
-
-
-  %% 
   
-  for j=1:length(all_labels)
+  for j=1:length(all_instance_names)
    
-    cur_label_name = all_labels{j};
+    cur_instance_name = all_instance_names{j};
 
-     
+
+    cur_instance_results = -ones(grid_size,grid_size);
+
+    %load all detections for this instance
+    detections_file = load(fullfile(meta_path, RECOGNITION_DIR, ...
+                                       recognition_system_name, BBOXES_BY_INSTANCE_DIR, ...
+                                        cur_instance_name));
   
-  end%for j, each label
+    all_detections_for_instance = detections_file.detections;
+    
+
+    for k=1:length(all_detections_for_instance)
+
+      cur_detection = all_detections_for_instance(k);
+
+      cur_image_name = cur_detection.image_name;
+      %get the 'position index' of the image
+      image_index = str2double(cur_image_name(1:6)) -1;
+      %get row and column in the grid
+      col = 1 + floor(image_index/grid_size);
+      row = mod(image_index,grid_size) +1;
+
+      cur_bbox = cur_detection.bbox;
+      if(~isempty(cur_bbox))
+        cur_score = cur_bbox(5); 
+        cur_instance_results(row,col) = cur_score;
+      end
+    end%for k, each detection
+
+    if(show_figures)
+      f = figure;
+    else
+      f = figure('Visible', 'off');
+    end 
+
+    %lose file extension
+    cur_instance_name = cur_instance_name(1:end-4);
+
+    %plot the results as an image
+    imagesc(cur_instance_results);
+    hold on;
+    title(cur_instance_name);
+    h = colorbar;
+    ylabel(h, 'Score (-1 means no box)');%color bar label
+    xlabel('X Poisiton (1 = 10cm)');
+    ylabel('Y Poisiton (1 = 10cm)');
 
 
+    if(save_figures)
+      saveas(f, fullfile(meta_path,DENSITY_EXPERIMENTS_DIR, recognition_system_name, ...
+                          SCORE_IMAGES_DIR, strcat(cur_instance_name, '.jpg')));
+    end
+
+    %close the figure if we are not showing it
+    if(~show_figures)
+      close(f);
+    end
+
+  
+  end%for j, each instance_name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%  %for each class have multiple images
+%  class_to_images_map = containers.Map(classes, cell(1,length(classes)));
+%  for j=1:length(classes)
+%    class_to_images_map.(classes{j}) = containers.Map(); 
+%  end%for j, each class
+%  
+% 
+%
+%  %for each instance make an image
+%  for j=1:length(all_instance_names)
+%    cur_instance_name = all_instance_names{j};
+%    cur_class_name = get_class_name_from_intance_name(cur_instance_name);
+%
+%    %if the class is one of the classes the user chose to display,
+%    %then make an empty 'image'(array),and put it in the map for that class
+%    try
+%      instance_to_images_map = class_to_images_map(cur_class_name):
+%      instance_to_images_map.(cur_instance_name) = zeros(grid_size,grid_size);
+%      class_to_images_map(cur_class_name) = instance_to_image_map;
+%    catch
+%      %if we are not using this class do nothing
+%    end
+%  end%for j, each instance name
 
 
 

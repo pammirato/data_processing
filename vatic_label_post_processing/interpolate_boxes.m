@@ -148,11 +148,11 @@ for i=1:length(all_scenes)
       %make sure we got valid annotations
       skip = 0;
       if(isempty(backward_bbox))
-        disp(strcat('must label ', backward_image_struct.image_name, ' for ', cur_label_name));
+        disp(['must label ', backward_image_struct.image_name, ' for ', cur_label_name]);
         skip =1;
       end
       if(isempty(forward_bbox))
-        disp(strcat('must label ', forward_image_struct.image_name, ' for ', cur_label_name));
+        disp(['must label ', forward_image_struct.image_name, ' for ', cur_label_name]);
         skip =1;
       end
 

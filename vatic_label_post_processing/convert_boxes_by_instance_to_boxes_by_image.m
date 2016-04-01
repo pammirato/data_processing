@@ -72,31 +72,46 @@ for i=1:length(all_scenes)
     cur_instance_file_name = all_instance_names{j};
     cur_instance_name = cur_instance_file_name(1:end-4);   
  
-    %load the boxes for this instance
+    %load the boxes for this instance and make a map
     cur_instance_labels_file = load(fullfile(scene_path,LABELING_DIR, ...
                                   BBOXES_BY_INSTANCE_DIR, cur_instance_file_name));
     cur_instance_labels = cur_instance_labels_file.annotations;
 
+    instance_boxes_map = containers.Map({cur_instance_labels.image_name}, ...
+                                        {cur_instance_labels.bbox});
+
+
     %for each instance label, add it to the corresponding image struct
-    for k=1:length(cur_instance_labels)
-      cur_label = cur_instance_labels(k);
+    for k=1:length(all_image_names)
 
       %get the name of the image for this label
-      cur_image_name = cur_label.image_name;
+      cur_image_name = all_image_names{k};
 
       %get the struct for this image, add this label, update the struct map
       cur_ann_struct = annotation_structs_map(cur_image_name);
-     
-      bbox = double([cur_label.bbox]);
-      if(size(bbox,1) ~=1)
-        bbox = bbox';
+
+      %put a placeholder bbox for now
+      cur_ann_struct.(cur_instance_name) = [];
+
+
+      %see if there is a bbox for this instance and image
+      try
+        bbox = instance_boxes_map(cur_image_name);
+        %just make sure it's in a nice format     
+        bbox = double([bbox]);
+        if(size(bbox,1) ~=1)
+          bbox = bbox';
+        end
+        %set this box for the image
+        cur_ann_struct.(cur_instance_name) = bbox ; 
+      catch%nothing to do if the image wasn't annotated
       end
-      cur_ann_struct.(cur_instance_name) = bbox ; 
       
+      %put the update struct back in the map 
       annotation_structs_map(cur_image_name) = cur_ann_struct;
 
 
-    end% for k, each instance label 
+    end% for k, each image name 
   end%for j, each instance 
   
 

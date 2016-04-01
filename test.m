@@ -1,6 +1,7 @@
-%converts structs from vatic output to a cleaner form 
+%description of file 
+ return;
 
-
+%TODO  - what to add next
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -9,10 +10,14 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
+scene_name = 'all'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
+
+label_name = 'bottle4';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
+use_custom_labels = 0;
+custom_labels_list = {'chair5','chair6'};
 
 
 
@@ -46,33 +51,22 @@ for i=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
-  %get a list of all the instances in the scene
-  all_instance_names = get_names_of_X_for_scene(scene_name,'instance_labels'); 
+
+  
+  movefile(fullfile(scene_path, LABELING_DIR, 'bounding_boxes_by_image_instance_level'), ... 
+           fullfile(scene_path, LABELING_DIR, BBOXES_BY_IMAGE_INSTANCE_DIR));
 
 
+  movefile(fullfile(scene_path, LABELING_DIR, 'bounding_boxes_by_image_class_level'), ... 
+           fullfile(scene_path, LABELING_DIR, BBOXES_BY_IMAGE_CLASS_DIR));
 
-  %for each instance, add a box to each image's struct that has this instance
-  for j=1:length(all_instance_names)
-    cur_instance_file_name = all_instance_names{j};
-    cur_instance_name = cur_instance_file_name(1:end-4);   
- 
-    %load the boxes for this instance
-    cur_instance_labels_file = load(fullfile(scene_path,LABELING_DIR, ...
-                                  BBOXES_BY_INSTANCE_DIR, cur_instance_file_name));
-    cur_instance_labels = cur_instance_labels_file.annotations;
-    
-    cur_bboxes = [cur_instance_labels.bbox];
+
+  movefile(fullfile(scene_path, LABELING_DIR, 'bounding_boxes_by_category'), ... 
+           fullfile(scene_path, LABELING_DIR, BBOXES_BY_CLASS_DIR));
 
 
 
 
-    
-    %save the new file
-    annotations = cur_instance_labels;
-    save(fullfile(scene_path,LABELING_DIR,BBOXES_BY_INSTANCE_DIR, ...
-                  cur_instance_file_name), 'annotations');
-
-  end%for j, each instance name
-end%for each scene
+end%for i,  each scene
 
 

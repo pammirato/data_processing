@@ -28,7 +28,7 @@ RECONSTRUCTION_DIR = 'reconstruction_results/';
 %hold outputs from recongition systems(detectors, classifers, parsers, etc)
 RECOGNITION_DIR = 'recognition_results/';
 
-    FAST_RCNN_DIR = 'fast-rcnn/';
+    FAST_RCNN_DIR = 'fast_rcnn/';
 
 %holds miscellanueous files
 MISC_DIR = 'misc/';
@@ -37,9 +37,9 @@ MISC_DIR = 'misc/';
 LABELING_DIR = 'labels';
 
     BBOXES_BY_INSTANCE_DIR = 'bounding_boxes_by_instance';
-    BBOXES_BY_IMAGE_INSTANCE_DIR = 'bounding_boxes_by_image_instance_level';
-    BBOXES_BY_IMAGE_CLASS_DIR = 'bounding_boxes_by_image_class_level';
-    BBOXES_BY_CATEGORY_DIR = 'bounding_boxes_by_category';
+    BBOXES_BY_IMAGE_INSTANCE_DIR = 'bounding_boxes_by_image_instance';
+    BBOXES_BY_IMAGE_CLASS_DIR = 'bounding_boxes_by_image_class';
+    BBOXES_BY_CLASS_DIR = 'bounding_boxes_by_class';
 
     %data_for_labeling
     DATA_FOR_LABELING_DIR = 'data_for_labeling';
@@ -62,7 +62,8 @@ LABELING_DIR = 'labels';
 
 
 
-  DENSITY_EXPERIMENT_DIR = 'density_experiments';
+  DENSITY_EXPERIMENTS_DIR = 'density_experiments';
+    SCORE_IMAGES_DIR = 'score_images';
   DENSITY_EXPERIMENT_STRUCTS_DIR = 'density_experiment_structs';
 
 

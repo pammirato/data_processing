@@ -25,9 +25,10 @@ custom_vatic_labels = {};
 
 
 %options for FAST-RCNN bounding boxes
-show_recognition_output = 0;
-recognition_system_to_show = 'results_fast_rcnn';
-recognition_label_to_show = 'chair';
+show_recognition_output = 1;
+recognition_system_name = 'fast_rcnn';
+show_instance_not_class = 1;
+recognition_label_to_show = 'all';
 use_custom_recognition_labels = 0;
 custom_recognition_labels = {};
 score_threshold = .1;
@@ -87,8 +88,7 @@ for i=1:length(all_scenes)
   num_to_play = 0;%images to play in a movie
   while(cur_image_index <= length(image_names)) 
 
-
-    %display stuff
+%display stuff
     hold off;
     rgb_image = imread(fullfile(scene_path,RGB,cur_image_name));
     imshow(rgb_image);
@@ -114,7 +114,9 @@ for i=1:length(all_scenes)
 
       for k=1:length(labels_to_show)
         bbox = vatic_bboxes.(labels_to_show{k});
-  
+        if(isempty(bbox))
+          continue;
+        end  
         rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
                      'LineWidth',2, 'EdgeColor','r');
       end%for k, each label to show
@@ -125,27 +127,41 @@ for i=1:length(all_scenes)
     %now draw recognition boxes
     if(show_recognition_output)
 
-      recognition_bboxes = load(fullfile(meta_path,RECOGNITION_DIR, ...
-                                        recognition_system_to_show , ...
-                                 strcat(cur_image_name(1:10), '.mat')));
+      if(show_instance_not_class)
+        recognition_bboxes = load(fullfile(meta_path,RECOGNITION_DIR, ...
+                                          recognition_system_name , ...
+                                          BBOXES_BY_IMAGE_INSTANCE_DIR, ...
+                                   strcat(cur_image_name(1:10), '.mat')));
+      else
+        recognition_bboxes = load(fullfile(meta_path,RECOGNITION_DIR, ...
+                                          recognition_system_name , ...
+                                          BBOXES_BY_IMAGE_CLASS_DIR, ...
+                                   strcat(cur_image_name(1:10), '.mat')));
+       end
 
-      recognition_bboxes = recognition_bboxes.dets;
 
       if(use_custom_recognition_labels && ~isempty(custom_recognition_labels))
         labels_to_show = custom_recognition_labels;
-      elseif(strcmp(vatic_label_to_show,'all'))
+      elseif(strcmp(recognition_label_to_show,'all'))
         labels_to_show = fields(recognition_bboxes);
       else
-        lables_to_show = recgontion_label_to_show;
+        labels_to_show = {recognition_label_to_show};
       end 
 
 
       for k=1:length(labels_to_show)
         bboxes = recognition_bboxes.(labels_to_show{k});
-        bboxes = bboxes(bboxes(:,5) > score_threshold,:);
+
+        %if thes are detections, threshold on score
+        if(size(bboxes,2) == 5)
+          bboxes = bboxes(bboxes(:,5) > score_threshold,:);
+        end
 
         for l=1:size(bboxes,1)
           bbox = bboxes(l,:);
+          if(isempty(bbox))
+            continue;
+          end  
           rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
                      'LineWidth',1, 'EdgeColor','b');
         end%for l, each bbox
