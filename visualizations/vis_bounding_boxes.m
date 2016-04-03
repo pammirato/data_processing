@@ -12,14 +12,14 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
+scene_name = 'Room15'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
 %OPTIONS for ground truth bounding boxes
-show_vatic_output = 1; %
-vatic_label_to_show = 'all'; 
+show_vatic_output = 0; %
+vatic_label_to_show = 'chair4'; 
 use_custom_vatic_labels = 0;
 custom_vatic_labels = {};
 
@@ -27,12 +27,13 @@ custom_vatic_labels = {};
 %options for FAST-RCNN bounding boxes
 show_recognition_output = 1;
 recognition_system_name = 'fast_rcnn';
-show_instance_not_class = 1;
-recognition_label_to_show = 'all';
+show_instance_not_class = 0;
+recognition_label_to_show = 'diningtable';
 use_custom_recognition_labels = 0;
 custom_recognition_labels = {};
 score_threshold = .1;
-
+show_scores_of_boxes = 1;
+font_size = 10;
 
 
 
@@ -158,12 +159,19 @@ for i=1:length(all_scenes)
         end
 
         for l=1:size(bboxes,1)
-          bbox = bboxes(l,:);
+          bbox =double(bboxes(l,:));
           if(isempty(bbox))
             continue;
           end  
           rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
                      'LineWidth',1, 'EdgeColor','b');
+          if(show_scores_of_boxes)
+            t = text(bbox(1), bbox(2)-font_size,strcat(num2str(bbox(5))),  ...
+                                    'FontSize',font_size, 'Color','white');
+
+            t.BackgroundColor = 'black';
+          end
+
         end%for l, each bbox
      
       end%for k, each label to show 

@@ -26,6 +26,7 @@ classes = {'chair','bottle'};
 
 show_figures = 0;
 save_figures = 1;
+save_results = 1;
 
 %% SET UP GLOBAL DATA STRUCTURES
 
@@ -72,7 +73,7 @@ for i=1:length(all_scenes)
     cur_instance_name = all_instance_names{j};
 
 
-    cur_instance_results = -ones(grid_size,grid_size);
+    cur_instance_results = -zeros(grid_size,grid_size);
 
     %load all detections for this instance
     detections_file = load(fullfile(meta_path, RECOGNITION_DIR, ...
@@ -114,6 +115,7 @@ for i=1:length(all_scenes)
     hold on;
     title(cur_instance_name);
     h = colorbar;
+    caxis([0,1]);
     ylabel(h, 'Score (-1 means no box)');%color bar label
     xlabel('X Poisiton (1 = 10cm)');
     ylabel('Y Poisiton (1 = 10cm)');
@@ -129,15 +131,15 @@ for i=1:length(all_scenes)
       close(f);
     end
 
+
+    if(save_results)
+      scores_grid = cur_instance_results;
+      save(fullfile(meta_path,DENSITY_EXPERIMENTS_DIR, recognition_system_name, ...
+                    SCORE_ARRAYS_BY_INSTANCE_DIR, strcat(cur_instance_name, '.mat')), ...
+                    'scores_grid');
+    end
   
   end%for j, each instance_name
-
-
-
-
-
-
-
 
 
 
@@ -178,3 +180,6 @@ for i=1:length(all_scenes)
 end%for each scene
 
 
+if(~show_figures)
+  close all;
+end

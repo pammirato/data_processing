@@ -64,6 +64,8 @@ LABELING_DIR = 'labels';
 
   DENSITY_EXPERIMENTS_DIR = 'density_experiments';
     SCORE_IMAGES_DIR = 'score_images';
+    SCORE_ARRAYS_BY_INSTANCE_DIR = 'score_arrays_by_instance';
+    DIFF_IMAGES_DIR = 'score_diff_images';
   DENSITY_EXPERIMENT_STRUCTS_DIR = 'density_experiment_structs';
 
 
