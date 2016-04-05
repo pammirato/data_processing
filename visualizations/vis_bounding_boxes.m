@@ -12,26 +12,26 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Room15'; %make this = 'all' to run all scenes
+scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
 %OPTIONS for ground truth bounding boxes
-show_vatic_output = 0; %
+show_vatic_output = 1; %
 vatic_label_to_show = 'chair4'; 
 use_custom_vatic_labels = 0;
-custom_vatic_labels = {};
+custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 
 
 %options for FAST-RCNN bounding boxes
 show_recognition_output = 1;
 recognition_system_name = 'fast_rcnn';
 show_instance_not_class = 0;
-recognition_label_to_show = 'diningtable';
+recognition_label_to_show = 'chair';
 use_custom_recognition_labels = 0;
 custom_recognition_labels = {};
-score_threshold = .1;
+score_threshold = 0; 
 show_scores_of_boxes = 1;
 font_size = 10;
 
@@ -104,6 +104,7 @@ for i=1:length(all_scenes)
 
 
 
+
       %decide which instances to show
       if(use_custom_vatic_labels && ~isempty(custom_vatic_labels))
         labels_to_show = custom_vatic_labels;
@@ -124,6 +125,7 @@ for i=1:length(all_scenes)
     end%if show vatic output
 
 
+      %vatic_bbox = bbox;
 
     %now draw recognition boxes
     if(show_recognition_output)
@@ -158,11 +160,16 @@ for i=1:length(all_scenes)
           bboxes = bboxes(bboxes(:,5) > score_threshold,:);
         end
 
+        %ious = get_bboxes_iou(vatic_bbox, bboxes);
+        %bboxes = bboxes(ious > .5, :);
+
         for l=1:size(bboxes,1)
           bbox =double(bboxes(l,:));
           if(isempty(bbox))
             continue;
           end  
+          
+
           rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
                      'LineWidth',1, 'EdgeColor','b');
           if(show_scores_of_boxes)

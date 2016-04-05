@@ -45,7 +45,7 @@ Examples:
  
 
 #### Reconstruction
-We use the RGB Structure from Motion program Colmap. It will be released soon. All that is really needed is the 3D world **position and direction** of the camera for each image. Instructions on using a system other than colmap are coming.
+We use the RGB Structure from Motion program [Colmap](https://github.com/colmap/colmap). It will be released soon. All that is really needed is the 3D world **position and direction** of the camera for each image. Instructions on using a system other than colmap are coming.
 
 
 

@@ -11,12 +11,12 @@ init;
 %% USER OPTIONS
 
 
-scene_name = 'SN208_Density_1by1'; %make this = 'all' to run all scenes
+scene_name = 'Room15'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-method = 1; %  0 - by hand, get user to draw a box around each cluster
+method = 0; %  0 - by hand, get user to draw a box around each cluster
             %  1 - image index,  just assign cluster_id = image_index
             %  2 - 
 
