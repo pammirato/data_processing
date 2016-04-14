@@ -100,7 +100,11 @@ This script initializes constants based on the directory structure and file name
 If you download our dataset, you should only need to change the __BASE-PATH__ variables.
 
 1. **ROHIT-BASE-PATH** - full path to the parent directory of all scene's basic data
+  * all images(rbg,depth,etc). image-structs.mat, ground truth labels
 1. **ROHIT-META-BASE-PATH** - full path to the parent directory of all scene's meta data
+  * text files from colmap, recognition systems output, anything else
+  * _reconstruction-results_
+    * text files from colmap: cameras.txt, points.txt,images.txt
 1. **BIGBIRD-BASE-PATH** - full path to the parent directory of all BIGBIRD data
   
 
