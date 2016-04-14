@@ -101,6 +101,9 @@ If you download our dataset, you should only need to change the __BASE-PATH__ va
 
 1. **ROHIT-BASE-PATH** - full path to the parent directory of all scene's basic data
   * all images(rbg,depth,etc). image-structs.mat, ground truth labels
+  * _rgb_: uncompressed .png rgb images (1920x1080)
+  * _raw-depth_: raw depth output from Kinect (512x424)
+  * _high-res-depth_: raw depth output from Kinect (512x424)
 1. **ROHIT-META-BASE-PATH** - full path to the parent directory of all scene's meta data
   * text files from colmap, recognition systems output, anything else
   * _reconstruction-results_
