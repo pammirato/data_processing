@@ -666,16 +666,17 @@ function display_segmentation(image_name, pos)
     xmax = int16(min([pos(1)+pos(3) 1920]));
     ymax = int16(min([pos(2)+pos(4) 1080]));
 
-    depth_name = [image_name(1:9) '3.png'];
-    raw_depth = imread(fullfile(userData.scene_path, ['raw_depth/' depth_name]));
+    % Used for segmentation with RGBD image
+    % depth_name = [image_name(1:9) '3.png'];
+    % raw_depth = imread(fullfile(userData.scene_path, ['raw_depth/' depth_name]));
+    %
+    % multiplier = 256.0 / double(max(raw_depth(:)));
+    % raw_depth = raw_depth .* multiplier;
+    % raw_depth = uint8(raw_depth);
+    %
+    % img = cat(3, img, raw_depth);
 
-    multiplier = 256.0 / double(max(raw_depth(:)));
-    raw_depth = raw_depth .* multiplier;
-    raw_depth = uint8(raw_depth);
-
-    img = cat(3, img, raw_depth);
-
-    trimap = extract_foreground_rgbd(img, pos);
+    trimap = extract_foreground(img, pos);
     trimap = trimap(ymin:ymax, xmin:xmax);
     trimap = im2bw(trimap, 2/255);
 

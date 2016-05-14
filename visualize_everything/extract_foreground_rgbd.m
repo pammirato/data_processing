@@ -1,5 +1,5 @@
 % GrabCut implementation supporting RGBD images
-function trimap = extract_foreground(img, bbox)
+function trimap = extract_foreground_rgbd(img, bbox)
     plotfig = gcf;
 
     warning('off','all');
@@ -20,7 +20,7 @@ function trimap = extract_foreground(img, bbox)
     maxIter = 1;
     diffThreshold = 0.001;
 
-    trimap = GCAlgo(imd, fixedBG,k,G,maxIter, Beta, diffThreshold, []);
+    trimap = GCAlgo(imd, fixedBG, k, G, maxIter, Beta, diffThreshold, []);
     trimap = double(1 - trimap).*3;
 end
 
