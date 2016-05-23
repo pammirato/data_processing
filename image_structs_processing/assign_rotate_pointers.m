@@ -13,7 +13,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Room14'; %make this = 'all' to run all scenes
+scene_name = 'PhilKitchenLiving'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -78,6 +78,10 @@ for i=1:length(all_scenes)
       cur_world = cur_struct.world_pos;
       cur_dir = get_normalized_2D_vector(cur_struct.direction);
       
+      if(strcmp(cur_struct.image_name, '0000010101.png'))
+        breakp = 1;
+      end
+      
       
       other_structs = cur_cluster;
       other_structs(k) = [];
@@ -94,12 +98,13 @@ for i=1:length(all_scenes)
         dotp = dot(cur_dir,o_dir);
         
         angle = acosd(dotp);
-        if(dotp > 0)
+        angle = abs(30-angle);
+        if(~left(cur_world, cur_dir, o_dir))
            if(angle < cw_angle)
              cw_angle = angle;
              cw_name = o_struct.image_name;
            end
-        elseif(dotp < 0)
+        else
            if(angle < ccw_angle)
              ccw_angle = angle;
              ccw_name = o_struct.image_name;

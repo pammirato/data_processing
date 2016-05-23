@@ -11,7 +11,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
+scene_name = 'SN208_2cm_paths'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -22,6 +22,9 @@ class_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do big
 use_custom_classes = 0;
 custom_classes_list = {};
 
+instance_name = 'chair5.mat';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
+use_custom_instances = 0;
+custom_instances_list = {};
 
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -62,7 +65,19 @@ for i=1:length(all_scenes)
 
   instance_arrays = cell(length(all_instance_names), length(all_image_names));  
 
-  
+   %decide which labels to process    
+  if(use_custom_instances && ~isempty(custom_instances_list))
+    all_instance_names = custom_instances_list;
+  elseif(strcmp(instance_name,'bigBIRD'))
+    temp = dir(fullfile(BIGBIRD_BASE_PATH));
+    temp = temp(3:end);
+    all_instance_names = {temp.name};
+  elseif(strcmp(instance_name, 'all'))
+    all_instance_names = all_instance_names;
+  else
+    all_instance_names = {instance_name};
+  end
+ 
 
 
   %for each label, process  all the images that see it
@@ -75,6 +90,9 @@ for i=1:length(all_scenes)
     %get the index of the image(number, asdfas)
     cur_image_index = str2num(cur_image_name(1:6));
 
+    if(cur_image_index == 799)
+       breakp=1;
+    end
  
     %now save the detections by instance for this image
     cur_image_detections = load(fullfile(meta_path, RECOGNITION_DIR, recognition_system_name, ...

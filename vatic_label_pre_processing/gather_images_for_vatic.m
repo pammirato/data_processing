@@ -20,24 +20,24 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
+scene_name = 'FB341'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-label_name = 'bottle4';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
+label_name = 'yoda1';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
 use_custom_labels = 0;
-custom_labels_list = {'chair5','chair6'};
+custom_labels_list = {'potted_plant', 'potted_plant2'};
 
 
 max_image_dimension = 600;%how big images will be at the end
-start_crop_size = 300;%how big of a square to crop around labeled point
-do_depth_crop = 0;%whether or not to adjust crop size based on depth to labeled point
+start_crop_size = 400;%how big of a square to crop around labeled point
+do_depth_crop = 1;%whether or not to adjust crop size based on depth to labeled point
 depth_crop_thresh = 2500;%distance in mm object must be to do depth crop
 label_box_size = 5;%size of box drawn on image(before crop)
 
 
-gather_method = 0;   % 0 - gather all images
+gather_method = 1;   % 0 - gather all images
                      % 1 - gather images without forward AND backward pointers. 
 
 min_gather_percent = .25; %minimum percent of images in the scene that must be gathered
@@ -245,7 +245,6 @@ for i=1:length(all_scenes)
 
       %get info about label in this image
       ls = label_structs_map(png_name);
-     
 
       %% DEPTH CROP
       %get the depth of the labeled point, and crop accordingly 
@@ -265,8 +264,8 @@ for i=1:length(all_scenes)
       y_dot_max = min(size(img,1),floor(ls.(Y) + label_box_size/2));
 
       temp =  img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,1);
-      img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,1) = 255*ones(size(temp));
-      img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,2) = zeros(size(temp));
+      img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,1) = 0*ones(size(temp));
+      img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,2) = 255*ones(size(temp));
       img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,3) = zeros(size(temp));
 
       %display image with point drawn for debugging

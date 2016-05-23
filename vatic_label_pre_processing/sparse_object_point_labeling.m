@@ -15,7 +15,7 @@ init;
 
 %%USER OPTIONS
 
-scene_name = 'SN208_Density_1by1';
+scene_name = 'FB341';
 %kinect_to_use = '1';
 
 %how big to draw label dot(box) on image
@@ -69,7 +69,7 @@ while cur_image_index <= length(image_names)
   try%make sure the point is in the image, and depth > 0
     if(depth_image(y,x) == 0)
       disp('ZERO DEPTH');
-      continue;
+      %continue;
     end
   catch 
   end

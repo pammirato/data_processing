@@ -16,7 +16,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208'; %make this = 'all' to run all scenes
+scene_name = 'PhilKitchenLiving'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -26,14 +26,13 @@ view_direction = 1;%should the lines indicating camera direction be drawn?
 
 plot_type = 1; %  0 - 3D point plot 
                %  1 - 2D point plot
-
-save_figures = 2; % 0 - don't save
+save_figures = 0; % 0 - don't save
                   % 1 - save .fig file
                   % 2 - save .jpg image
 
 
 
-view_figure = 0; %whether or not to make the figure(s) visible
+view_figure = 1; %whether or not to make the figure(s) visible
 
 use_scaled_positions = 1;%use positions in meters, not arbitrary reconstruction coords
 
@@ -118,11 +117,11 @@ for i=1:length(all_scenes)
       switch plot_type
         case 0 %3D plot
           quiver3(world_poses(1,:),world_poses(2,:),world_poses(3,:), ...
-             direcrtions(1,:),direcrtions(2,:),direcrtions(3,:), ...
+             directions(1,:),directions(2,:),directions(3,:), ...
              'ShowArrowHead','off','Color' ,'b');
         case 1  %2D plot
           quiver(world_poses(1,:),world_poses(3,:), ...
-             directions(1,:),directions(2,:), ...
+             directions(1,:),directions(3,:), ...
              'ShowArrowHead','off','Color' ,'b');
       end%switch
       hold off;

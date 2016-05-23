@@ -12,14 +12,20 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
+scene_name = 'FB341'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-label_name = 'bottle1';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
+label_name = 'yoda1';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
 use_custom_labels = 0;
 custom_labels_list = {'chair5','chair6'};
+
+
+
+
+show_2d_plot = 1;
+
 
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -120,6 +126,31 @@ for i=1:length(all_scenes)
 
 
 
+
+    if(show_2d_plot)
+
+      p2d = figure;
+      hold on;
+      for kk=1:length(image_names)
+        cur_image_name = image_names{kk};
+
+        cur_image_struct = image_structs_map(cur_image_name);
+
+        world_pos = cur_image_struct.scaled_world_pos;
+        direction = cur_image_struct.direction * scale/2;
+
+        plot(world_pos(1), world_pos(3), 'r.');
+        quiver(world_pos(1), world_pos(3),direction(1), direction(3), ...
+                'ShowArrowHead', 'off', 'Color', 'b');
+      end%for kk 
+
+      hold off;
+      axis equal;
+    end%if show_2d_plot
+
+
+    return; 
+    figure;
 
 
 

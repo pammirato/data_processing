@@ -12,14 +12,14 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
+scene_name = 'SN208_2cm_paths'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
 %OPTIONS for ground truth bounding boxes
 show_vatic_output = 1; %
-vatic_label_to_show = 'chair4'; 
+vatic_label_to_show = 'chair1'; 
 use_custom_vatic_labels = 0;
 custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 
@@ -27,12 +27,13 @@ custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 %options for FAST-RCNN bounding boxes
 show_recognition_output = 1;
 recognition_system_name = 'fast_rcnn';
-show_instance_not_class = 0;
-recognition_label_to_show = 'chair';
+show_instance_not_class = 1;
+recognition_label_to_show = 'chair1';
 use_custom_recognition_labels = 0;
 custom_recognition_labels = {};
-score_threshold = 0; 
+score_threshold = .1;
 show_scores_of_boxes = 1;
+show_class_of_boxes = 0;
 font_size = 10;
 
 
@@ -99,11 +100,15 @@ for i=1:length(all_scenes)
     %draw vatic bounding boxes
     if(show_vatic_output)
 
+      
+      try
       vatic_bboxes = load(fullfile(scene_path,LABELING_DIR, ...
                           BBOXES_BY_IMAGE_INSTANCE_DIR, strcat(cur_image_name(1:10),'.mat')));
+      catch
+        vatic_bboxes =struct();
+      end
 
-
-
+      if(~isempty(fields(vatic_bboxes)))
 
       %decide which instances to show
       if(use_custom_vatic_labels && ~isempty(custom_vatic_labels))
@@ -122,6 +127,7 @@ for i=1:length(all_scenes)
         rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
                      'LineWidth',2, 'EdgeColor','r');
       end%for k, each label to show
+      end%if vatic is not empty
     end%if show vatic output
 
 
@@ -171,9 +177,15 @@ for i=1:length(all_scenes)
           
 
           rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
-                     'LineWidth',1, 'EdgeColor','b');
+                     'LineWidth',2, 'EdgeColor','b');
           if(show_scores_of_boxes)
             t = text(bbox(1), bbox(2)-font_size,strcat(num2str(bbox(5))),  ...
+                                    'FontSize',font_size, 'Color','white');
+
+            t.BackgroundColor = 'black';
+          end
+          if(show_class_of_boxes)
+            t = text(bbox(3)-20, bbox(2)+font_size,labels_to_show{k},  ...
                                     'FontSize',font_size, 'Color','white');
 
             t.BackgroundColor = 'black';
@@ -202,21 +214,24 @@ for i=1:length(all_scenes)
 
     elseif(move_command =='w')
         %move forward 
-        next_image_name = cur_struct.translate_forward;
+        next_image_name = cur_image_struct.translate_forward;
+        if(next_image_name == -1)
+          next_image_name = cur_image_name;
+        end
         cur_image_index = str2num(next_image_name(1:6));
 
     elseif(move_command =='s')
         %move backward 
-        next_image_name = cur_struct.translate_backward;
+        next_image_name = cur_image_struct.translate_backward;
         cur_image_index = str2num(next_image_name(1:6));
     
     elseif(move_command =='d')
         %rotate clockwise
-        next_image_name = cur_struct.rotate_cw;
+        next_image_name = cur_image_struct.rotate_cw;
         cur_image_index = str2num(next_image_name(1:6));
     elseif(move_command =='a')
         %rotate counter clockwise 
-        next_image_name = cur_struct.rotate_ccw;
+        next_image_name = cur_image_struct.rotate_ccw;
         cur_image_index = str2num(next_image_name(1:6));
 
     elseif(move_command =='n')
@@ -294,10 +309,15 @@ for i=1:length(all_scenes)
           instance_annotations = instance_annotations_file.annotations;
 
 
-          %add the new label
-          instance_annotations(end+1)  = struct('image_name', cur_image_name, ...
+          if(isempty(instance_annotations))
+            instance_annotations = [struct('image_name', cur_image_name, ...
+                                                'bbox',  bbox)];
+          else
+            %add the new label
+            instance_annotations(end+1)  = struct('image_name', cur_image_name, ...
                                                 'bbox',  bbox);
-
+          end
+                                              
           %save the new annotations
           annotations = instance_annotations;
           save(fullfile(scene_path, LABELING_DIR,BBOXES_BY_INSTANCE_DIR, ...

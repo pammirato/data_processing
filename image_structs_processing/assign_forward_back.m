@@ -17,7 +17,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Room15'; %make this = 'all' to run all scenes
+scene_name = 'PhilKitchenLiving'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -29,7 +29,7 @@ threshold_on_distance = 0;
 dir_angle_thresh = 10; %difference between direction of camera at images
 move_angle_thresh = 10; %maximum allowed difference between point angle and direction angle
 point_angle_thresh = 10;%angle between camera direction of org and vector from org to other point
-dist_thresh = 150;%distance threshold in mm, (must be closer than this)
+dist_thresh = 500;%distance threshold in mm, (must be closer than this)
 
 
 %% SET UP GLOBAL DATA STRUCTURES

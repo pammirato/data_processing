@@ -13,12 +13,12 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
+scene_name = 'SN208_2cm_paths'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-label_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
+label_name = 'chair5';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
 use_custom_labels = 0;
 custom_labels = {};
 
@@ -68,8 +68,12 @@ for i=1:length(all_scenes)
     %get name of annotatinos file 
     cur_mat_name = strcat(cur_image_name(1:10), '.mat');
 
-    all_annotations{j} = load(fullfile(scene_path,LABELING_DIR, ...
+    try
+      all_annotations{j} = load(fullfile(scene_path,LABELING_DIR, ...
                             BBOXES_BY_IMAGE_INSTANCE_DIR, cur_mat_name));
+    catch
+      all_annotations{j} = struct();
+    end
   end%for j, each image name
 
   annotations_map = containers.Map(all_image_names, all_annotations);
@@ -124,10 +128,7 @@ for i=1:length(all_scenes)
         continue;
       end 
     
-      if(strcmp(cur_image_name, '0001490101.png'))
-        breakp=1;
-      end
- 
+
       %%get the annotations for the closest labeled image backwards and forwards
       [backward_image_struct, backward_bbox] = get_next_labeled_image(cur_image_name, ...
                                                                     image_structs_map, ...

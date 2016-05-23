@@ -5,7 +5,8 @@ vatic-preprocessing directory_
 
 
 
-TODO  - make everything work for a subset of the instances, so more can be added
+TODO  - fix remove_reference_images 
+      - make everything work for a subset of the instances, so more can be added
 
  
 For a single scene(set of images), use the following **procedure**:

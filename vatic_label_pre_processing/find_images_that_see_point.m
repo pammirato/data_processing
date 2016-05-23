@@ -18,13 +18,13 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
+scene_name = 'FB341'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-label_to_process = 'chair'; %make 'all' for every label
-occulsion_threshold = 20000;  %make > 12000 to remove occulsion thresholding 
+label_to_process = 'yoda1'; %make 'all' for every label
+occulsion_threshold = 600;  %make > 12000 to remove occulsion thresholding 
 
 debug =1;
 
@@ -105,10 +105,10 @@ for i=1:length(all_scenes)
     depth_images = cell(1,length(d));
 
     %for each rgb image, load a depth image
-    for i=1:length(image_names)
-        rgb_name = image_names{i};
+    for j=1:length(image_names)
+        rgb_name = image_names{j};
 
-        depth_images{i} = imread(fullfile(scene_path, HIGH_RES_DEPTH, ... 
+        depth_images{j} = imread(fullfile(scene_path, HIGH_RES_DEPTH, ... 
                  strcat(rgb_name(1:8),'03.png') ));
     end% for i, each image name
     
@@ -229,6 +229,11 @@ for i=1:length(all_scenes)
       if(strcmp(cur_name,labeled_image_name))
           continue;
       end
+
+      %if(cur_name(8) ~= '1')
+      %  continue;
+      %end
+
 
       %get the camera infor for this image
       cur_image_struct = image_structs_map(cur_name);
@@ -389,7 +394,7 @@ for i=1:length(all_scenes)
 
     %add in the hand labeled point
     found_image_names{length(found_image_names)+1} = labeled_image_name; 
-    found_points{length(found_points)+1} = [point depth];
+    found_points{length(found_points)+1} = [labeled_point' depth];
     
     %make a struct for each found point/image 
     cur_structs_array = cell(1,length(found_points));

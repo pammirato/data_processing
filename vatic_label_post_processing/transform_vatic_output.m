@@ -11,7 +11,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
+scene_name = 'SN208_2cm_paths'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -69,6 +69,8 @@ for i=1:length(all_scenes)
      
       %get the acutal boxes labeled 
       annotations = cur_instance_labels.annotations;
+
+      indices_to_remove = [];
       for k=1:length(annotations)
           
           ann = annotations{k};
@@ -79,7 +81,13 @@ for i=1:length(all_scenes)
           
           
           %% apply transformation to box
+          try
           ts = transform_map(image_name);
+          catch
+            indices_to_remove(end+1) = k;
+            continue;
+          end
+
 
           label_struct = ts.label_struct;
           centering_offset = ts.centering_offset;
@@ -135,7 +143,9 @@ for i=1:length(all_scenes)
           annotations{k} = ann;
           
       end%for k, each annotation 
-      
+     
+      annotations(indices_to_remove) = [];
+ 
       cur_instance_labels.annotations = annotations;
      
       %save this instance 

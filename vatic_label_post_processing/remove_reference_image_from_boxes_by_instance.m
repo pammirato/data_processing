@@ -10,7 +10,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
+scene_name = 'SN208_2cm_paths'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -52,16 +52,23 @@ for i=1:length(all_scenes)
 
   %for each instance, remove the reference image label 
   for j=1:length(all_instance_names)
-    cur_instance_name = all_instance_names{j};
+    cur_instance_name = all_instance_names{j}
     
     %load the boxes for this instance
     cur_instance_labels_file = load(fullfile(scene_path,LABELING_DIR, ...
                                               BBOXES_BY_INSTANCE_DIR, cur_instance_name));
     cur_instance_labels = cur_instance_labels_file.annotations;
 
+    if(isempty(cur_instance_labels))
+      continue;
+    end
+
     first_label = cur_instance_labels{1};
 
-    if(strcmp(first_label.frame, '0000000000.png') || first_label.frame == 0)
+    first_frame = first_label.frame;
+
+    %if(strcmp(first_frame(1:10), '0000000000') || frame == 0)
+    if((length(first_frame) > 7 && strcmp(first_frame(1:8), '00000000')) || (length(first_frame) ==1 && first_frame ==0))
       cur_instance_labels = cur_instance_labels(2:end);
       
       cur_instance_labels_file.num_frames = length(cur_instance_labels);
