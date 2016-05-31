@@ -130,7 +130,7 @@ for i=1:length(all_scenes)
 
   %% PARSE LABELED POINTS FILE
 
-  %get all the 'inputed', labeled points
+  %get all the 'inputted', labeled points
   %these are points on instances in the scene, as from sparse_labeling script
 
   %holds what it says 

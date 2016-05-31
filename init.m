@@ -54,6 +54,13 @@ LABELING_DIR = 'labels';
         IMAGES_DIR = 'images';
 
 
+      OBJECT_POINT_CLOUDS = 'object_point_clouds';
+      ORIGINAL_POINT_CLOUDS = 'original';
+      SCALED_POINT_CLOUDS = 'scaled';
+      
+
+
+
    LABELED_BBOXES_DIR = 'labeled_bboxes';
 
    REFERENCE_IMAGES_DIR = 'reference_images';

@@ -11,7 +11,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'FB341'; %make this = 'all' to run all scenes
+scene_name = 'SN208_k1'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -96,7 +96,7 @@ for i=1:length(all_scenes)
 
     %get all the image ids and point2d ids. 
     %point2d is the location in the image of the 3D point
-    image_ids = point3d_to_use.image_ids;
+    p3_image_ids = point3d_to_use.image_ids;
     point2_ids = point3d_to_use.point2_ids;
 
 
@@ -106,10 +106,10 @@ for i=1:length(all_scenes)
     ydists = -ones(1,length(image_ids)); %1D distance
 
     %for each image, get the depth and distance
-    for j=1:length(image_ids)
+    for j=1:length(p3_image_ids)
 
       %get the image struct and p2d struct from the maps
-      cur_image_id = image_ids(j);
+      cur_image_id = p3_image_ids(j);
       cur_p2_id = point2_ids(j);
       image_struct = image_id_to_struct_map(num2str(cur_image_id));
       p2d = image_name_to_p2d_map(image_struct.image_name);

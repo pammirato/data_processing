@@ -54,7 +54,7 @@ for i=1:length(all_scenes)
   all_image_names = get_names_of_X_for_scene(scene_name, 'rgb_images');
 
   %for each image, get its recognition output and and format it
-  for j=1:1%length(all_image_names)
+  for j=1:length(all_image_names)
   
     %get the image name and change the extenstion for the .mat
     cur_image_name = all_image_names{j};
