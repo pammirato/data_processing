@@ -78,7 +78,7 @@ for i=1:length(all_scenes)
       cur_world = cur_struct.world_pos;
       cur_dir = get_normalized_2D_vector(cur_struct.direction);
       
-      if(strcmp(cur_struct.image_name, '0000010101.png'))
+      if(strcmp(cur_struct.image_name, '0000010101.jpg'))
         breakp = 1;
       end
       
@@ -98,18 +98,35 @@ for i=1:length(all_scenes)
         dotp = dot(cur_dir,o_dir);
         
         angle = acosd(dotp);
-        angle = abs(30-angle);
-        if(~left(cur_world, cur_dir, o_dir))
-           if(angle < cw_angle)
-             cw_angle = angle;
-             cw_name = o_struct.image_name;
-           end
-        else
-           if(angle < ccw_angle)
-             ccw_angle = angle;
-             ccw_name = o_struct.image_name;
-           end
-        end% if dotp
+        v1 = cur_dir;
+        v2 = o_dir;
+        ang = atan2(v1(1)*v2(2)-v2(1)*v1(2),v1(1)*v2(1)+v1(2)*v2(2));
+        ang = mod(-180/pi * ang, 360);        
+
+
+%         if(~left(cur_world, cur_dir, o_dir))
+%            if(angle < cw_angle)
+%              cw_angle = angle;
+%              cw_name = o_struct.image_name;
+%            end
+%         else
+%            if(angle < ccw_angle)
+%              ccw_angle = angle;
+%              ccw_name = o_struct.image_name;
+%            end
+%         end% if dotp
+          if(ang > 180)
+            ang = 360- ang;
+            if(ang < ccw_angle)
+              ccw_angle = angle;
+              ccw_name = o_struct.image_name;
+            end
+          else
+            if(ang < cw_angle)
+              cw_angle = angle;
+              cw_name = o_struct.image_name;
+            end
+          end
       end%for l, each other point in cluster
       
       cur_struct.rotate_ccw = ccw_name;

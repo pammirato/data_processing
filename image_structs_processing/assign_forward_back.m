@@ -28,7 +28,7 @@ threshold_on_distance = 0;
 
 dir_angle_thresh = 10; %difference between direction of camera at images
 move_angle_thresh = 10; %maximum allowed difference between point angle and direction angle
-point_angle_thresh = 10;%angle between camera direction of org and vector from org to other point
+point_angle_thresh = 30;%angle between camera direction of org and vector from org to other point
 dist_thresh = 500;%distance threshold in mm, (must be closer than this)
 
 
@@ -90,6 +90,12 @@ for i=1:length(all_scenes)
     %for each image in this cluster
     for k=1:length(cur_cluster)
       cur_struct = cur_cluster(k);
+
+
+      if(strcmp(cur_struct.image_name,'0000010101.png'))
+        breakp =1;
+      end
+
      
       %get this image's world position and direciton 
       cur_world = cur_struct.scaled_world_pos;

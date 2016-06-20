@@ -19,7 +19,7 @@ custom_scenes_list = {};%populate this
 
 grid_size = 21;
 
-recognition_system_name = 'fast_rcnn';
+recognition_system_name = 'ssd_coco';
 
 group_by_class = 1;
 classes = {'chair','bottle'};
@@ -66,6 +66,21 @@ for i=1:length(all_scenes)
 
   
   instance_images_map = containers.Map(all_instance_names, cell(1,length(all_instance_names)));
+
+
+
+  
+  %make the directories to hold the saved figures
+  if(save_figures)
+    mkdir(fullfile(meta_path,DENSITY_EXPERIMENTS_DIR, recognition_system_name, ...
+                            SCORE_IMAGES_DIR));
+
+
+
+    mkdir(fullfile(meta_path,DENSITY_EXPERIMENTS_DIR, recognition_system_name, ...
+                      SCORE_ARRAYS_BY_INSTANCE_DIR));
+  end
+
 
   
   for j=1:length(all_instance_names)

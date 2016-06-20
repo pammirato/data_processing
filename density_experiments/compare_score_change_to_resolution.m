@@ -18,11 +18,11 @@ use_custom_instances = 0;
 custom_instances_list = {'chair5','chair6'};
 
 
-recognition_system_name = 'fast_rcnn';
+recognition_system_name = 'ssd_coco';
 
 show_figures = 0;
 show_global_figures = 0;
-save_figures = 0;
+save_figures = 1;
 
 %% SET UP GLOBAL DATA STRUCTURES
 

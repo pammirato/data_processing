@@ -16,7 +16,7 @@ use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-label_to_process = 'red_chair'; %make 'all' for every label
+label_to_process = 'td_water_bottle'; %make 'all' for every label
 label_names = {label_to_process};
 
 
@@ -155,9 +155,6 @@ for i=1:length(all_scenes)
 %    scale = 1 ;
     cur_world_locs = cur_world_locs * scale; 
 
-
-    found_image_names = cell(1,length(image_names));
-
     %for each image, determine if it 'sees' this object(point cloud) 
     for kl = 1:length(image_names) 
 
@@ -207,73 +204,9 @@ for i=1:length(all_scenes)
 
 
 
+      xyz = R*cur_world_locs' + t;
 
-
-      k1 = .38197;
-      k2 = .106989
-      k3 = 0;
-      p1 = .0004900047
-      p2 = -0.00123489;
-      fx = 1049.27;
-      fy = 1088.24;
-      cx = 927.269;
-      cy = 545.76;
-
-
-      %distort point cloud points
-     
-      x = (cur_image_points(1,:) - K(1,3)) ./ K(1,1);
-      y = (cur_image_points(2,:) - K(2,3)) ./ K(2,2);
- 
-      r = sqrt( (x).^2 + (y).^2);
-      %k_term =(1 + distortion(1)*(r.^2) + distortion(2)*(r.^4) + distortion(5)*(r.^6)); 
-      k_term =(1 + k1*(r.^2) + k2*(r.^4) + k3*(r.^6)); 
-
-      %p_term_x= (distortion(4)*((r.^2) + 2*x.^2) + 2*distortion(3).*x.*y);
-      %p_term_y= (distortion(3)*((r.^2) + 2*y.^2) + 2*distortion(4).*x.*y);
-      p_term_x= (p2*((r.^2) + 2*x.^2) + 2*p1.*x.*y);
-      p_term_y= (p1*((r.^2) + 2*y.^2) + 2*p2.*x.*y);
-
-      dx = x.*k_term + p_term_x;
-      dy = y.*k_term + p_term_y;
-
-
-      %ddx = floor(dx*K(1,1) + K(1,3));
-      %ddy = floor(dy*K(2,2) + K(2,3));
-      ddx = floor(dx*fx + cx);
-      ddy = floor(dy*fy + cy);
-
-
-      distorted_points = [ddx;ddy];
-      %end distortion
-
-
-
-
-
-
-      %undistort point cloud points
-      xyz = R*cur_world_locs' + repmat(t,1,length(cur_world_locs));
-      xx = xyz(1,:) ./ xyz(3,:);
-      yy = xyz(2,:) ./ xyz(3,:);
-
-      r = sqrt( xx.^2 + yy.^2);
-
-      %ks = 1 + distortion(1)*(r.^2) + distortion(2)*(r.^4) + distortion(5)*(r.^6);
-      ks = 1 + k1*(r.^2) + k2*(r.^4) + k3*(r.^6);
-
-      %xxx = xx.*ks + 2*distortion(3).*xx.*yy + distortion(4)*(r.^2 + 2*xx.^2);
-      %yyy = yy.*ks + distortion(3)*(r.^2 + 2*yy.^2) + 2*distortion(4).*xx.*yy;
-      xxx = xx.*ks + 2*p1.*xx.*yy + p2*(r.^2 + 2*xx.^2);
-      yyy = yy.*ks + p1*(r.^2 + 2*yy.^2) + 2*p2.*xx.*yy;
-
-      %u = K(1,1) * xxx + K(1,3);
-      %v = K(2,2) * yyy + K(2,3);
-      u = fx * xxx + cx;
-      v = fy * yyy + cy;
-
-      undistorted_points =floor([u;v]);
-      %end undistort 
+      
 
       %make sure each point is in the image
       
@@ -333,58 +266,26 @@ for i=1:length(all_scenes)
         object_inds = sub2ind(size(obj_img), cur_image_points(2,:), cur_image_points(1,:)); 
         obj_img(object_inds)  = 1;
 
-        uobj_img = zeros(size(img,1), size(img,2));
-        uobject_inds=sub2ind(size(uobj_img), undistorted_points(2,:), undistorted_points(1,:)); 
-        uobj_img(uobject_inds)  = .5;
-
-        dobj_img = zeros(size(img,1), size(img,2));
-        dobject_inds = sub2ind(size(dobj_img), distorted_points(2,:), distorted_points(1,:)); 
-        dobj_img(dobject_inds)  = .1;
-
-        uminx = min(undistorted_points(1,:));
-        uminy = min(undistorted_points(2,:));
-        umaxx = max(undistorted_points(1,:));
-        umaxy = max(undistorted_points(2,:));
-
         minx = min(cur_image_points(1,:));
         miny = min(cur_image_points(2,:));
         maxx = max(cur_image_points(1,:));
         maxy = max(cur_image_points(2,:));
 
         bbox = [minx miny maxx maxy];
-        ubbox = [uminx uminy umaxx umaxy];
 
         %display the image with the object superimposed
         imshow(img);
         hold on;
-        h = imagesc(uobj_img); %plot object
-        set(h,'AlphaData', .5); %make object transparent
-        %h = imagesc(dobj_img); %plot object
+        %h = imagesc(obj_img); %plot object
         %set(h,'AlphaData', .5); %make object transparent
-        h = imagesc(obj_img); %plot object
-        set(h,'AlphaData', .5); %make object transparent
-       
-        p_x = mean(cur_image_points(1,:));
-        p_y = mean(cur_image_points(2,:)); 
-
-        %plot(p_x, p_y, 'r.', 'MarkerSize', 20);
-
         %draw bounding box
-        %rectangle('Position',[ubbox(1) ubbox(2) (ubbox(3)-ubbox(1)) (ubbox(4)-ubbox(2))], ...
-        %             'LineWidth',2, 'EdgeColor','b');
-        %rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
-        %             'LineWidth',2, 'EdgeColor','r');
+        rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
+                     'LineWidth',2, 'EdgeColor','r');
         hold off;
-       
-        %title(num2str(max(max(abs(distorted_points - cur_image_points)))));
- 
+        
         ginput(1);
       end % if debug
     end%for k, each image name
-
-    %remove empty values from cell array
-    found_image_names  =  found_image_names(~cellfun('isempty', found_image_names));
-
    end%for jl, each point cloud 
 end%for i, each scene_name
 

@@ -12,20 +12,20 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_2cm_paths'; %make this = 'all' to run all scenes
+scene_name = 'PhilKitchenLiving'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
 %OPTIONS for ground truth bounding boxes
-show_vatic_output = 1; %
+show_vatic_output = 0; %
 vatic_label_to_show = 'chair1'; 
 use_custom_vatic_labels = 0;
 custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 
 
 %options for FAST-RCNN bounding boxes
-show_recognition_output = 1;
+show_recognition_output = 0;
 recognition_system_name = 'fast_rcnn';
 show_instance_not_class = 1;
 recognition_label_to_show = 'chair1';
@@ -86,6 +86,7 @@ for i=1:length(all_scenes)
   cur_image_index = 1;
   cur_image_name  = image_names{cur_image_index};
   cur_image_struct =  image_structs_map(cur_image_name);
+  %cur_image_struct =  image_structs_map(strcat(cur_image_name(1:10), '.jpg'));
   move_command = 'w';
   num_to_play = 0;%images to play in a movie
   while(cur_image_index <= length(image_names)) 
@@ -363,7 +364,8 @@ for i=1:length(all_scenes)
     end
 
     cur_image_name = image_names{cur_image_index};
-    cur_image_struct = image_structs_map(cur_image_name);
+    cur_image_struct =  image_structs_map(cur_image_name);
+    %cur_image_struct =  image_structs_map(strcat(cur_image_name(1:10), '.jpg'));
 
   end %while cur_image_index < 
 
