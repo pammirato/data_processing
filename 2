@@ -1,0 +1,74 @@
+clearvars;
+
+method =  'blurry'; %how to separate the images. Options:
+                    %'blurry' - motion blur
+                    %'boring' - similar color (blank walls)
+                    %'pick out' - just move every nth image
+                    %'max_keep_clusters' - just move every nth image
+
+boring_threshold = 50; %1080*1920*.15;
+not_blurry_threshold = 120;
+pick_out_every = 13;
+
+
+cluster_size = 12;
+max_images = 800;
+
+
+debug = 0;
+
+base_path = '/playpen/ammirato/Data/RohitMetaData/Bedroom11/';
+
+rgb_image_names = dir(fullfile(load_path, '*.png'));
+rgb_image_names = {rgb_image_names.name};
+
+
+%set up data to make sure at least 3 images per cluster are kept
+org_num_images = length(rgb_image_names);
+num_clusters = org_num_images / cluster_size;
+
+%make sure each cluster has the same number of images
+assert(mod(cluster_size, org_num_images) == 0);
+%each cluster needs >= 3 pints, to define its circle
+min_images = num_clusters *3;
+max_images = max(max_images, min_images);
+fprintf('Max images; %d\n', max_images);
+
+
+
+%make data structure to keep track of how many images each cluster still has
+%cluster-id - on per cluster
+%images-kept, true/false if the ith image in the cluster will be kept for reconstruction
+cluster_struct = struct('cluster_id', 1, 'images_kept', ones(1,cluster_size));
+cluster_structs = repmat(cluster_struct, 1, num_clusters); %one struct per cluster
+
+
+
+
+%first remove all the boring images 
+for il = 1:length(rgb_image_names)
+  cur_image_name = rgb_image_names{il};
+
+  rgb_img = imread(fullfile(load_path, cur_image_name));
+
+
+  metric = get_single_metric_for_image(rgb_img, 'boring');
+
+  if(metric < boring_threshold)
+    
+
+  end
+
+
+  if(debug)
+    if(1 < 50)
+      imshow(rgb_img);
+      hold on;
+      title(num2str(metric));
+      ginput(1);
+    end
+ end%if debug
+end%for il, each iamge name
+
+
+

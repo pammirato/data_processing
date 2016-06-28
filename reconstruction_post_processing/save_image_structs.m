@@ -5,6 +5,8 @@
 
 %TODO - better name, processing for points2d
 
+clearvars;
+
 %initialize contants, paths and file names, etc. 
 init;
 
@@ -12,10 +14,11 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_k1'; %make this = 'all' to run all scenes
+scene_name = 'Bedroom11'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
+cluster_size = 12;%how many images are in each cluster
 
 
 
@@ -55,17 +58,17 @@ NAME = 10;
 
 
 
-for i=1:length(all_scenes)
+for il=1:length(all_scenes)
  
   %% set scene specific data structures
-  scene_name = all_scenes{i}
+  scene_name = all_scenes{il}
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
 
     
   %get the camera positions and orientations for the given images
-  fid_images = fopen(fullfile(meta_path,RECONSTRUCTION_DIR,IMAGES_RECONSTRUCTION)); 
+  fid_images = fopen(fullfile(meta_path,RECONSTRUCTION_DIR,'colmap_results_2',IMAGES_RECONSTRUCTION)); 
 
   %if the file didn't open
   if(fid_images == -1)
@@ -83,8 +86,18 @@ for i=1:length(all_scenes)
   fgetl(fid_images); 
 
   %holds all the structs, one per image, for this scene
-  image_structs = cell(1,num_total_rgb_images); 
-  point_2d_structs = cell(1,num_total_rgb_images);
+  blank_struct = struct(IMAGE_NAME, '', TRANSLATION_VECTOR, [], ...
+                       ROTATION_MATRIX, [], WORLD_POSITION, [], ...
+                       DIRECTION, [], QUATERNION, [], ...
+                       SCALED_WORLD_POSITION, [0,0,0], IMAGE_ID,'',...
+                       CAMERA_ID, '', 'cluster_id', -1, 'rotate_cw', -1, ...
+                       'rotate_ccw',-1, 'translate_forward',-1,'translate_backward',-1);
+
+  blank_p2d_struct = struct(IMAGE_NAME, '', POINTS_2D, []);
+  %image_structs = cell(1,num_total_rgb_images); 
+  image_structs = repmat(blank_struct,1,num_total_rgb_images); 
+  %point_2d_structs = cell(1,num_total_rgb_images);
+  point_2d_structs = repmat(blank_p2d_struct,1,num_total_rgb_images);
 
 
   %for the orientation
@@ -134,9 +147,8 @@ for i=1:length(all_scenes)
                        CAMERA_ID, line{CAM_ID}, 'cluster_id', -1, 'rotate_cw', -1, ...
                        'rotate_ccw',-1, 'translate_forward',-1,'translate_backward',-1);
 
-    image_structs{counter} = cur_struct;
-    
-    counter = counter+1;
+    %image_structs{counter} = cur_struct;
+    image_structs(counter) = cur_struct;
     
     %get Points2D 
     line =fgetl(fid_images); 
@@ -144,24 +156,38 @@ for i=1:length(all_scenes)
     p2d_struct = struct(IMAGE_NAME, name, ...
         POINTS_2D, str2double(strsplit(line)));
     
-    point_2d_structs{counter} = p2d_struct;
+    %point_2d_structs{counter} = p2d_struct;
+    point_2d_structs(counter) = p2d_struct;
  
+    counter = counter+1;
     
     %get the next line                
     line = fgetl(fid_images);
 
-  end
+  end%while there is another line to process
 
   %get rid of empty cells if not all images were reconstructed
   %(because we pre-allocated the cell arrays)
-  image_structs = image_structs(~cellfun('isempty',image_structs));
-  point_2d_structs = point_2d_structs(~cellfun('isempty',point_2d_structs));
-  
+  %image_structs = image_structs(~cellfun('isempty',image_structs));
+  %point_2d_structs = point_2d_structs(~cellfun('isempty',point_2d_structs));
+ 
+  image_structs(counter:end) = [];
+  point_2d_structs(counter:end) = [];
+
+ 
   %figure this out with another scirpt, just a place holder for now 
   scale = 0;
 
   %save everything
-  save(fullfile(scene_path,IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
+  %save(fullfile(scene_path,IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
+  save(fullfile(meta_path,RECONSTRUCTION_DIR,'colmap_results_2','reconstructed_image_structs.mat'), ...
+                  IMAGE_STRUCTS, SCALE);
   save(fullfile(meta_path, RECONSTRUCTION_DIR, POINT_2D_STRUCTS_FILE), POINT_2D_STRUCTS);
-    
+   
+
+ 
 end%for i, each scene
+
+
+
+

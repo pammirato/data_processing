@@ -1,87 +1,124 @@
 clearvars;
 
-method =  'blurry'; %how to separate the images. Options:
-                    %'blurry' - motion blur
-                    %'boring' - similar color (blank walls)
-                    %'pick out' - just move every nth image
 
 boring_threshold = 50; %1080*1920*.15;
 not_blurry_threshold = 120;
 pick_out_every = 13;
 
+
+cluster_size = 12;
+max_images = 700;
+min_images_per_cluster = 5;
+
 debug = 0;
 
-base_path = '/playpen/ammirato/Data/RohitMetaData/Bedroom11/';
-%base_path = '/playpen/ammirato/Data/RohitData/Kitchen_Living_12/';
+base_path = '/playpen/ammirato/Data/RohitMetaData/Kitchen_Living_02_2/';
 
-if(strcmp(method, 'blurry'))
-  load_path = fullfile(base_path, 'hand_scan/rgb');
-  move_path = fullfile(base_path, 'hand_scan/blurry_rgb');
-elseif(strcmp(method, 'boring'))
-  load_path = fullfile(base_path, 'rgb_for_reconstruction');
-  move_path = fullfile(base_path, 'boring_rgb');
-elseif(strcmp(method, 'pick out'))
-  load_path = fullfile(base_path, 'rgb_for_reconstruction');
-  move_path = fullfile(base_path, 'picked_out_rgb');
-end
+%where to move the images
+
+moved_rgb_path = fullfile(base_path, 'rgb_not_for_reconstruction');
+mkdir(moved_rgb_path);
+
+rgb_image_path = fullfile(base_path, 'rgb');
 
 
-rgb_image_names = dir(fullfile(load_path, '*.png'));
-%rgb_image_names = dir(fullfile(base_path,'rgb', '*.png'));
+rgb_image_names = dir(fullfile(rgb_image_path, '*.png'));
 rgb_image_names = {rgb_image_names.name};
 
 
-count = 0;
+%set up data to make sure at least min_images_per_cluster images per cluster are kept
+org_num_images = length(rgb_image_names);
+num_clusters = org_num_images / cluster_size;
+
+%make sure each cluster has the same number of images
+assert(mod(org_num_images,cluster_size) == 0);
+%each cluster needs >= min_images_per_cluster pints, to define its circle
+min_images = num_clusters *min_images_per_cluster;
+max_images = max(max_images, min_images);
+fprintf('Max images: %d\n', max_images);
+
+num_images_removed = 0;
+
+
+%make data structure to keep track of how many images each cluster still has
+%cluster-id - on per cluster
+%images-kept, true/false if the ith image in the cluster will be kept for reconstruction
+%cluster_struct = struct('cluster_id', 1, 'images_kept', ones(1,cluster_size));
+%cluster_structs = repmat(cluster_struct, 1, num_clusters); %one struct per cluster
+
+cluster_images_kept = ones(num_clusters, cluster_size);
+
+
+%first remove all the boring images 
 for il = 1:length(rgb_image_names)
+
+  %if we already removed as many images as we want, stop
+  if((org_num_images - num_images_removed) == max_images)
+    break;
+  end 
+
   cur_image_name = rgb_image_names{il};
 
-  if(~strcmp(method, 'pick out'))
-    rgb_img = imread(fullfile(load_path, cur_image_name));
-    %rgb_img = imread(fullfile(load_path, 'rgb', cur_image_name));
+  rgb_img = imread(fullfile(rgb_image_path, cur_image_name));
+
+
+  metric = get_single_metric_for_image(rgb_img, 'boring');
+
+  %if this image is boring, try to remove it
+  if(metric < boring_threshold)
+    [cluster_images_kept, success] = remove_image(cluster_images_kept, cur_image_name, ...
+                                                  min_images_per_cluster); 
+   
+    if(success)
+      num_images_removed = num_images_removed + 1;
+      movefile(fullfile(rgb_image_path, cur_image_name), ...
+                fullfile(moved_rgb_path, cur_image_name));
+    end
   end
 
-  if(strcmp(method,'blurry'))
-
-    metric = get_single_metric_for_image(rgb_img, 'blurry');
-
-
-    if(metric < not_blurry_threshold)
-      %image is blurry
-      movefile(fullfile(load_path, cur_image_name),...
-                fullfile(move_path, cur_image_name));
-    end
-
-  elseif(strcmp(method, 'boring'))
-    metric = get_single_metric_for_image(rgb_img, 'boring');
-
-    if(metric < boring_threshold)
-      movefile(fullfile(load_path, cur_image_name), ...
-                fullfile(move_path, cur_image_name));  
-    end
-
-
-  elseif(strcmp(method, 'pick out'))
-    if(mod(il,pick_out_every) == 0)
-      movefile(fullfile(load_path, cur_image_name), ...
-                fullfile(move_path, cur_image_name));  
-    end   
-  end%if method
-
-  %g_img =single(rgb2gray(rgb_img)); 
-  %std_val = std(g_img(:));
-
-
-
   if(debug)
-
     if(1 < 50)
       imshow(rgb_img);
       hold on;
       title(num2str(metric));
       ginput(1);
     end
- end 
+ end%if debug
 end%for il, each iamge name
+
+
+
+
+
+
+
+while((org_num_images - num_images_removed) ~= max_images)
+
+
+  rand_inds = randi(org_num_images, 1, (org_num_images-num_images_removed - max_images));
+
+  for jl=1:length(rand_inds)
+
+    cur_image_name = rgb_image_names{rand_inds(jl)};
+
+    [cluster_images_kept, success] = remove_image(cluster_images_kept, cur_image_name, ...
+                                                min_images_per_cluster); 
+   
+    if(success)
+      num_images_removed = num_images_removed + 1;
+      movefile(fullfile(rgb_image_path, cur_image_name), ...
+                fullfile(moved_rgb_path, cur_image_name));
+    end
+
+  end%for jl, reach random index
+
+  disp('while loop');
+
+end %while we still have too many images
+
+
+
+
 
 
 

@@ -16,7 +16,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'PhilKitchenLiving'; %make this = 'all' to run all scenes
+scene_name = 'Bedroom11'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -34,7 +34,7 @@ save_figures = 0; % 0 - don't save
 
 view_figure = 1; %whether or not to make the figure(s) visible
 
-use_scaled_positions = 1;%use positions in meters, not arbitrary reconstruction coords
+use_scaled_positions = 0;%use positions in meters, not arbitrary reconstruction coords
 
 
 
@@ -77,7 +77,8 @@ for i=1:length(all_scenes)
     continue;
   end
 
-  image_structs = cell2mat(image_structs_file.(IMAGE_STRUCTS));
+  %image_structs = cell2mat(image_structs_file.(IMAGE_STRUCTS));
+  image_structs = image_structs_file.(IMAGE_STRUCTS);
 
   %get positions and directions of camera for each image
   if(use_scaled_positions)
@@ -122,7 +123,7 @@ for i=1:length(all_scenes)
         case 1  %2D plot
           quiver(world_poses(1,:),world_poses(3,:), ...
              directions(1,:),directions(3,:), ...
-             'ShowArrowHead','off','Color' ,'b');
+             'ShowArrowHead','on','Color' ,'b');
       end%switch
       hold off;
   end%if view_direction
