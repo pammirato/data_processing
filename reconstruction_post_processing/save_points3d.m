@@ -7,7 +7,9 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_k1'; %make this = 'all' to run all scenes
+scene_name = 'Bedroom_01_2'; %make this = 'all' to run all scenes
+group_name = 'all';
+model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -45,7 +47,8 @@ for i=1:length(all_scenes)
 
 
   %read in the file
-  fid_points3d = fopen(fullfile(meta_path,RECONSTRUCTION_DIR,'points3D.txt'),'r');
+  fid_points3d = fopen(fullfile(meta_path,RECONSTRUCTION_DIR,group_name, ...
+                                'colmap_results', model_number, 'points3D.txt'),'r');
  
   if(fid_points3d == -1)
     disp(strcat('could not open points3d.txt for', scene_name));
@@ -107,6 +110,7 @@ for i=1:length(all_scenes)
 
   %save all the structs 
   points3d = cell2mat(all_structs);
-  save(fullfile(meta_path,RECONSTRUCTION_DIR,'points3D.mat'),'points3d');
+  save(fullfile(meta_path,RECONSTRUCTION_DIR, group_name, ...
+                     'colmap_results', model_number', 'points3D.mat'),'points3d');
   
 end%for i, each scene

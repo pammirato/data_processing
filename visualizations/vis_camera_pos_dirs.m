@@ -16,7 +16,9 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom11'; %make this = 'all' to run all scenes
+scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+group_name = 'all';
+model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -34,7 +36,7 @@ save_figures = 0; % 0 - don't save
 
 view_figure = 1; %whether or not to make the figure(s) visible
 
-use_scaled_positions = 0;%use positions in meters, not arbitrary reconstruction coords
+use_scaled_positions = 1;%use positions in meters, not arbitrary reconstruction coords
 
 
 
@@ -71,7 +73,8 @@ for i=1:length(all_scenes)
 
   %file that has postions and other meta data for each image 
   try
-    image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
+    %image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
+    image_structs_file =  load(fullfile(meta_path,'reconstruction_results',group_name, 'colmap_results',model_number,IMAGE_STRUCTS_FILE));
   catch
     disp(strcat('No image structs file: ', scene_name));
     continue;

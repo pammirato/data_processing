@@ -11,7 +11,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_k1'; %make this = 'all' to run all scenes
+scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -51,20 +51,28 @@ for i=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
-
+  num_rgb_images = length(dir(fullfile(scene_path,'rgb', '*.png')));
 
   %get the image structs and make a map
-  image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
+  %image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', 'all', ...
+                              'colmap_results', '0',IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
 
-  temp = cell2mat(image_structs);
-  image_ids = {temp.image_id};
-  image_id_to_struct_map = containers.Map(image_ids,image_structs);
+  image_ids = {image_structs.image_id};
+
+
+  image_id_to_struct_map = containers.Map(image_ids,cell(1,length(image_ids)));
+ 
+  for jl=1:length(image_ids)
+    image_id_to_struct_map(image_ids{jl}) = image_structs(jl);
+  end 
+
 
 
   %get the point2D structs and make a map
-  point2D_structs_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,'point_2d_structs.mat'));
-  point2D_structs = cell2mat(point2D_structs_file.point_2d_structs);
+  point2D_structs_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,'all','colmap_results', '0','point_2d_structs.mat'));
+  point2D_structs =point2D_structs_file.point_2d_structs;
 
   image_names = {point2D_structs.image_name};
   p2d = {point2D_structs.points_2d};
@@ -72,7 +80,7 @@ for i=1:length(all_scenes)
 
 
   %get the 3d reconstructed points
-  points3d_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,'points3D.mat'));
+  points3d_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,'all', 'colmap_results', '0', 'points3D.mat'));
   points3d = points3d_file.points3d;
 
   %find the reconstructed point that has been seen by the largest number of images
@@ -82,14 +90,19 @@ for i=1:length(all_scenes)
   points3d = points3d([[points3d.error] < error_thresh]); 
 
   %get the point that has been seen by the most images
-  [~,max_index] = max([points3d.num_image_ids]);
-  point3d_to_use  = points3d(max_index); 
+  %[~,max_index] = max([points3d.num_image_ids]);
+  %point3d_to_use  = points3d(max_index); 
 
+  points3d = nestedSortStruct2(points3d, 'num_image_ids');
+  most_seend_3d_points = points3d(end-5:end);
+
+  most_seen_scales = zeros(1,length(most_seend_3d_points));
 
   %keep trying point3ds until one has enough data(depths > 0)
-  point_is_good = 0;
-  while(~point_is_good)
-
+  %point_is_good = 0;
+  %while(~point_is_good)
+  for kl=1:length(most_seend_3d_points)
+    point3d_to_use = most_seend_3d_points(kl);
 
     %% now compare the depth of the point in each image to the 
     %  distance from the images postion and the 3D point
@@ -101,15 +114,23 @@ for i=1:length(all_scenes)
 
 
     %store data
-    depths = -ones(1,length(image_ids)); %depth in image
-    dists = -ones(1,length(image_ids)); %3D distance
-    ydists = -ones(1,length(image_ids)); %1D distance
+    %depths = -ones(1,length(image_ids)); %depth in image
+    %dists = -ones(1,length(image_ids)); %3D distance
+    %ydists = -ones(1,length(image_ids)); %1D distance
+    depths = zeros(1,length(p3_image_ids)); %depth in image
+    dists = zeros(1,length(p3_image_ids)); %3D distance
+    ydists = zeros(1,length(p3_image_ids)); %1D distance
 
     %for each image, get the depth and distance
     for j=1:length(p3_image_ids)
 
       %get the image struct and p2d struct from the maps
       cur_image_id = p3_image_ids(j);
+      if(cur_image_id > num_rgb_images) %this was a handscan image 
+        continue;
+      end
+
+
       cur_p2_id = point2_ids(j);
       image_struct = image_id_to_struct_map(num2str(cur_image_id));
       p2d = image_name_to_p2d_map(image_struct.image_name);
@@ -146,37 +167,52 @@ for i=1:length(all_scenes)
       ydists(j) = point3d_to_use.y- cam_pos(2);
     end%for j, each image_id
 
-    if(length(find(depths)) > num_images_thresh)
-      point_is_good = 1;
-    else%we need to get a new point
-      %delete the point that was jsut used
-      points3d(max_index) = [];      
+    %if(length(find(depths)) > num_images_thresh)
+    %  point_is_good = 1;
+    %else%we need to get a new point
+    %  %delete the point that was jsut used
+    %  points3d(max_index) = [];      
 
-      if(isempty(points3d))
-        disp('could not find a good point3d');
-        return;%end script
-      end
-      %get the point that has been seen by the most images
-      [~,max_index] = max([points3d.num_image_ids]);
-      point3d_to_use  = points3d(max_index); 
-    end%if we had enough valid depths
-  end%while point 
-
+    %  if(isempty(points3d))
+    %    disp('could not find a good point3d');
+    %    return;%end script
+    %  end
+    %  %get the point that has been seen by the most images
+    %  [~,max_index] = max([points3d.num_image_ids]);
+    %  point3d_to_use  = points3d(max_index); 
+    %end%if we had enough valid depths
+  %end%while point 
     %calculate the scale for each image
     scales = depths./dists;
     %get rid of 0 entries(depth was 0)
     scales = scales(scales ~= 0);
-
+    scales(isnan(scales)) = [];
     %get the average scale
     scale = mean(scales);
 
+    most_seen_scales(kl) = scale;
+  end%for k, each most seen point 
+
+    %calculate the scale for each image
+    %scales = depths./dists;
+    %get rid of 0 entries(depth was 0)
+    %scales = scales(scales ~= 0);
+
+    %get the average scale
+    %scale = mean(scales);
+
+
+    scale = mean(most_seen_scales);
+
     %% apply the scale
     for j=1:length(image_structs)
-        cur_struct = image_structs{j};
+        cur_struct = image_structs(j);
         cur_struct.(SCALED_WORLD_POSITION) = cur_struct.world_pos * scale;
-        image_structs{j} = cur_struct;
+        image_structs(j) = cur_struct;
     end%for j
   
     %save the new data 
-    save(fullfile(scene_path, IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE); 
+    %save(fullfile(scene_path, IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE); 
+    save(fullfile(meta_path,'reconstruction_results', 'all', 'colmap_results', '0',... 
+                     IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE); 
 end%for i, each scene

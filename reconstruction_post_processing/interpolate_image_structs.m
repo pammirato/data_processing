@@ -14,7 +14,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom11'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_02_2'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -51,7 +51,7 @@ for il=1:length(all_scenes)
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
 
-
+  %place holder struct for struct array
   blank_struct = struct(IMAGE_NAME, '', TRANSLATION_VECTOR, [], ...
                        ROTATION_MATRIX, [], WORLD_POSITION, [], ...
                        DIRECTION, [], QUATERNION, [], ...
@@ -61,9 +61,9 @@ for il=1:length(all_scenes)
 
 
 
-  %save everything
-  recon_struct_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,...
-                        'reconstructed_image_structs.mat'));
+  %load the structs 
+  recon_struct_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,'group1', 'colmap_results',...
+                       '0', 'image_structs.mat'));
    
   image_structs = recon_struct_file.image_structs;
   scale = recon_struct_file.scale;
@@ -98,6 +98,9 @@ for il=1:length(all_scenes)
 
 
   %% now make sure there is an image struct for each image
+
+
+  %make a map from image name to image struct
   image_names_with_struct = {image_structs.image_name};
 
   name_to_image_struct_map = containers.Map(image_names_with_struct,...
@@ -139,63 +142,81 @@ for il=1:length(all_scenes)
       end
   
       %once we get 3 image structs, we have enough to define the circle, so stop
-      if(counter > 3)
-        break;
-      end
+%       if(counter > 3)
+%         break;
+%       end
     end%for kl 
-  
-
-    %%  get radius and center of circle defined by the three points
-
-    p1 =  defining_structs(1).world_pos;
-    p1 =  p1([1 3]);
-    p2 =  defining_structs(2).world_pos;
-    p2 =  p2([1 3]);
-    p3 =  defining_structs(3).world_pos;
-    p3 =  p3([1 3]);
+    
+    defining_structs = nestedSortStruct2(defining_structs, 'image_name');   
 
 
-    %following this tutorial to get center and radius of circle from 3 points
-    %http://www.regentsprep.org/regents/math/geometry/gcg6/RCir.htm
-    mr = (p2(2) - p1(2)) / (p2(1) - p1(1));
-    mt = (p3(2) - p2(2)) / (p3(1) - p2(1));
+
+ 
+    pts = [defining_structs.t];
+
+    pts(2,:) = [];    
+ 
+    [center_x, center_y, radius, equation] = circfit(pts(1,:), pts(2,:)); 
 
 
-    center_x = mr*mt*(p3(2)-p1(2)) + mr*(p2(1)+p3(1)) - mt*(p1(1)+p2(1));
-    center_x = center_x / (2*(mr-mt));
-
-    center_y = -1/mr * (center_x - ((p1(1)+p2(1))/2)) + ((p1(2)+p2(2))/2);
-
-    radius = sqrt((center_x - p1(1))^2 + (center_y - p1(2))^2);
  
     if(debug)
 
-      plot(p1(1), p1(2), 'r.');
-      hold on;
-      plot(p2(1), p2(2), 'r.');
-      plot(p3(1), p3(2), 'r.');
+      hold off
+     
+      dirs = [defining_structs.direction];
+      %world = [defining_structs.world_pos]
+ 
+      %ts = [defining_structs.t];
+      %rs = [defining_structs.R];
 
-      plot(center_x, center_y, 'b.');
+      %for ll=1:length(defining_structs)
+
+      %  w = -rs(ll) * ts(ll);
+ 
+      %  plot(w(1), w(3), 'r.', 'MarkerSize', 20);
+      %  %plot(pts(1,:), pts(2,:), 'r.', 'MarkerSize', 20);
+      %  hold on;
+      %  %plot_circle(center_x, center_y,radius,'b');
+
+      %  quiver(w(1),w(3), ...
+      %           dirs(1,ll),dirs(3,ll), ...
+      %            'ShowArrowHead','on','Color' ,'b');
+
+
+      %  names = {defining_structs.image_name};
+
+
+      %  text(w(1), w(3), names{ll});
+      %  %text(pts(1,:), pts(2,:), names);
+      %end
+      %plot(world(1,:), world(3,:), 'r.', 'MarkerSize', 20);
+      plot(pts(1,:), pts(2,:), 'r.', 'MarkerSize', 20);
+      hold on;
+      %plot_circle(center_x, center_y,radius,'b');
+
+      quiver(pts(1,:),pts(2,:), ...
+               dirs(1,:),dirs(3,:), ...
+                'ShowArrowHead','on','Color' ,'b');
+
+
+      names = {defining_structs.image_name};
+
+
+      %text(world(1,:), world(3,:), names);
+      text(pts(1,:), pts(2,:), names);
       axis equal;
 
-      title(num2str(radius));
+ 
+      title(num2str(jl));
+%      hold off;
+%       ginput(1);
     end%if debug
-
-
-
-    %% now do the interpolation
-    ref_struct_name = defining_structs(1).image_name;
-    ref_struct_index = str2double(ref_struct_name(1:6));
-
-    p = defining_structs(1).world_pos;
-    px = p(1);
-    py = p(3);
-
-    cx = center_x;
-    cy = center_y;
-    syms x y; 
-
-
+ 
+ 
+ 
+     %% now do the interpolation
+     
     for kl=1:cluster_size
       cur_image_name = all_image_names{(jl-1)*cluster_size + kl}; 
 
@@ -207,49 +228,171 @@ for il=1:length(all_scenes)
         cur_index = str2double(cur_image_name(1:6));
         assert(cur_index ==  (jl-1)*cluster_size + kl);
 
-        angle = 30*abs(cur_index - ref_struct_index);
+        %find the closest structs to this one, clockwise and ccw
+        ccw_struct = [];
+        cw_struct = [];
+        ccw_index_dist = 0;
+        cw_index_dist = 0;
 
-        side_length = 2*(radius^2) - 2*(radius^2)*cos(angle);
+        for ll=length(defining_structs):-1:1
+          cur_def_struct = defining_structs(ll);
 
-        d = side_length;
+          cur_def_index = str2double(cur_def_struct.image_name(1:6));
 
-        solution = solve([(cx-x)^2 + (cy-y)^2 == radius^2, (px-x)^2 + (py-y)^2 == d^2], [x,y]);
-
-        new_x1 = eval(solution.x(1));
-        new_x2 = eval(solution.x(2));
-        new_y1 = eval(solution.y(1));
-        new_y2 = eval(solution.y(2));
-
-        %assert(new_y1 == new_y2);
-
-
-        new_y = new_y1;
-        new_x = new_x1;
-
-        if(cur_index < ref_struct_index)
-          new_x = new_x2;
+          if(cur_def_index < cur_index)
+            ccw_struct = cur_def_struct;
+            ccw_index_dist = abs(cur_def_index - cur_index);
+            break;
+          end              
+        end 
+  
+        if(isempty(ccw_struct))
+          ccw_struct = defining_structs(end);
+          cur_def_index = str2double(ccw_struct.image_name(1:6));
+          ccw_index_dist = abs((12-cur_def_index) + cur_index);
         end 
 
-        new_image_struct = new_image_structs(num_made_image_structs+1);
-        
-        new_image_struct.image_name = cur_image_name;
-        new_image_struct.world_pos = [new_x; p(2); new_y];
 
-        new_image_structs(num_made_image_structs+1) = new_image_struct ;
+        for ll=1:length(defining_structs)
+          cur_def_struct = defining_structs(ll);
+
+          cur_def_index = str2double(cur_def_struct.image_name(1:6));
+
+          if(cur_def_index > cur_index)
+            cw_struct = cur_def_struct;
+            cw_index_dist = abs(cur_def_index - cur_index);
+            break;
+          end              
+        end 
+  
+        if(isempty(cw_struct))
+          cw_struct = defining_structs(1);
+          cur_def_index = str2double(cw_struct.image_name(1:6));
+          cw_index_dist = abs((12-cur_index) + cur_def_index);
+        end 
+
+
+
+        pointA = [];
+        angle = 0;        
+
+
+        %if(ccw_index_dist < cw_index_dist)
+        %  pointA = ccw_struct.t;
+        %  angle = 30 * ccw_index_dist;
+        %else
+          pointA = cw_struct.t;
+          angle = 30 * cw_index_dist;
+       % end
+
+
+        angle_rad = angle*pi/180;
+
+        pointA(2) = [];
+        pointC = [center_x; center_y];
+
+        %law of cosines
+        sideAB = sqrt(radius^2 + radius^2 - 2*radius*radius*cosd(angle));
+
+
+        a = (sideAB^2 - radius^2 + radius^2) / (2*radius);
+        %a = sideAB*cos(angle_rad);
+        h = sideAB*sind((180-angle)/2);
+       % h = radius*sind(180 - 2*angle);
+
+        P2 = pointA + a*(pointC - pointA)/radius;
+
+        p31 = P2 +  h*(pointC([2,1]) - pointA([2,1]))/radius; 
+        p32 = P2 -  h*(pointC([2,1]) - pointA([2,1]))/radius; 
+
+        x31 = P2(1) + h*(pointC(2) - pointA(2))/radius;
+        x32 = P2(1) - h*(pointC(2) - pointA(2))/radius;
+        y31 = P2(2) + h*(pointC(1) - pointA(1))/radius;
+        y32 = P2(2) - h*(pointC(1) - pointA(1))/radius;
+       
+
+
+
+        if(debug)
+          plot(x31, y32, 'k.', 'MarkerSize', 20); 
+         % %plot(x32, y31, 'g.', 'MarkerSize', 20); 
+         % plot(pointA(1), pointA(2), 'm.', 'MarkerSize', 20); 
+         % plot(pointC(1), pointC(2), 'm.', 'MarkerSize', 20); 
+         % plot(P2(1), P2(2), 'c.', 'MarkerSize', 20); 
+          text(x31, y32, cur_image_name); 
+          %hold off;
+          %ginput(1);
+        end
+
+
+        new_t = [x31; cw_struct.t(2)  ;y32];
+
+        %% now get new R
+
+        ccw_quat= ccw_struct.quat;
+        cw_quat = cw_struct.quat;
+
+        %ccw_quat_n = quatnormalize(ccw_quat);
+        %cw_quat_n = quatnormalize(cw_quat);
+  
+        f = ccw_index_dist / (ccw_index_dist + cw_index_dist);
+
+        %new_quat = quatinterp(ccw_quat_n, cw_quat_n, frac, 'slerp');
+
+
+        new_quat = ccw_quat;
+
+
+        new_quat = slerp(ccw_quat, cw_quat, f, 10*eps);
+
+
+        new_R = quat2rotm(new_quat');
+
+
+        new_world_pos = -new_R' * new_t;
+
+
+        vec1 = [0;0;1;1];
+        vec2 = [0;0;0;1];
+        proj = [-new_R' new_world_pos];
+        cur_vec = (proj * vec1) - (proj*vec2);
+
+        new_direction = -cur_vec;
+
+
+
+        new_struct = blank_struct;
+        new_struct.image_name = cur_image_name;
+        new_struct.t = new_t;
+        new_struct.R = new_R;
+        new_struct.direction = new_direction;
+        new_struct.quat = new_quat;
+        new_struct.world_pos = -new_R' * new_t;
+
+
+        if(debug)
+          quiver(x31,y32, ...
+             new_direction(1),new_direction(3), ...
+             'ShowArrowHead','on','Color' ,'b');
+          ginput(1);
+        end
+
+        new_image_structs(num_made_image_structs+1) = new_struct;
         num_made_image_structs= num_made_image_structs+1;
       end%try catch
     end%for kl
   end%for jl, each cluster
  
 
-  recon_pos = [image_structs.world_pos];
-
-  new_pos = [new_image_structs.world_pos];
-
-
-  plot(recon_pos(1,:), recon_pos(3,:), 'r.');
-  hold on;
-  plot(new_pos(1,:), new_pos(3,:), 'k.');
+   recon_pos = [image_structs.t];
+   new_pos = [new_image_structs.t];
+   recon_pos = [image_structs.world_pos];
+   new_pos = [new_image_structs.world_pos];
+ 
+ 
+   plot(recon_pos(1,:), recon_pos(3,:), 'r.');
+   hold on;
+   plot(new_pos(1,:), new_pos(3,:), 'k.');
  
 end%for i, each scene
 

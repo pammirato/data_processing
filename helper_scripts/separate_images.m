@@ -7,12 +7,12 @@ pick_out_every = 13;
 
 
 cluster_size = 12;
-max_images = 700;
+max_images = 1000;
 min_images_per_cluster = 5;
 
 debug = 0;
 
-base_path = '/playpen/ammirato/Data/RohitMetaData/Kitchen_Living_02_2/';
+base_path = '/playpen/ammirato/Data/RohitMetaData/Kitchen_Living_04_2/';
 
 %where to move the images
 
@@ -92,29 +92,29 @@ end%for il, each iamge name
 
 
 
-while((org_num_images - num_images_removed) ~= max_images)
-
-
-  rand_inds = randi(org_num_images, 1, (org_num_images-num_images_removed - max_images));
-
-  for jl=1:length(rand_inds)
-
-    cur_image_name = rgb_image_names{rand_inds(jl)};
-
-    [cluster_images_kept, success] = remove_image(cluster_images_kept, cur_image_name, ...
-                                                min_images_per_cluster); 
-   
-    if(success)
-      num_images_removed = num_images_removed + 1;
-      movefile(fullfile(rgb_image_path, cur_image_name), ...
-                fullfile(moved_rgb_path, cur_image_name));
-    end
-
-  end%for jl, reach random index
-
-  disp('while loop');
-
-end %while we still have too many images
+%while((org_num_images - num_images_removed) ~= max_images)
+%
+%
+%  rand_inds = randi(org_num_images, 1, (org_num_images-num_images_removed - max_images));
+%
+%  for jl=1:length(rand_inds)
+%
+%    cur_image_name = rgb_image_names{rand_inds(jl)};
+%
+%    [cluster_images_kept, success] = remove_image(cluster_images_kept, cur_image_name, ...
+%                                                min_images_per_cluster); 
+%   
+%    if(success)
+%      num_images_removed = num_images_removed + 1;
+%      movefile(fullfile(rgb_image_path, cur_image_name), ...
+%                fullfile(moved_rgb_path, cur_image_name));
+%    end
+%
+%  end%for jl, reach random index
+%
+%  disp('while loop');
+%
+%end %while we still have too many images
 
 
 

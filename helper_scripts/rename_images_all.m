@@ -1,12 +1,14 @@
 
 
-scene_name = 'Kitchen_Living_02_2';
+scene_name = 'Kitchen_Living_04_2';
 
 
 
 %folder_path = '/playpen/ammirato/Data/RohitData/Kitchen_Living_11/rgb/';
-folder_path = fullfile('/playpen/ammirato/Data/RohitMetaData' ,scene_name, 'hand_scan/rgb_chosen');
-folder_path_new = fullfile('/playpen/ammirato/Data/RohitMetaData',scene_name, 'hand_scan/rgb_renamed');
+folder_path = fullfile('/playpen/ammirato/Data/RohitMetaData' ,scene_name, 'rgb');% ...
+                        %'reconstruction_setup',  'hand_scan/rgb_chosen');
+folder_path_new = fullfile('/playpen/ammirato/Data/RohitMetaData',scene_name, 'rgb_new');% ...
+                           % 'reconstruction_setup', 'hand_scan/rgb_renamed');
 %folder_path = fullfile('/playpen/ammirato/Data/RohitMetaData' ,scene_name, 'raw_depth');
 %folder_path_new = fullfile('/playpen/ammirato/Data/RohitMetaData',scene_name, 'raw_new');
 
@@ -22,7 +24,7 @@ for il = 1:length(org_names)
 
   old_name = org_names{il};
 
-  new_index_string = sprintf('%06d', il+5000);
+  new_index_string = sprintf('%06d', il);
 
   if(~strcmp(old_name(1:6), new_index_string))
 

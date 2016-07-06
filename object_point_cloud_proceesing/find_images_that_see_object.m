@@ -2,7 +2,7 @@
 % any of the reconstructed points on the object
 
 
-clear all;
+clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -11,12 +11,12 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_k1'; %make this = 'all' to run all scenes
+scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-label_to_process = 'red_chair'; %make 'all' for every label
+label_to_process = 'pepto_bismol'; %make 'all' for every label
 label_names = {label_to_process};
 
 
@@ -68,19 +68,27 @@ for i=1:length(all_scenes)
 
 
   %get info about camera position for each image
-  image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
+  %image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', 'all', ...
+                                'colmap_results', '0',IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
   scale  = image_structs_file.scale;
-  scale = 1;
 
   %get a list of all the image file names
-  temp = cell2mat(image_structs);
-  image_names = {temp.(IMAGE_NAME)};
+  %temp = cell2mat(image_structs);
+  %image_names = {temp.(IMAGE_NAME)};
+  image_names = {image_structs.(IMAGE_NAME)};
 
   %make a map from image name to image_struct
-  image_structs_map = containers.Map(image_names, image_structs);
+  %image_structs_map = containers.Map(image_names, image_structs);
 
 
+  image_structs_map = containers.Map(image_names,...
+                                 cell(1,length(image_names)));
+
+  for jl=1:length(image_names)
+    image_structs_map(image_names{jl}) = image_structs(jl);
+  end
 
   %get camera parameters for each kinect
   [intrinsic, distortion, rotation, projection] = get_kinect_parameters(kinect_to_use);    
@@ -132,9 +140,6 @@ for i=1:length(all_scenes)
   end%if do_occlusion_filtering
 
 
-  %% PARSE LABELED POINTS FILE
-
-
 
 
   %% MAIN LOOP
@@ -145,15 +150,17 @@ for i=1:length(all_scenes)
 
     cur_label_name = label_names{jl};
 
-    cur_pc = pcread(fullfile(meta_path, LABELING_DIR, OBJECT_POINT_CLOUDS, ...
-                       ORIGINAL_POINT_CLOUDS, strcat(cur_label_name, '.ply')));
+    %cur_pc = pcread(fullfile(meta_path, LABELING_DIR, OBJECT_POINT_CLOUDS, ...
+    %                   ORIGINAL_POINT_CLOUDS, strcat(cur_label_name, '.ply')));
+    cur_pc = pcread(fullfile(meta_path,'labeling', ...
+                       'object_point_clouds', strcat(cur_label_name, '.ply')));
  
    
     cur_world_locs = cur_pc.Location;
 
 %    cur_world_locs = cur_world_locs / scale;
 %    scale = 1 ;
-    cur_world_locs = cur_world_locs * scale; 
+    %cur_world_locs = cur_world_locs * scale; 
 
 
     found_image_names = cell(1,length(image_names));
@@ -169,10 +176,10 @@ for i=1:length(all_scenes)
 
      
       %get parameters for this image 
-      K = intrinsic; 
+      %K = intrinsic; 
+      K = [1049.52, 0, 927.269; 0, 1050.65, 545.76; 0 0 1]; 
       R = cur_image_struct.(ROTATION_MATRIX);
       t = cur_image_struct.(TRANSLATION_VECTOR);
-      t = t * scale;
 
 
       %re-orient the point to see if it is viewable by this camera
@@ -209,42 +216,82 @@ for i=1:length(all_scenes)
 
 
 
-      k1 = .38197;
-      k2 = .106989
+      k1 = .381593;
+      k2 = .1077399;
       k3 = 0;
-      p1 = .0004900047
-      p2 = -0.00123489;
-      fx = 1049.27;
-      fy = 1088.24;
-      cx = 927.269;
-      cy = 545.76;
+      p1 = .00280506;
+      p2 = -0.00120267;
+      %fx = 1049.04;
+      fx = K(1,1);
+      %fy = 1066.29;
+      fy = K(2,2);
+      %cx = 927.269;
+      cx = K(1,3);
+      %cy = 545.76;
+      cy = K(2,3);
 
 
       %distort point cloud points
-     
-      x = (cur_image_points(1,:) - K(1,3)) ./ K(1,1);
-      y = (cur_image_points(2,:) - K(2,3)) ./ K(2,2);
+    
+      %new disotortion model
+      % http://docs.opencv.org/master/db/d58/group__calib3d__fisheye.html#gsc.tab=0 
+   
+     % a = cur_image_points(1,:);
+     % b = cur_image_points(2,:);
+      XC = R* cur_world_locs' + repmat(t,1,size(cur_world_locs',2));
+      a = XC(1,:) ./ XC(3,:);
+      b = XC(2,:) ./ XC(3,:);
+      
+
+      r = sqrt( (a).^2 + (b).^2);
+      theta = atan(r);
+
+      thetad = theta .* (1 + k1*(theta.^2) + k2*(theta.^4) + p1*(theta.^6) + p2*(theta.^8));
+
+      xx = (thetad./r) .* a;
+      yy = (thetad./r) .* b;
+
+
+      u = fx*(xx + 0*yy) + cx;
+      v = fy*yy + cy;
+
+
+      distorted_points = round([u;v]);
+
+      bad_inds =  find(distorted_points(1,:) < 1 | distorted_points(1,:) > kImageWidth);
+      distorted_points(:, bad_inds) = [];
+      %check y values
+      bad_inds =  find(distorted_points(2,:) < 1 | distorted_points(2,:) > kImageHeight);
+      distorted_points(:, bad_inds) = [];
+
+
+
+    %original distortion model
+
  
-      r = sqrt( (x).^2 + (y).^2);
-      %k_term =(1 + distortion(1)*(r.^2) + distortion(2)*(r.^4) + distortion(5)*(r.^6)); 
-      k_term =(1 + k1*(r.^2) + k2*(r.^4) + k3*(r.^6)); 
-
-      %p_term_x= (distortion(4)*((r.^2) + 2*x.^2) + 2*distortion(3).*x.*y);
-      %p_term_y= (distortion(3)*((r.^2) + 2*y.^2) + 2*distortion(4).*x.*y);
-      p_term_x= (p2*((r.^2) + 2*x.^2) + 2*p1.*x.*y);
-      p_term_y= (p1*((r.^2) + 2*y.^2) + 2*p2.*x.*y);
-
-      dx = x.*k_term + p_term_x;
-      dy = y.*k_term + p_term_y;
-
-
-      %ddx = floor(dx*K(1,1) + K(1,3));
-      %ddy = floor(dy*K(2,2) + K(2,3));
-      ddx = floor(dx*fx + cx);
-      ddy = floor(dy*fy + cy);
-
-
-      distorted_points = [ddx;ddy];
+%      x = (cur_image_points(1,:) - K(1,3)) ./ K(1,1);
+%      y = (cur_image_points(2,:) - K(2,3)) ./ K(2,2);
+% 
+%      r = sqrt( (x).^2 + (y).^2);
+%      %k_term =(1 + distortion(1)*(r.^2) + distortion(2)*(r.^4) + distortion(5)*(r.^6)); 
+%      k_term =(1 + k1*(r.^2) + k2*(r.^4) + k3*(r.^6)); 
+%
+%      %p_term_x= (distortion(4)*((r.^2) + 2*x.^2) + 2*distortion(3).*x.*y);
+%      %p_term_y= (distortion(3)*((r.^2) + 2*y.^2) + 2*distortion(4).*x.*y);
+%      p_term_x= (p2*((r.^2) + 2*x.^2) + 2*p1.*x.*y);
+%      p_term_y= (p1*((r.^2) + 2*y.^2) + 2*p2.*x.*y);
+%
+%      dx = x.*k_term + p_term_x;
+%      dy = y.*k_term + p_term_y;
+%
+%
+%      %ddx = floor(dx*K(1,1) + K(1,3));
+%      %ddy = floor(dy*K(2,2) + K(2,3));
+%      ddx = floor(dx*fx + cx);
+%      ddy = floor(dy*fy + cy);
+%
+%
+%      distorted_points = [ddx;ddy];
       %end distortion
 
 
@@ -253,26 +300,26 @@ for i=1:length(all_scenes)
 
 
       %undistort point cloud points
-      xyz = R*cur_world_locs' + repmat(t,1,length(cur_world_locs));
-      xx = xyz(1,:) ./ xyz(3,:);
-      yy = xyz(2,:) ./ xyz(3,:);
-
-      r = sqrt( xx.^2 + yy.^2);
-
-      %ks = 1 + distortion(1)*(r.^2) + distortion(2)*(r.^4) + distortion(5)*(r.^6);
-      ks = 1 + k1*(r.^2) + k2*(r.^4) + k3*(r.^6);
-
-      %xxx = xx.*ks + 2*distortion(3).*xx.*yy + distortion(4)*(r.^2 + 2*xx.^2);
-      %yyy = yy.*ks + distortion(3)*(r.^2 + 2*yy.^2) + 2*distortion(4).*xx.*yy;
-      xxx = xx.*ks + 2*p1.*xx.*yy + p2*(r.^2 + 2*xx.^2);
-      yyy = yy.*ks + p1*(r.^2 + 2*yy.^2) + 2*p2.*xx.*yy;
-
-      %u = K(1,1) * xxx + K(1,3);
-      %v = K(2,2) * yyy + K(2,3);
-      u = fx * xxx + cx;
-      v = fy * yyy + cy;
-
-      undistorted_points =floor([u;v]);
+%      xyz = R*cur_world_locs' + repmat(t,1,length(cur_world_locs));
+%      xx = xyz(1,:) ./ xyz(3,:);
+%      yy = xyz(2,:) ./ xyz(3,:);
+%
+%      r = sqrt( xx.^2 + yy.^2);
+%
+%      %ks = 1 + distortion(1)*(r.^2) + distortion(2)*(r.^4) + distortion(5)*(r.^6);
+%      ks = 1 + k1*(r.^2) + k2*(r.^4) + k3*(r.^6);
+%
+%      %xxx = xx.*ks + 2*distortion(3).*xx.*yy + distortion(4)*(r.^2 + 2*xx.^2);
+%      %yyy = yy.*ks + distortion(3)*(r.^2 + 2*yy.^2) + 2*distortion(4).*xx.*yy;
+%      xxx = xx.*ks + 2*p1.*xx.*yy + p2*(r.^2 + 2*xx.^2);
+%      yyy = yy.*ks + p1*(r.^2 + 2*yy.^2) + 2*p2.*xx.*yy;
+%
+%      %u = K(1,1) * xxx + K(1,3);
+%      %v = K(2,2) * yyy + K(2,3);
+%      u = fx * xxx + cx;
+%      v = fy * yyy + cy;
+%
+%      undistorted_points =floor([u;v]);
       %end undistort 
 
       %make sure each point is in the image
@@ -322,10 +369,13 @@ for i=1:length(all_scenes)
      end%if do occlusion
 
 
+      found_image_names{kl} = cur_image_name;
+
+
       %show some visualization of the found points if debug option is set 
       if(debug)  
         %read in the rgb image
-        img = imread(fullfile(scene_path, 'jpg_rgb', cur_image_name));
+        img = imread(fullfile(scene_path, 'rgb', cur_image_name));
         %img = imread(fullfile(scene_path, 'undistorted_images', '00000187.jpg'));
 
         %make an image with the object points = 1, everything else =0
@@ -333,36 +383,36 @@ for i=1:length(all_scenes)
         object_inds = sub2ind(size(obj_img), cur_image_points(2,:), cur_image_points(1,:)); 
         obj_img(object_inds)  = 1;
 
-        uobj_img = zeros(size(img,1), size(img,2));
-        uobject_inds=sub2ind(size(uobj_img), undistorted_points(2,:), undistorted_points(1,:)); 
-        uobj_img(uobject_inds)  = .5;
+        %uobj_img = zeros(size(img,1), size(img,2));
+        %uobject_inds=sub2ind(size(uobj_img), undistorted_points(2,:), undistorted_points(1,:)); 
+        %uobj_img(uobject_inds)  = .5;
 
         dobj_img = zeros(size(img,1), size(img,2));
         dobject_inds = sub2ind(size(dobj_img), distorted_points(2,:), distorted_points(1,:)); 
-        dobj_img(dobject_inds)  = .1;
+        dobj_img(dobject_inds)  = 1;
 
-        uminx = min(undistorted_points(1,:));
-        uminy = min(undistorted_points(2,:));
-        umaxx = max(undistorted_points(1,:));
-        umaxy = max(undistorted_points(2,:));
+       % uminx = min(undistorted_points(1,:));
+       % uminy = min(undistorted_points(2,:));
+       % umaxx = max(undistorted_points(1,:));
+       % umaxy = max(undistorted_points(2,:));
 
-        minx = min(cur_image_points(1,:));
-        miny = min(cur_image_points(2,:));
-        maxx = max(cur_image_points(1,:));
-        maxy = max(cur_image_points(2,:));
+       % minx = min(cur_image_points(1,:));
+       % miny = min(cur_image_points(2,:));
+       % maxx = max(cur_image_points(1,:));
+       % maxy = max(cur_image_points(2,:));
 
-        bbox = [minx miny maxx maxy];
-        ubbox = [uminx uminy umaxx umaxy];
+       % bbox = [minx miny maxx maxy];
+       % ubbox = [uminx uminy umaxx umaxy];
 
         %display the image with the object superimposed
         imshow(img);
         hold on;
-        h = imagesc(uobj_img); %plot object
-        set(h,'AlphaData', .5); %make object transparent
-        %h = imagesc(dobj_img); %plot object
+        %h = imagesc(uobj_img); %plot object
         %set(h,'AlphaData', .5); %make object transparent
-        h = imagesc(obj_img); %plot object
+        h = imagesc(dobj_img); %plot object
         set(h,'AlphaData', .5); %make object transparent
+        %h = imagesc(obj_img); %plot object
+        %set(h,'AlphaData', .5); %make object transparent
        
         p_x = mean(cur_image_points(1,:));
         p_y = mean(cur_image_points(2,:)); 

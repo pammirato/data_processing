@@ -14,7 +14,9 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom11'; %make this = 'all' to run all scenes
+scene_name = 'Bedroom_01_2'; %make this = 'all' to run all scenes
+group_name = 'all';
+model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -68,7 +70,8 @@ for il=1:length(all_scenes)
 
     
   %get the camera positions and orientations for the given images
-  fid_images = fopen(fullfile(meta_path,RECONSTRUCTION_DIR,'colmap_results_2',IMAGES_RECONSTRUCTION)); 
+  fid_images = fopen(fullfile(meta_path,RECONSTRUCTION_DIR,group_name,'colmap_results', ...
+      model_number, IMAGES_RECONSTRUCTION)); 
 
   %if the file didn't open
   if(fid_images == -1)
@@ -118,6 +121,7 @@ for il=1:length(all_scenes)
 
     %stop when line is empty
     if(length(cur_image) < QZ)
+      disp('too small')
       break;
     end
 
@@ -137,6 +141,16 @@ for il=1:length(all_scenes)
 
     %get the name of the image 
     name = line{end};
+
+    %skip hand scan images
+    image_index = str2double(name(1:6));
+    rgb_image_names = dir(fullfile(scene_path, 'rgb', '*.png'));
+    if(image_index > length(rgb_image_names))
+      disp(name);
+      line =fgetl(fid_images); 
+      line =fgetl(fid_images); 
+      continue;
+    end
        
     %put all the info in a struct, with a place holder for scaled
     %position
@@ -180,9 +194,9 @@ for il=1:length(all_scenes)
 
   %save everything
   %save(fullfile(scene_path,IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
-  save(fullfile(meta_path,RECONSTRUCTION_DIR,'colmap_results_2','reconstructed_image_structs.mat'), ...
+  save(fullfile(meta_path,RECONSTRUCTION_DIR,group_name,'colmap_results', model_number, 'image_structs.mat'), ...
                   IMAGE_STRUCTS, SCALE);
-  save(fullfile(meta_path, RECONSTRUCTION_DIR, POINT_2D_STRUCTS_FILE), POINT_2D_STRUCTS);
+  save(fullfile(meta_path, RECONSTRUCTION_DIR,group_name,'colmap_results',model_number, POINT_2D_STRUCTS_FILE), POINT_2D_STRUCTS);
    
 
  

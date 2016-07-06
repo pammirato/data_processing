@@ -1,7 +1,7 @@
 clearvars;
 
 
-scene_name= 'Kitchen_Living_02_2';
+scene_name= 'Kitchen_Living_03_2';
 
 
 base_path = '/playpen/ammirato/Data/RohitMetaData';
