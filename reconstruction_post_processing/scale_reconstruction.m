@@ -11,7 +11,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_04_2'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -55,7 +55,7 @@ for i=1:length(all_scenes)
 
   %get the image structs and make a map
   %image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', 'all', ...
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', 'all_minus_boring', ...
                               'colmap_results', '0',IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
 
@@ -71,7 +71,7 @@ for i=1:length(all_scenes)
 
 
   %get the point2D structs and make a map
-  point2D_structs_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,'all','colmap_results', '0','point_2d_structs.mat'));
+  point2D_structs_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,'all_minus_boring','colmap_results', '0','point_2d_structs.mat'));
   point2D_structs =point2D_structs_file.point_2d_structs;
 
   image_names = {point2D_structs.image_name};
@@ -80,7 +80,7 @@ for i=1:length(all_scenes)
 
 
   %get the 3d reconstructed points
-  points3d_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,'all', 'colmap_results', '0', 'points3D.mat'));
+  points3d_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,'all_minus_boring', 'colmap_results', '0', 'points3D.mat'));
   points3d = points3d_file.points3d;
 
   %find the reconstructed point that has been seen by the largest number of images
@@ -132,7 +132,13 @@ for i=1:length(all_scenes)
 
 
       cur_p2_id = point2_ids(j);
-      image_struct = image_id_to_struct_map(num2str(cur_image_id));
+      try
+
+        image_struct = image_id_to_struct_map(num2str(cur_image_id));
+      catch
+        disp('no image struct');
+        continue;
+      end
       p2d = image_name_to_p2d_map(image_struct.image_name);
 
       %% find the point2d in this image that matches the point3d 
@@ -213,6 +219,6 @@ for i=1:length(all_scenes)
   
     %save the new data 
     %save(fullfile(scene_path, IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE); 
-    save(fullfile(meta_path,'reconstruction_results', 'all', 'colmap_results', '0',... 
+    save(fullfile(meta_path,'reconstruction_results', 'all_minus_boring', 'colmap_results', '0',... 
                      IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE); 
 end%for i, each scene

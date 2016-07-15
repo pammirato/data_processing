@@ -1,0 +1,281 @@
+init_bigBIRD;
+
+
+
+object_name = 'advil_liqui_gels';  %make this = 'all' to go through all rooms
+
+
+
+
+load_images = 0;
+hand_label = 1;
+
+d = dir(BIGBIRD_BASE_PATH);
+big_bird_names = {d(3:end).name};
+
+
+back_path = fullfile('/playpen/ammirato/Data/background_images');
+background_image_names = dir(back_path);
+background_image_names = {background_image_names(3:end).name};
+
+
+
+
+
+
+%load mapping from bigbird name ot category id
+bb_cat_map = containers.Map();
+fid_bb_map = fopen('/playpen/ammirato/Data/RohitMetaMetaData/big_bird_cat_map.txt', 'rt');
+
+line = fgetl(fid_bb_map);
+while(ischar(line))
+  line = strsplit(line);
+  bb_cat_map(line{1}) = str2double(line{2}); 
+  line = fgetl(fig_bb_map);
+end
+fclose(fid_bb_map);
+
+
+
+
+
+
+
+
+big_bird_inds = [];
+
+
+for il=1:length(background_image_names)
+
+  cur_back_image_name = background_image_names{il};
+
+  back_img = imread(fullfile(back_path, cur_back_image_name));
+
+
+  back_size = size(back_img);
+
+
+
+  %select some random bigbird objects
+  if(isempty(big_bird_inds))
+    big_bird_inds = randperm(length(big_bird_names));
+  end
+
+
+  num_inds_to_use = randi(min(3,length(big_bird_inds)), 1,1);
+  inds_to_use = big_bird_inds(1:num_inds_to_use);
+  
+  big_bird_inds(1:num_inds_to_use) = []; 
+
+
+  cur_bird_names = big_bird_names(inds_to_use);
+
+
+
+  
+
+
+
+
+  for jl=1:length(cur_bird_names)
+    cur_bb_name = cur_bird_names{jl};
+
+
+    img_to_use = randi(360, 1,1);%360 = images from first 3 cameras 
+
+    cam_ind = floor(img_to_use/121) + 1;
+
+    pose_ind = img_to_use - (120*(cam_ind-1));
+    pose_angle = (pose_ind-1)*3;
+
+
+
+
+    big_bird_image = imread(fullfile(BIGBIRD_BASE_PATH, cur_bb_name, 'rgb', ...
+                            strcat('NP',num2str(cam_ind), '_', num2str(pose_angle), '.jpg')));
+
+
+    big_bird_mask = imread(fullfile(BIGBIRD_BASE_PATH, cur_bb_name, 'masks', ...
+                        strcat('NP',num2str(cam_ind), '_', num2str(pose_angle), '_mask.pbm')));
+
+
+    se = strel('line',11,90);
+
+    big_bird_mask = imerode(big_bird_mask,se); 
+
+
+    big_bird_mask = repmat(big_bird_mask, 1,1,3);
+    
+    new_back_img = imresize(back_img, [size(big_bird_image,1), size(big_bird_image,2)]);
+ 
+   
+
+    big_bird_mask_img = uint8(big_bird_mask);
+    big_bird_mask_inv = uint8(~big_bird_mask);
+
+    masked_big_bird_img = big_bird_image .* big_bird_mask_inv;      
+
+
+
+
+    original_size = size(big_bird_mask_img);
+    scale = rand(1,1)*1.5 + .3;
+
+    big_bird_mask_img = imresize(big_bird_mask_img, scale);
+    masked_big_bird_img = imresize(masked_big_bird_img, scale);
+
+
+
+    extra_rows = abs(size(big_bird_mask_img,1) - original_size(1));
+    extra_cols = abs(size(big_bird_mask_img,2) - original_size(2));
+
+
+    if(scale > 1)
+      start_ind_rows = floor(extra_rows/2);
+      end_ind_rows = size(big_bird_mask_img,1) - ceil(extra_rows/2) -1;
+       
+      %if(end_ind_rows - start_ind_rows ~= original_size
+
+ 
+      start_ind_cols = floor(extra_cols/2);
+      end_ind_cols = size(big_bird_mask_img,2) - ceil(extra_cols/2) -1;
+     
+      big_bird_mask_img  = big_bird_mask_img(start_ind_rows:end_ind_rows,  ...
+                                            start_ind_cols:end_ind_cols,:);     
+
+      masked_big_bird_img  = masked_big_bird_img(start_ind_rows:end_ind_rows,  ...
+                                                  start_ind_cols:end_ind_cols,:);     
+ 
+    else
+      start_row = floor(extra_rows/2);
+      end_row = original_size(1) - ceil(extra_rows/2) -1;
+      
+      start_col = floor(extra_cols/2);
+      end_col = original_size(2) - ceil(extra_cols/2) -1;
+     
+      temp_mask = ones(original_size(1), original_size(2), 3);
+      temp_img = zeros(original_size(1), original_size(2), 3);
+
+      temp_mask(start_row:end_row, start_col:end_col,:) = big_bird_mask_img;
+
+      big_bird_mask_img = uint8(temp_mask);
+
+      temp_img(start_row:end_row, start_col:end_col,:) = masked_big_bird_img;
+
+      masked_big_bird_img =uint8(temp_img);
+
+
+    end% if scale
+
+    
+
+    [I, J] = find(big_bird_mask_img(:,:,1) == 0);
+
+    min_row = min(I);
+    min_col = min(J);
+    max_row = max(I);
+    max_col = max(J);
+
+    bbox_width = max_col - min_col;
+    bbox_height = max_row - min_row;
+
+
+    tl_row = randi( (size(big_bird_mask_img,1) - bbox_height-1 ),1,1);
+    tl_col = randi( (size(big_bird_mask_img,2) - bbox_width-1 ),1,1);
+
+
+
+    big_image = ones(2*size(big_bird_mask_img,1), 2*size(big_bird_mask_img,2), 3); 
+    big_center_row = size(big_bird_mask_img,1);
+    big_center_col = size(big_bird_mask_img,2);
+
+    %start_row = big_center_row - (size(big_bird_mask_img,1) - min_row); 
+    start_row = big_center_row  - min_row; 
+    end_row = start_row + size(big_bird_mask_img,1) - 1; 
+
+    %start_col = big_center_col - (size(big_bird_mask_img,2) - min_col); 
+    start_col = big_center_col  - min_col; 
+    end_col = start_col + size(big_bird_mask_img,2) - 1; 
+
+    big_image(start_row:end_row, start_col:end_col,:) = big_bird_mask_img;
+
+
+    %start_row = big_center_row - (size(big_bird_mask_img,1) - tl_row); 
+    start_row = big_center_row - tl_row; 
+    end_row = start_row + size(big_bird_mask_img,1) - 1; 
+
+
+    assert(end_row > tl_row + bbox_height);
+
+    %start_col = big_center_col - (size(big_bird_mask_img,2) - tl_col); 
+    start_col = big_center_col  - tl_col; 
+    end_col = start_col + size(big_bird_mask_img,2) - 1; 
+    
+    big_bird_mask_img = uint8(big_image(start_row:end_row, start_col:end_col,:));
+
+
+
+
+    big_image = zeros(2*size(big_bird_mask_img,1), 2*size(big_bird_mask_img,2), 3); 
+    big_center_row = size(big_bird_mask_img,1);
+    big_center_col = size(big_bird_mask_img,2);
+
+    %start_row = big_center_row - (size(big_bird_mask_img,1) - min_row); 
+    start_row = big_center_row  - min_row; 
+    end_row = start_row + size(big_bird_mask_img,1) - 1; 
+
+    %start_col = big_center_col - (size(big_bird_mask_img,2) - min_col); 
+    start_col = big_center_col - min_col; 
+    end_col = start_col + size(big_bird_mask_img,2) - 1; 
+
+    big_image(start_row:end_row, start_col:end_col,:) = masked_big_bird_img;
+
+
+    %start_row = big_center_row - (size(big_bird_mask_img,1) - tl_row); 
+    start_row = big_center_row  - tl_row; 
+    end_row = start_row + size(big_bird_mask_img,1) - 1; 
+
+    %start_col = big_center_col - (size(big_bird_mask_img,2) - tl_col); 
+    start_col = big_center_col - tl_col; 
+    end_col = start_col + size(big_bird_mask_img,2) - 1; 
+    
+    masked_big_bird_img = uint8(big_image(start_row:end_row, start_col:end_col,:));
+
+
+
+
+
+
+
+
+    %% contrast
+    contrast_scale  = .8 + .2*rand(1,1);
+    masked_big_bird_img = masked_big_bird_img * contrast_scale;
+
+
+
+ 
+
+
+
+    masked_back_img = new_back_img .* big_bird_mask_img;
+    new_img = masked_back_img + masked_big_bird_img;
+
+    imshow(new_img);
+    ginput(1); 
+
+  end%for jl, each big bird object
+
+
+end%for il, each background image
+
+
+
+
+
+
+
+
+
+
+

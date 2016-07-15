@@ -2,7 +2,7 @@
 % any of the reconstructed points on the object
 
 
-clearvars;
+%clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -11,22 +11,24 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_03_1'; %make this = 'all' to run all scenes
+group_name = 'all_minus_boring';
+model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-label_to_process = 'pepto_bismol'; %make 'all' for every label
+label_to_process = 'all'; %make 'all' for every label
 label_names = {label_to_process};
 
 
 
-do_occlusion_filtering = 0;
-occlusion_threshold = 600;  %make > 12000 to remove occlusion thresholding 
+do_occlusion_filtering = 1;
+occlusion_threshold = 150;  %make > 12000 to remove occlusion thresholding 
 
+count = 0;
 
-
-debug =1;
+debug =0;
 
 kinect_to_use = 1;
 
@@ -67,12 +69,60 @@ for i=1:length(all_scenes)
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
 
+  if(strcmp(label_to_process, 'all'))
+    label_names = get_names_of_X_for_scene(scene_name, 'instance_labels');
+  end
+
+
+
+
+  % get camera info
+  fid_camera =  fopen(fullfile(meta_path,'reconstruction_results', group_name, ...
+                                'colmap_results', model_number,'cameras.txt'));
+
+  line = fgetl(fid_camera);
+  line = fgetl(fid_camera);
+  line = fgetl(fid_camera);
+  line = fgetl(fid_camera);
+
+  line = strsplit(line);
+
+  K = zeros(3);
+  distortion = zeros(1,4);
+
+  K(1,1) = str2double(line{5});
+  K(1,3) = str2double(line{7});
+  K(2,2) = str2double(line{6});
+  K(2,3) = str2double(line{8});
+  K(3,3) = 1;
+
+  distortion(1) = str2double(line{9});
+  distortion(2) = str2double(line{10});
+  distortion(3) = str2double(line{11});
+  distortion(4) = str2double(line{12});
+
+
+  fclose(fid_camera);
+
+
   %get info about camera position for each image
   %image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', 'all', ...
-                                'colmap_results', '0',IMAGE_STRUCTS_FILE));
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', group_name, ...
+                                'colmap_results', model_number,IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
   scale  = image_structs_file.scale;
+
+
+
+  blank_struct = struct();
+  blank_struct.image_name = '';
+  for jl=1:length(label_names)
+    blank_struct.(label_names{jl}) = []; 
+  end
+
+
+  label_structs = repmat(blank_struct, length(image_structs), 1);
+
 
   %get a list of all the image file names
   %temp = cell2mat(image_structs);
@@ -91,11 +141,12 @@ for i=1:length(all_scenes)
   end
 
   %get camera parameters for each kinect
-  [intrinsic, distortion, rotation, projection] = get_kinect_parameters(kinect_to_use);    
+  %[intrinsic, distortion, rotation, projection] = get_kinect_parameters(kinect_to_use);    
 
 
   %this will store the final  result
   pclabel_to_images_that_see_it_map = containers.Map();
+
 
 
 
@@ -111,16 +162,18 @@ for i=1:length(all_scenes)
     if((load_depths=='y'))
 
       %get names of all the rgb images in the scene
-      image_names = get_names_of_X_for_scene(scene_name,'rgb_images');
+      %image_names = get_names_of_X_for_scene(scene_name,'rgb_images');
 
       %will hold all the depth images
-      depth_images = cell(1,length(d));
+      depth_images = cell(1,length(image_names));
 
       %for each rgb image, load a depth image
       for j=1:length(image_names)
           rgb_name = image_names{j};
 
-          depth_images{j} = imread(fullfile(scene_path, HIGH_RES_DEPTH, ... 
+          %depth_images{j} = imread(fullfile(scene_path, 'filled_high_res_depth', ... 
+          %         strcat(rgb_name(1:8),'03.png') ));
+          depth_images{j} = imread(fullfile(scene_path, 'high_res_depth', ... 
                    strcat(rgb_name(1:8),'03.png') ));
       end% for i, each image name
       
@@ -149,10 +202,16 @@ for i=1:length(all_scenes)
     
 
     cur_label_name = label_names{jl};
+    
+%     if(~strcmp(cur_label_name, 'honey_bunches_of_oats_with_almonds'))
+%       continue;
+%     end
+
+    disp(cur_label_name);
 
     %cur_pc = pcread(fullfile(meta_path, LABELING_DIR, OBJECT_POINT_CLOUDS, ...
     %                   ORIGINAL_POINT_CLOUDS, strcat(cur_label_name, '.ply')));
-    cur_pc = pcread(fullfile(meta_path,'labeling', ...
+    cur_pc = pcread(fullfile(meta_path,'labels', ...
                        'object_point_clouds', strcat(cur_label_name, '.ply')));
  
    
@@ -168,8 +227,19 @@ for i=1:length(all_scenes)
     %for each image, determine if it 'sees' this object(point cloud) 
     for kl = 1:length(image_names) 
 
+
+    
+
+
       cur_image_name = image_names{kl};
       cur_image_struct = image_structs_map(cur_image_name);
+      cur_world_locs = cur_pc.Location;
+      
+      
+%        if(strcmp(cur_label_name, 'honey_bunches_of_oats_with_almonds') && ...
+%           strcmp(cur_image_name, '0000350101.png'))
+%         breakp =1;
+%       end
 
       %all the points from the points cloud, in homogenous coordinates
       cur_homog_points = [cur_world_locs ones(length(cur_world_locs), 1)]';
@@ -177,7 +247,7 @@ for i=1:length(all_scenes)
      
       %get parameters for this image 
       %K = intrinsic; 
-      K = [1049.52, 0, 927.269; 0, 1050.65, 545.76; 0 0 1]; 
+      %K = [1049.52, 0, 927.269; 0, 1050.65, 545.76; 0 0 1]; 
       R = cur_image_struct.(ROTATION_MATRIX);
       t = cur_image_struct.(TRANSLATION_VECTOR);
 
@@ -192,35 +262,46 @@ for i=1:length(all_scenes)
       bad_inds = find(all_zs < 0);%find the z values that are negative
       cur_homog_points(:, bad_inds) = []; %remove those points
 
+    
+      cur_world_locs(bad_inds, :) = [];
+
+
       if(isempty(cur_homog_points))
-        fprintf('Empty orientation, %s\n', cur_image_name);
+        %fprintf('Empty orientation, %s\n', cur_image_name);
+        %count = count+1;
         continue;
       end
 
       %not sure about what is happening herer
       if(length(cur_homog_points) ~= length(oriented_points))
-        fprintf('Not all points oriented %s\n', cur_image_name);
+        %fprintf('Not all points oriented???? %s\n', cur_image_name);
       end
 
 
       %project the world point onto this image
-      M = K * [R t];
-      cur_image_points = M * cur_homog_points;
+      %M = K * [R t];
+      %cur_image_points = M * cur_homog_points;
 
-      %acccount for homogenous coords
-      cur_image_points = cur_image_points ./ repmat(cur_image_points(3,:),3,1);
-      cur_image_points = cur_image_points([1,2], :);
-      cur_image_points =floor(cur_image_points);
-
-
+      %%acccount for homogenous coords
+      %cur_image_points = cur_image_points ./ repmat(cur_image_points(3,:),3,1);
+      %cur_image_points = cur_image_points([1,2], :);
+      %cur_image_points =floor(cur_image_points);
 
 
 
-      k1 = .381593;
-      k2 = .1077399;
-      k3 = 0;
-      p1 = .00280506;
-      p2 = -0.00120267;
+
+
+      %k1 = .381593;
+      %k2 = .1077399;
+      %k3 = 0;
+      %p1 = .00280506;
+      %p2 = -0.00120267;
+
+      k1 = distortion(1);
+      k2 = distortion(2);
+      p1 = distortion(3);
+      p2 = distortion(4);
+
       %fx = 1049.04;
       fx = K(1,1);
       %fy = 1066.29;
@@ -257,86 +338,39 @@ for i=1:length(all_scenes)
 
 
       distorted_points = round([u;v]);
+      scaled_world_locs = cur_world_locs'*scale;
+
 
       bad_inds =  find(distorted_points(1,:) < 1 | distorted_points(1,:) > kImageWidth);
       distorted_points(:, bad_inds) = [];
+      scaled_world_locs(:, bad_inds) = [];
       %check y values
       bad_inds =  find(distorted_points(2,:) < 1 | distorted_points(2,:) > kImageHeight);
       distorted_points(:, bad_inds) = [];
+      scaled_world_locs(:, bad_inds) = [];
 
 
 
-    %original distortion model
-
- 
-%      x = (cur_image_points(1,:) - K(1,3)) ./ K(1,1);
-%      y = (cur_image_points(2,:) - K(2,3)) ./ K(2,2);
-% 
-%      r = sqrt( (x).^2 + (y).^2);
-%      %k_term =(1 + distortion(1)*(r.^2) + distortion(2)*(r.^4) + distortion(5)*(r.^6)); 
-%      k_term =(1 + k1*(r.^2) + k2*(r.^4) + k3*(r.^6)); 
-%
-%      %p_term_x= (distortion(4)*((r.^2) + 2*x.^2) + 2*distortion(3).*x.*y);
-%      %p_term_y= (distortion(3)*((r.^2) + 2*y.^2) + 2*distortion(4).*x.*y);
-%      p_term_x= (p2*((r.^2) + 2*x.^2) + 2*p1.*x.*y);
-%      p_term_y= (p1*((r.^2) + 2*y.^2) + 2*p2.*x.*y);
-%
-%      dx = x.*k_term + p_term_x;
-%      dy = y.*k_term + p_term_y;
-%
-%
-%      %ddx = floor(dx*K(1,1) + K(1,3));
-%      %ddy = floor(dy*K(2,2) + K(2,3));
-%      ddx = floor(dx*fx + cx);
-%      ddy = floor(dy*fy + cy);
-%
-%
-%      distorted_points = [ddx;ddy];
-      %end distortion
-
-
-
-
-
-
-      %undistort point cloud points
-%      xyz = R*cur_world_locs' + repmat(t,1,length(cur_world_locs));
-%      xx = xyz(1,:) ./ xyz(3,:);
-%      yy = xyz(2,:) ./ xyz(3,:);
-%
-%      r = sqrt( xx.^2 + yy.^2);
-%
-%      %ks = 1 + distortion(1)*(r.^2) + distortion(2)*(r.^4) + distortion(5)*(r.^6);
-%      ks = 1 + k1*(r.^2) + k2*(r.^4) + k3*(r.^6);
-%
-%      %xxx = xx.*ks + 2*distortion(3).*xx.*yy + distortion(4)*(r.^2 + 2*xx.^2);
-%      %yyy = yy.*ks + distortion(3)*(r.^2 + 2*yy.^2) + 2*distortion(4).*xx.*yy;
-%      xxx = xx.*ks + 2*p1.*xx.*yy + p2*(r.^2 + 2*xx.^2);
-%      yyy = yy.*ks + p1*(r.^2 + 2*yy.^2) + 2*p2.*xx.*yy;
-%
-%      %u = K(1,1) * xxx + K(1,3);
-%      %v = K(2,2) * yyy + K(2,3);
-%      u = fx * xxx + cx;
-%      v = fy * yyy + cy;
-%
-%      undistorted_points =floor([u;v]);
-      %end undistort 
 
       %make sure each point is in the image
       
       %check x values
-      bad_inds =  find(cur_image_points(1,:) < 1 | cur_image_points(1,:) > kImageWidth);
-      cur_image_points(:, bad_inds) = [];
-      %check y values
-      bad_inds =  find(cur_image_points(2,:) < 1 | cur_image_points(2,:) > kImageHeight);
-      cur_image_points(:, bad_inds) = [];
+      %bad_inds =  find(cur_image_points(1,:) < 1 | cur_image_points(1,:) > kImageWidth);
+      %cur_image_points(:, bad_inds) = [];
+      %%check y values
+      %bad_inds =  find(cur_image_points(2,:) < 1 | cur_image_points(2,:) > kImageHeight);
+      %cur_image_points(:, bad_inds) = [];
 
    
-      if(isempty(cur_image_points))
-        fprintf('All points outside image, %s\n', cur_image_name);
+      %if(isempty(cur_image_points))
+      %  fprintf('All points outside image, %s\n', cur_image_name);
+      %  continue;
+      %end
+
+      if(isempty(distorted_points))
+        %fprintf('All points outside image, %s\n', cur_image_name);
         continue;
       end
-
 
 
       %%OCCULSION FILTERING
@@ -346,31 +380,146 @@ for i=1:length(all_scenes)
       %make sure distance from camera to world_coords is similar to depth of
       %projected point in the depth image
 
+      bad_inds = zeros(1,size(distorted_points,2));
+      counter = 1;
+
+
+
+
+
+      num_points_before_occlusion = length(distorted_points);
+
+
       if(do_occlusion_filtering)
         %get the depth image
         if(~depths_loaded)
-          depth_image = imread(fullfile(scene_path, HIGH_RES_DEPTH, ... 
-                         strcat(cur_name(1:8),'03.png') ));
+          %depth_image = imread(fullfile(scene_path, 'filled_high_res_depth', ... 
+          %               strcat(cur_image_name(1:8),'03.png') ));
+          disp('reading depth image...');
+          depth_image = imread(fullfile(scene_path, 'high_res_depth', ... 
+                         strcat(cur_image_name(1:8),'03.png') ));
         else
-          depth_image = depth_img_map(cur_name);
+          depth_image = depth_img_map(cur_image_name);
         end
-        %get the depth of the projected point
-        cur_depth = depth_image(floor(cur_image_point(2)), floor(cur_image_point(1)));
 
-        %get the distance from the camera to the labeled point in 3D
+
+        %depths = diag(depth_image(distorted_points(2,:), distorted_points(1,:))); 
+        depths = depth_image(sub2ind(size(depth_image), ...
+                               distorted_points(2,:), distorted_points(1,:)));
+
+        zero_inds = find(depths == 0);
+
+        if(length(zero_inds)/length(depths) > .80)
+          continue;
+        end 
+
+
+        clean_depths = depths;
+        clean_depths(zero_inds) = [];
+
         camera_pos = cur_image_struct.(SCALED_WORLD_POSITION);
-        world_dist = pdist2(camera_pos', world_coords');
+        if(size(camera_pos,2) == 1)
+          camera_pos = camera_pos';
+        end
 
-        %if the depth == 0, then keep this image as we can't tell
-        %otherwise see if the difference in depth vs. distance is greater than the threshold
-        if(abs(world_dist - cur_depth) > occlusion_threshold  && cur_depth >0)
+        
+        world_dists = pdist2(camera_pos, double(scaled_world_locs)');
+
+        world_dists(zero_inds)= [];
+
+        good_dists = abs(double(world_dists) - double(clean_depths)) < occlusion_threshold;
+
+
+        good_inds = find(good_dists == 1);
+
+        if(length(good_inds)/length(distorted_points) < .25)
           continue;
         end
+      
+        distorted_points = distorted_points(:,good_inds);
+
+       % for ll=1:size(distorted_points,2)
+       %   cur_point = distorted_points(:,ll);
+
+       %   %get the depth of the projected point
+       %   cur_depth =double(depth_image(floor(cur_point(2)), floor(cur_point(1))));
+
+       %   %get the distance from the camera to the labeled point in 3D
+       %   camera_pos = cur_image_struct.(SCALED_WORLD_POSITION);
+       %   world_dist = pdist2(camera_pos', double(scaled_world_locs(:,ll)'));
+
+
+
+       %   %if the depth == 0, then keep this image as we can't tell
+       %   %otherwise see if the difference in depth vs. distance is greater than the threshold
+       %   if(cur_depth<world_dist && ...
+       %           abs(world_dist - cur_depth) > occlusion_threshold  && cur_depth >0)
+       %   %if(cur_depth<world_dist && ...
+       %   %        abs(world_dist - cur_depth) > occlusion_threshold  || cur_depth >0)
+       %     %continue
+       %     bad_inds(counter) =ll;
+       %     counter = counter +1;
+       %   end
+       % end%for ll, each distorted point
+
+       % bad_inds(counter:end) = [];
+
+       % distorted_points(:,bad_inds) = [];
      end%if do occlusion
+
+
+    num_points_after_occlusion = length(distorted_points);
+
+
+
+
+
+
+    %% JUST FOR RIC
+
+     %if(num_points_after_occlusion < .90*num_points_before_occlusion)
+     %  fprintf(' ccluded: %s\n', cur_image_name);
+     %  continue;
+     %end
+
+    
+     %num_points_seen = length(distorted_points);
+     %num_total_points = length(cur_world_locs);
+
+    
+     % if(num_points_seen < .25*num_total_points)
+     %   continue;
+     % end   
+
+
+
+
 
 
       found_image_names{kl} = cur_image_name;
 
+
+      minx = min(distorted_points(1,:));
+      miny = min(distorted_points(2,:));
+      maxx = max(distorted_points(1,:));
+      maxy = max(distorted_points(2,:));
+      
+      if(minx == maxx || miny==maxy || minx == 1 && maxy == 1)
+        fprintf('bad box skip %s\n', cur_image_name);
+        continue;
+      end
+
+      cur_struct = label_structs(kl); 
+
+      if(~strcmp(cur_struct.image_name, ''))
+        assert(strcmp(cur_struct.image_name, cur_image_name));
+      else
+        cur_struct.image_name = cur_image_name;
+      end
+
+      cur_struct.(cur_label_name) = [minx, miny, maxx, maxy];
+      
+      label_structs(kl) = cur_struct;
 
       %show some visualization of the found points if debug option is set 
       if(debug)  
@@ -379,13 +528,10 @@ for i=1:length(all_scenes)
         %img = imread(fullfile(scene_path, 'undistorted_images', '00000187.jpg'));
 
         %make an image with the object points = 1, everything else =0
-        obj_img = zeros(size(img,1), size(img,2));
-        object_inds = sub2ind(size(obj_img), cur_image_points(2,:), cur_image_points(1,:)); 
-        obj_img(object_inds)  = 1;
+        %obj_img = zeros(size(img,1), size(img,2));
+        %object_inds = sub2ind(size(obj_img), cur_image_points(2,:), cur_image_points(1,:)); 
+        %obj_img(object_inds)  = 1;
 
-        %uobj_img = zeros(size(img,1), size(img,2));
-        %uobject_inds=sub2ind(size(uobj_img), undistorted_points(2,:), undistorted_points(1,:)); 
-        %uobj_img(uobject_inds)  = .5;
 
         dobj_img = zeros(size(img,1), size(img,2));
         dobject_inds = sub2ind(size(dobj_img), distorted_points(2,:), distorted_points(1,:)); 
@@ -396,12 +542,7 @@ for i=1:length(all_scenes)
        % umaxx = max(undistorted_points(1,:));
        % umaxy = max(undistorted_points(2,:));
 
-       % minx = min(cur_image_points(1,:));
-       % miny = min(cur_image_points(2,:));
-       % maxx = max(cur_image_points(1,:));
-       % maxy = max(cur_image_points(2,:));
-
-       % bbox = [minx miny maxx maxy];
+        bbox = [minx miny maxx maxy];
        % ubbox = [uminx uminy umaxx umaxy];
 
         %display the image with the object superimposed
@@ -422,19 +563,47 @@ for i=1:length(all_scenes)
         %draw bounding box
         %rectangle('Position',[ubbox(1) ubbox(2) (ubbox(3)-ubbox(1)) (ubbox(4)-ubbox(2))], ...
         %             'LineWidth',2, 'EdgeColor','b');
-        %rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
-        %             'LineWidth',2, 'EdgeColor','r');
+        rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
+                     'LineWidth',2, 'EdgeColor','r');
         hold off;
        
         %title(num2str(max(max(abs(distorted_points - cur_image_points)))));
- 
+   
+        if(do_occlusion_filtering)
+          figure;
+          imshow(img);
+          hold on;
+          h = imagesc(depth_image);
+          set(h,'AlphaData',.5);
+          hold off;
+        end 
         ginput(1);
+
+        close all; 
       end % if debug
     end%for k, each image name
 
     %remove empty values from cell array
     found_image_names  =  found_image_names(~cellfun('isempty', found_image_names));
 
-   end%for jl, each point cloud 
+   end%f r jl, each point cloud 
+
+
+
+   for jl=1:length(label_structs)
+     cur_struct = label_structs(jl);
+
+     if(strcmp(cur_struct.image_name, ''))
+       cur_struct.image_name = image_names{jl};
+     end
+
+     cur_image_name = cur_struct.image_name;
+     cur_struct = rmfield(cur_struct,'image_name');
+
+     save(fullfile(meta_path, 'labels', 'instance_label_structs', ...
+                    strcat(cur_image_name(1:10), '.mat')), '-struct', 'cur_struct'); 
+
+   end%for jl, each label struct
+
 end%for i, each scene_name
 

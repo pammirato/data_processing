@@ -11,9 +11,14 @@ function  [all_names] = get_names_of_X_for_scene(scene_name, items, items2)
       temp = dir(fullfile(ROHIT_BASE_PATH,scene_name,RGB,'*.png'));
       all_names = {temp.name}; 
     case 'instance_labels'%return names of all instance label files
-      temp = dir(fullfile(ROHIT_BASE_PATH,scene_name, ...
-                          LABELING_DIR,BBOXES_BY_INSTANCE_DIR,'*.mat'));
+      temp = dir(fullfile(ROHIT_META_BASE_PATH,scene_name, ...
+                          LABELING_DIR,'object_point_clouds','*.ply'));
       all_names = {temp.name};
+      for jl=1:length(all_names)
+        name = all_names{jl};
+        name = name(1:end-4);
+        all_names{jl} = name;
+      end
     case 'images_for_labeling'%return names of all images to be labeled for a label_name
       if(exist('items2','var'))
         temp = dir(fullfile(ROHIT_META_BASE_PATH,scene_name, ...

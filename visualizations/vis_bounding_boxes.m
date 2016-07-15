@@ -12,14 +12,16 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'PhilKitchenLiving'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_03_1'; %make this = 'all' to run all scenes
+group_name = 'all_minus_boring';
+model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
 %OPTIONS for ground truth bounding boxes
-show_vatic_output = 0; %
-vatic_label_to_show = 'chair1'; 
+show_vatic_output = 1; %
+vatic_label_to_show = 'all'; 
 use_custom_vatic_labels = 0;
 custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 
@@ -70,15 +72,45 @@ for i=1:length(all_scenes)
 
 
   %get the image structs and make a map
-  image_structs_file = load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
-  image_structs = image_structs_file.image_structs;
-  temp = cell2mat(image_structs);
-  structs_names = {temp.image_name}; 
-  image_structs_map = containers.Map(structs_names, image_structs);
+ % image_structs_file = load(fullfile(meta_path,IMAGE_STRUCTS_FILE));
+ % image_structs = image_structs_file.image_structs;
+ % temp = image_structs;
+ % structs_names = {temp.image_name}; 
+ % image_structs_map = containers.Map(structs_names, image_structs);
+
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', group_name, ...
+                                'colmap_results', model_number,IMAGE_STRUCTS_FILE));
+  image_structs = image_structs_file.(IMAGE_STRUCTS);
+  image_structs = nestedSortStruct2(image_structs, 'image_name');
+  scale  = image_structs_file.scale;
+
+
+  %get a list of all the image file names
+  %temp = cell2mat(image_structs);
+  %image_names = {temp.(IMAGE_NAME)};
+  image_names = {image_structs.(IMAGE_NAME)};
+
+  %make a map from image name to image_struct
+  %image_structs_map = containers.Map(image_names, image_structs);
+
+
+  image_structs_map = containers.Map(image_names,...
+                                 cell(1,length(image_names)));
+
+  for jl=1:length(image_names)
+    image_structs_map(image_names{jl}) = image_structs(jl);
+  end
+
+
+
+
+
+
+
 
 
   %get all image names
-  image_names = get_names_of_X_for_scene(scene_name,'rgb_images'); 
+ % image_names = get_names_of_X_for_scene(scene_name,'rgb_images'); 
 
   %requires  image sturcts map - image name to image struct
   %          image_names  - cell array of all image names
@@ -94,8 +126,13 @@ for i=1:length(all_scenes)
 %display stuff
     hold off;
     rgb_image = imread(fullfile(scene_path,RGB,cur_image_name));
+    depth_image = imread(fullfile(scene_path,'high_res_depth', ...
+                          strcat(cur_image_name(1:8), '03.png')));
     imshow(rgb_image);
     hold on;
+
+    h = imagesc(depth_image);
+    set(h,'AlphaData', .5);
     title(cur_image_name);
     
     %draw vatic bounding boxes
@@ -103,8 +140,10 @@ for i=1:length(all_scenes)
 
       
       try
-      vatic_bboxes = load(fullfile(scene_path,LABELING_DIR, ...
-                          BBOXES_BY_IMAGE_INSTANCE_DIR, strcat(cur_image_name(1:10),'.mat')));
+      %vatic_bboxes = load(fullfile(scene_path,LABELING_DIR, ...
+      %                    BBOXES_BY_IMAGE_INSTANCE_DIR, strcat(cur_image_name(1:10),'.mat')));
+      vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
+                           'instance_label_structs', strcat(cur_image_name(1:10),'.mat')));
       catch
         vatic_bboxes =struct();
       end
@@ -121,12 +160,18 @@ for i=1:length(all_scenes)
       end%decide which instances to show
 
       for k=1:length(labels_to_show)
-        bbox = vatic_bboxes.(labels_to_show{k});
+        if(strcmp(labels_to_show{k}, 'image_name'))
+          continue;
+        end
+        bbox = double(vatic_bboxes.(labels_to_show{k}));
         if(isempty(bbox))
           continue;
         end  
         rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
                      'LineWidth',2, 'EdgeColor','r');
+        t = text(bbox(1), bbox(2)-font_size,labels_to_show{k},  ...
+                                    'FontSize',font_size, 'Color','white');
+        t.BackgroundColor = 'black';
       end%for k, each label to show
       end%if vatic is not empty
     end%if show vatic output
@@ -279,7 +324,7 @@ for i=1:length(all_scenes)
         end
 
         %get two mouse clicks for top left and bottom right of box
-        [x, y, ~] = ginput(2);
+        [x, y, but] = ginput(2);
 
         inserted_label_name = input('Enter label: ', 's');
   

@@ -12,7 +12,7 @@ min_images_per_cluster = 5;
 
 debug = 0;
 
-base_path = '/playpen/ammirato/Data/RohitMetaData/Kitchen_Living_04_2/';
+base_path = '/playpen/ammirato/Data/RohitMetaData/Kitchen_Living_01_1/';
 
 %where to move the images
 
