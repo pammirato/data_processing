@@ -11,8 +11,8 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_03_1'; %make this = 'all' to run all scenes
-group_name = 'all_minus_boring';
+scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -171,10 +171,10 @@ for i=1:length(all_scenes)
       for j=1:length(image_names)
           rgb_name = image_names{j};
 
-          %depth_images{j} = imread(fullfile(scene_path, 'filled_high_res_depth', ... 
+          depth_images{j} = imread(fullfile(scene_path, 'filled_high_res_depth', ... 
+                   strcat(rgb_name(1:8),'04.png') ));
+          %depth_images{j} = imread(fullfile(scene_path, 'high_res_depth', ... 
           %         strcat(rgb_name(1:8),'03.png') ));
-          depth_images{j} = imread(fullfile(scene_path, 'high_res_depth', ... 
-                   strcat(rgb_name(1:8),'03.png') ));
       end% for i, each image name
       
       depth_img_map = containers.Map(image_names, depth_images);
@@ -393,11 +393,11 @@ for i=1:length(all_scenes)
       if(do_occlusion_filtering)
         %get the depth image
         if(~depths_loaded)
-          %depth_image = imread(fullfile(scene_path, 'filled_high_res_depth', ... 
-          %               strcat(cur_image_name(1:8),'03.png') ));
+          depth_image = imread(fullfile(scene_path, 'filled_high_res_depth', ... 
+                         strcat(cur_image_name(1:8),'04.png') ));
           disp('reading depth image...');
-          depth_image = imread(fullfile(scene_path, 'high_res_depth', ... 
-                         strcat(cur_image_name(1:8),'03.png') ));
+          %depth_image = imread(fullfile(scene_path, 'high_res_depth', ... 
+          %               strcat(cur_image_name(1:8),'03.png') ));
         else
           depth_image = depth_img_map(cur_image_name);
         end
@@ -407,15 +407,15 @@ for i=1:length(all_scenes)
         depths = depth_image(sub2ind(size(depth_image), ...
                                distorted_points(2,:), distorted_points(1,:)));
 
-        zero_inds = find(depths == 0);
+        %zero_inds = find(depths == 0);
 
-        if(length(zero_inds)/length(depths) > .80)
-          continue;
-        end 
+        %if(length(zero_inds)/length(depths) > .80)
+        %  continue;
+        %end 
 
 
-        clean_depths = depths;
-        clean_depths(zero_inds) = [];
+        %clean_depths = depths;
+        %clean_depths(zero_inds) = [];
 
         camera_pos = cur_image_struct.(SCALED_WORLD_POSITION);
         if(size(camera_pos,2) == 1)
@@ -425,16 +425,17 @@ for i=1:length(all_scenes)
         
         world_dists = pdist2(camera_pos, double(scaled_world_locs)');
 
-        world_dists(zero_inds)= [];
+        %world_dists(zero_inds)= [];
 
-        good_dists = abs(double(world_dists) - double(clean_depths)) < occlusion_threshold;
+        %good_dists = abs(double(world_dists) - double(clean_depths)) < occlusion_threshold;
+        good_dists = abs(double(world_dists) - double(depths)) < occlusion_threshold;
 
 
         good_inds = find(good_dists == 1);
 
-        if(length(good_inds)/length(distorted_points) < .25)
-          continue;
-        end
+        %if(length(good_inds)/length(distorted_points) < .25)
+        %  continue;
+        %end
       
         distorted_points = distorted_points(:,good_inds);
 
@@ -504,10 +505,10 @@ for i=1:length(all_scenes)
       maxx = max(distorted_points(1,:));
       maxy = max(distorted_points(2,:));
       
-      if(minx == maxx || miny==maxy || minx == 1 && maxy == 1)
-        fprintf('bad box skip %s\n', cur_image_name);
-        continue;
-      end
+      %if(minx == maxx || miny==maxy || minx == 1 && maxy == 1)
+      %  fprintf('bad box skip %s\n', cur_image_name);
+      %  continue;
+      %end
 
       cur_struct = label_structs(kl); 
 
