@@ -7,12 +7,12 @@ pick_out_every = 13;
 
 
 cluster_size = 12;
-max_images = 1000;
+max_images = 3000;
 min_images_per_cluster = 5;
 
 debug = 0;
 
-base_path = '/playpen/ammirato/Data/RohitMetaData/Kitchen_Living_01_1/';
+base_path = '/playpen/ammirato/Data/RohitMetaData/Kitchen_Living_0/reconstruction_setup';
 
 %where to move the images
 

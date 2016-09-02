@@ -11,7 +11,9 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_04_2'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_01_1'; %make this = 'all' to run all scenes
+group_name = 'all_minus_boring';
+model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -55,8 +57,8 @@ for i=1:length(all_scenes)
 
   %get the image structs and make a map
   %image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', 'all_minus_boring', ...
-                              'colmap_results', '0',IMAGE_STRUCTS_FILE));
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', group_name, ...
+                              'colmap_results', model_number,IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
 
   image_ids = {image_structs.image_id};
@@ -71,7 +73,8 @@ for i=1:length(all_scenes)
 
 
   %get the point2D structs and make a map
-  point2D_structs_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,'all_minus_boring','colmap_results', '0','point_2d_structs.mat'));
+  point2D_structs_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,group_name,...
+                        'colmap_results', model_number,'point_2d_structs.mat'));
   point2D_structs =point2D_structs_file.point_2d_structs;
 
   image_names = {point2D_structs.image_name};
@@ -80,7 +83,8 @@ for i=1:length(all_scenes)
 
 
   %get the 3d reconstructed points
-  points3d_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,'all_minus_boring', 'colmap_results', '0', 'points3D.mat'));
+  points3d_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,group_name, 'colmap_results',...
+                          model_number, 'points3D.mat'));
   points3d = points3d_file.points3d;
 
   %find the reconstructed point that has been seen by the largest number of images
@@ -98,6 +102,8 @@ for i=1:length(all_scenes)
 
   most_seen_scales = zeros(1,length(most_seend_3d_points));
 
+  all_scales = cell(1,length(most_seen_scales));
+
   %keep trying point3ds until one has enough data(depths > 0)
   %point_is_good = 0;
   %while(~point_is_good)
@@ -114,8 +120,7 @@ for i=1:length(all_scenes)
 
 
     %store data
-    %depths = -ones(1,length(image_ids)); %depth in image
-    %dists = -ones(1,length(image_ids)); %3D distance
+    %depths = -ones(1,length(image_ids)); %depth in image %dists = -ones(1,length(image_ids)); %3D distance
     %ydists = -ones(1,length(image_ids)); %1D distance
     depths = zeros(1,length(p3_image_ids)); %depth in image
     dists = zeros(1,length(p3_image_ids)); %3D distance
@@ -194,7 +199,10 @@ for i=1:length(all_scenes)
     scales = scales(scales ~= 0);
     scales(isnan(scales)) = [];
     %get the average scale
-    scale = mean(scales);
+    %scale = mean(scales);
+    scale = mode(scales);
+
+    all_scales{kl} = scales;
 
     most_seen_scales(kl) = scale;
   end%for k, each most seen point 
@@ -209,6 +217,7 @@ for i=1:length(all_scenes)
 
 
     scale = mean(most_seen_scales);
+    %scale = mode(most_seen_scales);
 
     %% apply the scale
     for j=1:length(image_structs)
@@ -219,6 +228,6 @@ for i=1:length(all_scenes)
   
     %save the new data 
     %save(fullfile(scene_path, IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE); 
-    save(fullfile(meta_path,'reconstruction_results', 'all_minus_boring', 'colmap_results', '0',... 
+    save(fullfile(meta_path,'reconstruction_results',group_name,'colmap_results',model_number,... 
                      IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE); 
 end%for i, each scene

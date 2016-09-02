@@ -1,17 +1,20 @@
 
 
-scene_name = 'Kitchen_Living_04_2';
+scene_name = 'Office_01_2';
 
+
+rgb = 0;
 
 
 %folder_path = '/playpen/ammirato/Data/RohitData/Kitchen_Living_11/rgb/';
-folder_path = fullfile('/playpen/ammirato/Data/RohitMetaData' ,scene_name, 'rgb');% ...
+if(rgb)
+  folder_path = fullfile('/playpen/ammirato/Data/RohitMetaData' ,scene_name, 'reconstruction_setup', 'rgb');% ...
                         %'reconstruction_setup',  'hand_scan/rgb_chosen');
-folder_path_new = fullfile('/playpen/ammirato/Data/RohitMetaData',scene_name, 'rgb_new');% ...
-                           % 'reconstruction_setup', 'hand_scan/rgb_renamed');
-%folder_path = fullfile('/playpen/ammirato/Data/RohitMetaData' ,scene_name, 'raw_depth');
-%folder_path_new = fullfile('/playpen/ammirato/Data/RohitMetaData',scene_name, 'raw_new');
-
+  folder_path_new = fullfile('/playpen/ammirato/Data/RohitMetaData',scene_name,'reconstruction_setup', 'rgb_new');% ...
+else                           % 'reconstruction_setup', 'hand_scan/rgb_renamed');
+  folder_path = fullfile('/playpen/ammirato/Data/RohitMetaData' ,scene_name,'reconstruction_setup', 'raw_depth');
+  folder_path_new = fullfile('/playpen/ammirato/Data/RohitMetaData',scene_name,'reconstruction_setup', 'raw_new');
+end
 
 
 mkdir(folder_path_new);

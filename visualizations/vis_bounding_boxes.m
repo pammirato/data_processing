@@ -12,8 +12,8 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_03_1'; %make this = 'all' to run all scenes
-group_name = 'all_minus_boring';
+scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -28,14 +28,14 @@ custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 
 %options for FAST-RCNN bounding boxes
 show_recognition_output = 0;
-recognition_system_name = 'fast_rcnn';
-show_instance_not_class = 1;
-recognition_label_to_show = 'chair1';
+recognition_system_name = 'ssd_bigBIRD';
+show_instance_not_class = 0;
+recognition_label_to_show = 'all';
 use_custom_recognition_labels = 0;
 custom_recognition_labels = {};
-score_threshold = .1;
+score_threshold = .4;
 show_scores_of_boxes = 1;
-show_class_of_boxes = 0;
+show_class_of_boxes = 1;
 font_size = 10;
 
 
@@ -126,13 +126,15 @@ for i=1:length(all_scenes)
 %display stuff
     hold off;
     rgb_image = imread(fullfile(scene_path,RGB,cur_image_name));
-    depth_image = imread(fullfile(scene_path,'high_res_depth', ...
-                          strcat(cur_image_name(1:8), '03.png')));
+    %depth_image = imread(fullfile(scene_path,'high_res_depth', ...
+    %                      strcat(cur_image_name(1:8), '03.png')));
+    %depth_image = imread(fullfile(meta_path,'point_depths', ...
+    %                      strcat(cur_image_name(1:8), '05.png')));
     imshow(rgb_image);
     hold on;
 
-    h = imagesc(depth_image);
-    set(h,'AlphaData', .5);
+    %h = imagesc(depth_image);
+    %set(h,'AlphaData', .5);
     title(cur_image_name);
     
     %draw vatic bounding boxes
@@ -142,8 +144,11 @@ for i=1:length(all_scenes)
       try
       %vatic_bboxes = load(fullfile(scene_path,LABELING_DIR, ...
       %                    BBOXES_BY_IMAGE_INSTANCE_DIR, strcat(cur_image_name(1:10),'.mat')));
+      %vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
+      %                     'instance_label_structs', strcat(cur_image_name(1:10),'.mat')));
       vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
-                           'instance_label_structs', strcat(cur_image_name(1:10),'.mat')));
+                           'raw_labels','bounding_boxes_by_image_instance', ...
+                             strcat(cur_image_name(1:10),'.mat')));
       catch
         vatic_bboxes =struct();
       end

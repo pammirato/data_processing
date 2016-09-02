@@ -22,7 +22,7 @@ function varargout = box_editor(varargin)
 
 % Edit the above text to modify the response to help box_editor
 
-% Last Modified by GUIDE v2.5 18-Jul-2016 15:19:07
+% Last Modified by GUIDE v2.5 03-Aug-2016 09:38:58
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -85,20 +85,19 @@ function delete_button_Callback(hObject, eventdata, handles)
 % hObject    handle to delete_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-images = handles.images;
+
 image_names = handles.image_names;
 bboxes = handles.bboxes;
 cur_image_index = handles.cur_image_index;
 
-images(cur_image_index) = [];
+
 image_names(cur_image_index) = [];
 bboxes(cur_image_index) = [];
 
-if(cur_image_index > length(images))
+if(cur_image_index > length(image_names))
   cur_image_index = 1;
 end
 
-handles.images = images;
 handles.image_names = image_names;
 handles.bboxes = bboxes;
 handles.cur_image_index = cur_image_index;
@@ -134,10 +133,10 @@ function corner_down_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 bbox = handles.bboxes{handles.cur_image_index};
 
-if(bbox(4) + handles.box_change_resolution < size(handles.images{1},1))
+if(bbox(4) + handles.box_change_resolution < handles.image_height)
   bbox(4) = bbox(4) + handles.box_change_resolution;
 else
-  move_dist = size(handles.images{1},1) - bbox(4);
+  move_dist = handles.image_height - bbox(4);
   bbox(4) = bbox(4) + move_dist;
 end
 handles.bboxes{handles.cur_image_index} = bbox;
@@ -152,10 +151,10 @@ function corner_right_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 bbox = handles.bboxes{handles.cur_image_index};
 
-if(bbox(3) + handles.box_change_resolution < size(handles.images{1},2))
+if(bbox(3) + handles.box_change_resolution < handles.image_width)
   bbox(3) = bbox(3) + handles.box_change_resolution;
 else
-  move_dist = size(handles.images{1},2) - bbox(3);
+  move_dist = handles.image_width - bbox(3);
   bbox(3) = bbox(3) + move_dist;
 end
 handles.bboxes{handles.cur_image_index} = bbox;
@@ -213,11 +212,11 @@ function box_down_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 bbox = handles.bboxes{handles.cur_image_index};
 
-if(bbox(4) + handles.box_change_resolution < size(handles.images{1},1))
+if(bbox(4) + handles.box_change_resolution < handles.image_height)
   bbox(2) = bbox(2) + handles.box_change_resolution;
   bbox(4) = bbox(4) + handles.box_change_resolution;
 else
-  move_dist = size(handles.images{1},1) - bbox(4);
+  move_dist = handles.image_height - bbox(4);
   bbox(2) = bbox(2) + move_dist;
   bbox(4) = bbox(4) + move_dist;
 end
@@ -235,11 +234,11 @@ function box_right_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 bbox = handles.bboxes{handles.cur_image_index};
 
-if(bbox(3) + handles.box_change_resolution < size(handles.images{1},2))
+if(bbox(3) + handles.box_change_resolution < handles.image_width)
   bbox(1) = bbox(1) + handles.box_change_resolution;
   bbox(3) = bbox(3) + handles.box_change_resolution;
 else
-  move_dist = size(handles.images{1},2) - bbox(3);
+  move_dist = handles.image_width - bbox(3);
   bbox(1) = bbox(1) + move_dist;
   bbox(3) = bbox(3) + move_dist;
 end
@@ -275,7 +274,7 @@ function prev_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 handles.cur_image_index = handles.cur_image_index -1;
 if(handles.cur_image_index < 1)
-  handles.cur_image_index = length(handles.images);
+  handles.cur_image_index = length(handles.image_names);
 end
 
 guidata(hObject, handles);
@@ -287,7 +286,7 @@ function next_button_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 handles.cur_image_index = handles.cur_image_index +1;
-if(handles.cur_image_index > length(handles.images))
+if(handles.cur_image_index > length(handles.image_names))
   handles.cur_image_index = 1;
 end
 
@@ -308,10 +307,31 @@ init;
 contents = cellstr(get(hObject,'String'));
 handles.selected_scene =  contents{get(hObject,'Value')};
 instance_labels = dir(fullfile(ROHIT_META_BASE_PATH, handles.selected_scene, ...
-                      'labels','raw_labels', 'bounding_boxes_by_instance', '*.mat'));
+                      'labels','strict_labels', 'bounding_boxes_by_instance', '*.mat'));
 instance_labels = {instance_labels.name};
 
 handles.label_pop_up_menu.String = cat(2,{'Pick a label'},instance_labels);
+
+all_image_names = get_names_of_X_for_scene(handles.selected_scene, 'rgb_images');
+
+images = cell(1,length(all_image_names));
+
+tt = text(.3,.5,['Loaded Image ' num2str(0) '/' num2str(length(all_image_names))]);
+
+for il=1:length(all_image_names)
+  cur_name = all_image_names{il};
+  img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'rgb', ...
+                      strcat(cur_name(1:10), '.png')));
+  images{il} = img;
+  
+  delete(tt);
+  tt = text(.3,.5,['Loaded Image ' num2str(il) '/' num2str(length(all_image_names))]);
+  drawnow
+end
+
+handles.image_map = containers.Map(all_image_names, images);
+handles.image_width = size(img,2);
+handles.image_height = size(img,1);
 
 guidata(hObject, handles);
 
@@ -338,7 +358,7 @@ function label_pop_up_menu_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns label_pop_up_menu contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from label_pop_up_menu
 init;
-text(.3,.5,'Loading Images...');
+%text(.3,.5,'Loading Images...');
 
 contents = cellstr(get(hObject,'String'));
 handles.selected_instance =  contents{get(hObject,'Value')};
@@ -348,17 +368,6 @@ handles.image_names = cur_instance_labels.image_names;
 handles.bboxes = cur_instance_labels.boxes;
 
 handles.cur_image_index = 1;
-
-handles.images = cell(1,length(handles.image_names));
-
-
-
-for il=1:length(handles.image_names)
-  cur_name = handles.image_names{il};
-  img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'rgb', ...
-                      strcat(cur_name(1:10), '.png')));
-  handles.images{il} = img;
-end
 
 draw_current_image_and_box(hObject, eventdata,handles)
 guidata(hObject, handles);
@@ -383,13 +392,20 @@ end
 
 function draw_current_image_and_box(hObject, eventdata,handles)
 
-img = handles.images{handles.cur_image_index};
+cur_image_name = handles.image_names{handles.cur_image_index};
+
+img = handles.image_map(cur_image_name);
 imshow(img);
 hold on;
 bbox = handles.bboxes{handles.cur_image_index};
 rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ... 
                      'LineWidth',2, 'EdgeColor','r');
+                   
+box_string = [num2str(handles.cur_image_index) '/' ...
+                num2str(length(handles.image_names))];
+handles.box_counter.String = box_string;
 hold off;
+guidata(hObject, handles);
 
 
 
@@ -410,5 +426,38 @@ switch keyPressed
   
   case 'n'
     next_button_Callback(hObject, eventdata, handles)
+  case 'm'
+    prev_button_Callback(hObject, eventdata, handles)
+  case 'e'
+    box_up_button_Callback(hObject, eventdata, handles)
+  case 'd'
+    box_down_button_Callback(hObject, eventdata, handles)
+  case 's'
+    box_left_button_Callback(hObject, eventdata, handles)
+  case 'f'
+    box_right_button_Callback(hObject, eventdata, handles)
+  case 'i'
+    corner_up_button_Callback(hObject, eventdata, handles)
+  case 'k'
+    corner_down_button_Callback(hObject, eventdata, handles)
+  case 'j'
+    corner_left_button_Callback(hObject, eventdata, handles)
+  case 'l'
+    corner_right_button_Callback(hObject, eventdata, handles)
+  case 'x'
+    delete_button_Callback(hObject, eventdata, handles)
 end
+
+
+% --- Executes on button press in save_button.
+function save_button_Callback(hObject, eventdata, handles)
+% hObject    handle to save_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+init;
+image_names = handles.image_names;
+boxes = handles.bboxes;
+save(fullfile(ROHIT_META_BASE_PATH, handles.selected_scene, ...
+                            'labels', 'verified_labels', 'bounding_boxes_by_instance', ...
+                            handles.selected_instance),'image_names','boxes' );
 

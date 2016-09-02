@@ -53,8 +53,8 @@ for i=1:length(all_scenes)
   instance_names = get_names_of_X_for_scene(scene_name, 'instance_labels');
 
 
-  labeled_image_names = dir(fullfile(meta_path, 'labels','raw_labels', 'bounding_boxes_by_image_instance',...
-                                '*.mat'));
+  labeled_image_names = dir(fullfile(meta_path, 'recognition_results', 'ssd_bigBIRD',...
+                             'bounding_boxes_by_image_class','*.mat'));
   labeled_image_names = {labeled_image_names.name};
 
 
@@ -63,8 +63,9 @@ for i=1:length(all_scenes)
   for jl=1:length(labeled_image_names)
 
     cur_image_name = labeled_image_names{jl};
-    cur_struct = load(fullfile(meta_path, 'labels', 'raw_labels', 'bounding_boxes_by_image_instance', ...
-                    strcat(cur_image_name(1:10), '.mat'))); 
+    cur_struct = load(fullfile(meta_path, 'recognition_results', 'ssd_bigBIRD', ...
+                                'bounding_boxes_by_image_class', ...
+                                strcat(cur_image_name(1:10), '.mat'))); 
 
     image_labels{jl} = cur_struct;
   end
@@ -82,8 +83,12 @@ for i=1:length(all_scenes)
     disp(cur_instance_name);
 
 
-    cur_instance_labels = {image_labels.(cur_instance_name)};
-
+    try
+      cur_instance_labels = {image_labels.(cur_instance_name)};
+    catch
+      continue;
+    end
+    
     assert(length(cur_instance_labels) == length(labeled_image_names));
 
     valid_image_names = cell(1,length(labeled_image_names));
@@ -110,7 +115,7 @@ for i=1:length(all_scenes)
     image_names = valid_image_names;
     boxes = valid_boxes;
  
-    save(fullfile(meta_path, 'labels', 'raw_labels', 'bounding_boxes_by_instance', ...
+    save(fullfile(meta_path, 'recognition_results', 'ssd_bigBIRD', 'bounding_boxes_by_class', ...
                   strcat(cur_instance_name,'.mat')), 'image_names', 'boxes');
 
    end%for jl, each instance name 
