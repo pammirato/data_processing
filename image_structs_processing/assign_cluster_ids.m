@@ -11,7 +11,9 @@ init;
 %% USER OPTIONS
 
 
-scene_name = 'SN208_k1'; %make this = 'all' to run all scenes
+scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+group_name = 'all';
+model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 

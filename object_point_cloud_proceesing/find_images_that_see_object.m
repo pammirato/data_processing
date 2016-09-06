@@ -14,14 +14,14 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_05_1'; %make this = 'all' to run all scenes
 group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-label_to_process = 'advil_liqui_gels'; %make 'all' for every label
+label_to_process = 'all'; %make 'all' for every label
 label_names = {label_to_process};
 
 
@@ -33,8 +33,8 @@ method = 0; %0 - ideal oclusion filtering, not implemented
 
 
 do_occlusion_filtering = 1;
-occlusion_threshold = 100;  %make > 12000 to remove occlusion thresholding
-occlusion_threshold_far = -500;
+occlusion_threshold = 50;  %make > 12000 to remove occlusion thresholding
+occlusion_threshold_far = -1000;
 
 use_global_pc = 0;
 use_color_check = 0;
@@ -42,7 +42,7 @@ use_color_check = 0;
 
 count = 0;
 
-debug =1;
+debug =0;
 
 kinect_to_use = 1;
 
@@ -198,8 +198,14 @@ for il=1:length(all_scenes)
           %         strcat(rgb_name(1:8),'04.png') ));
           %depth_images{jl} = imread(fullfile(scene_path, 'high_res_depth', ... 
           %         strcat(rgb_name(1:8),'03.png') ));
-          depth_images{jl} = imread(fullfile(meta_path, 'improved_depths', ... 
+          try
+            depth_images{jl} = imread(fullfile(meta_path, 'improved_depths', ... 
                          strcat(rgb_name(1:8),'05.png') ));
+          catch
+            depth_images{jl} = imread(fullfile(scene_path, 'high_res_depth', ... 
+                   strcat(rgb_name(1:8),'03.png') ));
+    
+          end
       end% for i, each image name
       
       depth_img_map = containers.Map(image_names, depth_images);
@@ -254,6 +260,9 @@ for il=1:length(all_scenes)
         disp(cur_image_name);
       end
       
+%       if(strcmp(cur_image_name,'0006460101.png'))
+%         breakp = 1;
+%       end
       %% get the image name, position/direction info 
       cur_image_name = image_names{kl};
       cur_image_struct = image_structs_map(cur_image_name);
@@ -461,7 +470,7 @@ for il=1:length(all_scenes)
           disp('reading depth image...');
 %           depth_image = imread(fullfile(scene_path, 'high_res_depth', ... 
 %                          strcat(cur_image_name(1:8),'03.png') ));
-          depth_image = imread(fullfile(meta_path, 'improved_depths_2', ... 
+          depth_image = imread(fullfile(meta_path, 'improved_depths', ... 
                          strcat(cur_image_name(1:8),'05.png') ));
         else
           depth_image = depth_img_map(cur_image_name);
@@ -518,7 +527,7 @@ for il=1:length(all_scenes)
      post_occlusion_density = length(distorted_points) / bbox_area;
 
   
-      if((post_occlusion_density/pre_occlusion_density < .3))
+      if((post_occlusion_density/pre_occlusion_density < .1))
         %disp(['too few points final: ' , num2str(length(distorted_points))]);
         disp('density too small');
         continue;
@@ -844,6 +853,21 @@ for il=1:length(all_scenes)
 
    end%f r jl, each point cloud 
 
+   save_path = '';
+   if(method == 0)
+     save_path=fullfile(meta_path, 'labels', 'raw_labels', 'bounding_boxes_by_image_instance');
+   elseif(method == 1)
+     save_path=fullfile(meta_path, 'labels', 'loose_3D_labels', ...
+                                      'bounding_boxes_by_image_instance');
+   elseif(method == 2)
+     save_path = fullfile(meta_path, 'labels', 'strict_labels', ... 
+                                'bounding_boxes_by_image_instance');
+   end
+
+   if(~exist(save_path,'dir'))
+    mkdir(save_path);
+   end
+
 
    %save all the label structs
    for jl=1:length(label_structs)
@@ -856,16 +880,23 @@ for il=1:length(all_scenes)
      cur_image_name = cur_struct.image_name;
      cur_struct = rmfield(cur_struct,'image_name');
 
+     save_file_path=fullfile(save_path, strcat(cur_image_name(1:10), '.mat'));
+     
 
-     if(method == 0)
-       save(fullfile(meta_path, 'labels', 'raw_labels', 'bounding_boxes_by_image_instance', ...
-                      strcat(cur_image_name(1:10), '.mat')), '-struct', 'cur_struct'); 
-     elseif(method == 1)
-       save(fullfile(meta_path, 'labels', 'loose_3D_labels', 'bounding_boxes_by_image_instance', ...
-                      strcat(cur_image_name(1:10), '.mat')), '-struct', 'cur_struct'); 
-     elseif(method == 2)
-       save(fullfile(meta_path, 'labels', 'strict_labels', 'bounding_boxes_by_image_instance', ...
-                      strcat(cur_image_name(1:10), '.mat')), '-struct', 'cur_struct'); 
+
+                                      
+     if(exist(save_file_path, 'file'))
+      prev_labels = load(save_file_path);
+
+      cur_fields = fieldnames(cur_struct);
+      for kl=1:length(cur_fields)
+        prev_labels.(cur_fields{kl}) = cur_struct.(cur_fields{kl});
+      end%for kl
+
+       save(save_file_path, '-struct', 'prev_labels');
+
+     else
+       save(save_file_path, '-struct', 'cur_struct');
      end
    end%for jl, each label struct
 

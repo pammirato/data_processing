@@ -4,14 +4,13 @@
 
 %TODO  - add option to just add a single instance to existing ann_structs 
 
-%initialize contants, paths and file names, etc. 
-init;
+%initialize contants, paths and file names, etc. init;
 
 
 
 %% USER OPTIONS
 
-scene_name = 'SN208_2cm_paths'; %make this = 'all' to run all scenes
+scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -46,6 +45,7 @@ for i=1:length(all_scenes)
   %% set scene specific data structures
   scene_name = all_scenes{i};
   scene_path = fullfile(ROHIT_BASE_PATH, scene_name);
+  meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
   %get a list of all the instances in the scene
   all_instance_names = get_names_of_X_for_scene(scene_name,'instance_labels'); 
@@ -69,16 +69,21 @@ for i=1:length(all_scenes)
   
   %for each instance, add a box to each image's struct that has this instance
   for j=1:length(all_instance_names)
-    cur_instance_file_name = all_instance_names{j};
+    cur_instance_file_name = strcat(all_instance_names{j}, '.mat');
     cur_instance_name = cur_instance_file_name(1:end-4);   
+    disp(cur_instance_name);
  
     %load the boxes for this instance and make a map
-    cur_instance_labels_file = load(fullfile(scene_path,LABELING_DIR, ...
+    try
+    cur_instance_labels= load(fullfile(meta_path,LABELING_DIR, 'verified_labels', ...
                                   BBOXES_BY_INSTANCE_DIR, cur_instance_file_name));
-    cur_instance_labels = cur_instance_labels_file.annotations;
-
-    instance_boxes_map = containers.Map({cur_instance_labels.image_name}, ...
-                                        {cur_instance_labels.bbox});
+    catch
+      continue;
+    end
+                                
+                                
+    instance_boxes_map = containers.Map(cur_instance_labels.image_names, ...
+                                        cur_instance_labels.boxes);
 
 
     %for each instance label, add it to the corresponding image struct
@@ -123,7 +128,7 @@ for i=1:length(all_scenes)
 
 
 
-    save(fullfile(scene_path,LABELING_DIR,BBOXES_BY_IMAGE_INSTANCE_DIR, ...
+    save(fullfile(meta_path,LABELING_DIR, 'verified_labels', BBOXES_BY_IMAGE_INSTANCE_DIR, ...
                   strcat(cur_image_name(1:10),'.mat')), '-struct', 'cur_ann_struct');
 
   end %for j

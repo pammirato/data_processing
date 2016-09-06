@@ -11,7 +11,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Office_01_1'; %make this = 'all' to run all scenes
 group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
@@ -144,6 +144,10 @@ for il=1:length(all_scenes)
 
 
 
+  %% load the sparse mesh
+  %[mesh_vertices, mesh_faces] = read_ply(fullfile(meta_path, 'sparse_mesh.ply'));
+
+
 
 
 
@@ -264,26 +268,100 @@ for il=1:length(all_scenes)
     image_structs_map(image_names{jl}) = image_structs(jl);
   end
 
-  %image_names = {'0003110101.png'};
+  %image_names = {'0006460101.png', '0006810101.png'};
+  %image_names = image_names(170:end);
   for jl= 1:length(image_names) 
     
     
     %% get the image name, position/direction info 
     cur_image_name = image_names{jl};
     cur_image_struct = image_structs_map(cur_image_name);
+    R = cur_image_struct.R;
+    t = cur_image_struct.t; 
+    P = [R t];
+    cam_pos = cur_image_struct.world_pos *scale;
+    cam_dir = cur_image_struct.direction;
     disp(cur_image_name);
     %depth_img = imread(fullfile(scene_path, 'high_res_depth', strcat(cur_image_name(1:8), ...
     %                      '03.png')));
-    cur_depth_img = depth_img_map(cur_image_name);
+    if(depths_loaded)
+      cur_depth_img = depth_img_map(cur_image_name);
+    else
+      cur_depth_img = imread(fullfile(scene_path, 'high_res_depth', strcat(cur_image_name(1:8), ...
+                        '03.png')));
+    end
     %cur_pc = pcread(fullfile(meta_path, 'point_clouds', strcat(cur_image_name(1:10), ...
     %                                  '.ply')));
 
     depth_img = cur_depth_img;
 
+
+
+%     mesh_depth_img = zeros(size(depth_img));
+%     temp_img = zeros(size(depth_img));
+%     col_pos = repmat([1:1920], 1080,1);
+%     row_pos = repmat([1:1080]', 1, 1920);
+%     pixel_pos = zeros(1080,1920,2);
+%     pixel_pos(:,:,1) = row_pos;
+%     pixel_pos(:,:,2) = col_pos;
+%     pixel_pos = reshape(pixel_pos, 1080*1920,2);
+%     for kl=1:size(mesh_faces,1)
+%       
+%       kl_face = mesh_faces(kl,:);
+%       vertices = mesh_vertices(kl_face,:);
+% 
+%       %project vertices into image
+%       oriented_vertices = P * [vertices'; ones(1, length(vertices))];
+%       if(min(oriented_vertices(3,:)) < 0)
+%         continue;
+%       end
+%       image_locs = project_points_to_image(vertices, K,R,t,distortion);   
+%       if(min(image_locs(1,:)) < 1 | max(image_locs(1,:)) > kImageWidth | ...
+%          min(image_locs(2,:)) < 1 | max(image_locs(2,:)) > kImageHeight)
+%         continue;
+%       end
+%        
+%       %pixels_in_face = isPointInTriangle(pixel_pos, ...
+%       %                                   image_locs(1,:), image_locs(2,:), image_locs(3,:)); 
+%         
+%       cam_to_point_vecs = vertices*scale - repmat(cam_pos', size(vertices,1),1);
+%       vertex_dists = (cam_to_point_vecs * cam_dir)';
+%       
+%       %good_pixel_pos = pixel_pos(find(pixels_in_face), :);
+%       %if(isempty(good_pixel_pos))
+%       %  continue;
+%       %end
+% 
+%       %mesh_depth_img(sub2ind(good_pixel_pos,2)) = vertex_dists(1); 
+%       mesh_depth_img(sub2ind(size(mesh_depth_img), image_locs(2,:), image_locs(1,:))) = vertex_dists(1); 
+%  
+%       sr = min(image_locs(2,:));
+%       er = max(image_locs(2,:));
+%       sc = min(image_locs(1,:));
+%       ec = max(image_locs(1,:));
+%       
+%       
+%       %temp_img(sr:er,sc:ec) = mean(vertex_dists);
+%       %occ_mask = mesh_depth_img < temp_img;
+%       mesh_depth_img(sr:er,sc:ec) = mean(vertex_dists);
+%       %mesh_depth_img = mesh_depth_img + (double(~occ_mask) .* temp_img);
+%       %temp_img(sr:er,sc:ec) = 0;
+%     end 
+% 
+% 
+% 
+% 
+%     imagesc(mesh_depth_img);
+% 
+%     assert(0);
+
+
+
+
+
+
     %% get point clouds from depth image
    
-    R = cur_image_struct.R;
-    t = cur_image_struct.t; 
     %col_pos = [300,300, 1000, 1500, 1500];% repmat([1:1920], 1080,1);
     %row_pos = [200, 800, 500, 200, 800]; % repmat([1:1080]', 1, 1920);
     col_pos = repmat([1:1920], 1080,1);
@@ -714,6 +792,7 @@ for il=1:length(all_scenes)
     depth_img = cur_depth_img;
 
     %% TODO  - keep depth image values that are less than point cloud values
+      %good_depth_flags = (depth_img>0) & ((depth_img<pc_depth_img) | (depth_img<2000));
       good_depth_flags = (depth_img>0) & (depth_img<pc_depth_img);
       thresh_depth = double(depth_img) .* double(good_depth_flags);
       thresh_pc_depth = pc_depth_img .* double(~good_depth_flags);

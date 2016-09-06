@@ -11,14 +11,14 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_01_1'; %make this = 'all' to run all scenes
-group_name = 'all_minus_boring';
+scene_name = 'Office_01_1'; %make this = 'all' to run all scenes
+group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-scale = 549;
+scale = 700;
 
 %% SET UP GLOBAL DATA STRUCTURES
 
@@ -58,7 +58,7 @@ for i=1:length(all_scenes)
                               'colmap_results', model_number,IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
 
-
+  prev_scale = image_structs_file.scale;
   
     %save the new data 
     %save(fullfile(scene_path, IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE); 

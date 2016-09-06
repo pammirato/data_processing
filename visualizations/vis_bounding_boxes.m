@@ -12,8 +12,8 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
-group_name = 'all';
+scene_name = 'Kitchen_Living_04_2'; %make this = 'all' to run all scenes
+group_name = 'all_minus_boring';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -21,7 +21,7 @@ custom_scenes_list = {};%populate this
 
 %OPTIONS for ground truth bounding boxes
 show_vatic_output = 1; %
-vatic_label_to_show = 'all'; 
+vatic_label_to_show = 'nutrigrain_harvest_blueberry_bliss'; 
 use_custom_vatic_labels = 0;
 custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 
@@ -126,15 +126,18 @@ for i=1:length(all_scenes)
 %display stuff
     hold off;
     rgb_image = imread(fullfile(scene_path,RGB,cur_image_name));
-    %depth_image = imread(fullfile(scene_path,'high_res_depth', ...
-    %                      strcat(cur_image_name(1:8), '03.png')));
-    %depth_image = imread(fullfile(meta_path,'point_depths', ...
-    %                      strcat(cur_image_name(1:8), '05.png')));
     imshow(rgb_image);
     hold on;
+    try
+      %depth_image = imread(fullfile(scene_path,'high_res_depth', ...
+      %                      strcat(cur_image_name(1:8), '03.png')));
+      depth_image = imread(fullfile(meta_path,'improved_depths', ...
+                            strcat(cur_image_name(1:8), '05.png')));
+      h = imagesc(depth_image);
+      set(h,'AlphaData', .5);
+    catch 
+    end
 
-    %h = imagesc(depth_image);
-    %set(h,'AlphaData', .5);
     title(cur_image_name);
     
     %draw vatic bounding boxes

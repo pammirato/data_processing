@@ -14,8 +14,8 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_01_1'; %make this = 'all' to run all scenes
-group_name = 'all_minus_boring';
+scene_name = 'Office_01_1'; %make this = 'all' to run all scenes
+group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -215,8 +215,8 @@ for il=1:length(all_scenes)
   ref_dir = ref_struct.direction; 
   ref_dir = ref_dir([1 3]);
 
-  image_names = {'0000010101.png', '0003740101.png','0006460101.png'};
-  %image_names = {'0000040101.png'};
+  image_names = {'0000010101.png', '0001230101.png','0003060101.png'};
+  %image_names = {'0009640101.png'};
   %image_names = image_names(1:20);
   %all_pcs = cell(1,length(image_names));
 

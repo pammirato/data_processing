@@ -22,7 +22,7 @@ function varargout = box_editor(varargin)
 
 % Edit the above text to modify the response to help box_editor
 
-% Last Modified by GUIDE v2.5 03-Aug-2016 09:38:58
+% Last Modified by GUIDE v2.5 03-Sep-2016 14:05:56
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -90,6 +90,8 @@ image_names = handles.image_names;
 bboxes = handles.bboxes;
 cur_image_index = handles.cur_image_index;
 
+handles.last_deleted_name = image_names{cur_image_index};
+handles.last_deleted_boxes = bboxes{cur_image_index};
 
 image_names(cur_image_index) = [];
 bboxes(cur_image_index) = [];
@@ -307,7 +309,7 @@ init;
 contents = cellstr(get(hObject,'String'));
 handles.selected_scene =  contents{get(hObject,'Value')};
 instance_labels = dir(fullfile(ROHIT_META_BASE_PATH, handles.selected_scene, ...
-                      'labels','strict_labels', 'bounding_boxes_by_instance', '*.mat'));
+                      'labels','raw_labels', 'bounding_boxes_by_instance', '*.mat'));
 instance_labels = {instance_labels.name};
 
 handles.label_pop_up_menu.String = cat(2,{'Pick a label'},instance_labels);
@@ -461,3 +463,45 @@ save(fullfile(ROHIT_META_BASE_PATH, handles.selected_scene, ...
                             'labels', 'verified_labels', 'bounding_boxes_by_instance', ...
                             handles.selected_instance),'image_names','boxes' );
 
+
+% --- Executes on button press in res_up_button.
+function res_up_button_Callback(hObject, eventdata, handles)
+% hObject    handle to res_up_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.box_change_resolution = min(handles.box_change_resolution+5,500);
+
+% Update handles structure
+guidata(hObject, handles);
+
+% --- Executes on button press in res_down_button.
+function res_down_button_Callback(hObject, eventdata, handles)
+% hObject    handle to res_down_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+handles.box_change_resolution = max(handles.box_change_resolution-5,1);
+
+% Update handles structure
+guidata(hObject, handles);
+
+
+% --- Executes on button press in undo_button.
+function undo_button_Callback(hObject, eventdata, handles)
+% hObject    handle to undo_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+if(~isfield(handles, 'last_deleted_name'))
+  return;
+end
+  
+  name = handles.last_deleted_name;
+  boxes = handles.last_deleted_boxes;
+  
+  handles.image_names{end+1} = name;
+  handles.bboxes{end+1} = boxes;
+  
+  % Update handles structure
+  guidata(hObject, handles);
+
+  
+  

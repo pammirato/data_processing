@@ -14,8 +14,8 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_01_1'; %make this = 'all' to run all scenes
-group_name = 'all_minus_boring';
+scene_name = 'Office_01_1'; %make this = 'all' to run all scenes
+group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -188,7 +188,7 @@ for il=1:length(all_scenes)
   image_structs(counter:end) = [];
   point_2d_structs(counter:end) = [];
 
- 
+  image_structs = nestedSortStruct2(image_structs, 'image_name'); 
   %figure this out with another scirpt, just a place holder for now 
   scale = 0;
 

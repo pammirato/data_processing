@@ -36,9 +36,9 @@ save_figures = 0; % 0 - don't save
 
 view_figure = 1; %whether or not to make the figure(s) visible
 
-use_scaled_positions = 1;%use positions in meters, not arbitrary reconstruction coords
+use_scaled_positions = 0;%use positions in meters, not arbitrary reconstruction coords
 
-
+show_image_names = 1;
 
 
 %% SET UP DATA STRUCTURES
@@ -82,10 +82,10 @@ for i=1:length(all_scenes)
 
   %image_structs = cell2mat(image_structs_file.(IMAGE_STRUCTS));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
-
+  scale = image_structs_file.scale;
   %get positions and directions of camera for each image
   if(use_scaled_positions)
-    world_poses = [image_structs.scaled_world_pos]; 
+    world_poses = [image_structs.world_pos]*scale; 
   else
     world_poses = [image_structs.world_pos];
   end

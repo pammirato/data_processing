@@ -11,7 +11,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_05_1'; %make this = 'all' to run all scenes
 group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
@@ -109,9 +109,16 @@ for i=1:length(all_scenes)
  
     image_names = valid_image_names;
     boxes = valid_boxes;
- 
-    save(fullfile(meta_path, 'labels', 'raw_labels', 'bounding_boxes_by_instance', ...
-                  strcat(cur_instance_name,'.mat')), 'image_names', 'boxes');
+
+
+    save_path = fullfile(meta_path, 'labels', 'raw_labels', 'bounding_boxes_by_instance');
+
+    if(~exist(save_path,'dir'))
+     mkdir(save_path);
+    end
+   
+    save(fullfile(save_path, strcat(cur_instance_name,'.mat')), 'image_names', 'boxes');
+                  
 
    end%for jl, each instance name 
 
