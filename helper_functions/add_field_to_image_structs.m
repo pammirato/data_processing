@@ -1,4 +1,4 @@
-function [] = add_field_to_image_structs(new_field, inital_value,scene_name)
+function [] = add_field_to_image_structs(new_field, initial_value,scene_name)
 
 %TODO  - make sure the new_field doesn't already exist
 %      - add a remove field feature
@@ -16,7 +16,7 @@ function [] = add_field_to_image_structs(new_field, inital_value,scene_name)
   d = d(3:end);
 
   all_scenes = {d.name};
-
+  
   if(exist(scene_name))
     all_scenes = {scene_name};
   end
@@ -29,18 +29,21 @@ function [] = add_field_to_image_structs(new_field, inital_value,scene_name)
 
 
     %load all the image_structs for this scene
-    image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
+    image_structs_file =  load(fullfile(meta_path, 'reconstruction_results', ... 
+                                'all', 'colmap_results', ... 
+                                '0', IMAGE_STRUCTS_FILE));
+
     image_structs = image_structs_file.(IMAGE_STRUCTS);
     scale  = image_structs_file.scale;
 
     %% add the field to each struct
     for j=1:length(image_structs)
           
-      cur_struct = image_structs{j};
+      cur_struct = image_structs(j);
   
-      cur_struct.(new_field) = intial_value;       
+      cur_struct.(new_field) = initial_value;       
 
-      image_structs{j} = cur_struct;
+      image_structs(j) = cur_struct;
     end%for j, each struct
       
       

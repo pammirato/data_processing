@@ -14,11 +14,12 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_03_1'; %make this = 'all' to run all scenes
-group_name = 'all_minus_boring';
+scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
+group_name = 'all';
 model_number = '0';
-use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {'Kitchen_Living_01_1'};%populate this 
+use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_1', 'Kitchen_Living_03_1', 'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1'};%populate this 
+
 
 
 
@@ -273,11 +274,11 @@ for il=1:length(all_scenes)
       if(num_points_ratio > .8)
         ration_area_hardness = 0; 
       elseif(num_points_ratio > .6)
-        ration_area_hardness = 0; 
+        ration_area_hardness = 1; 
       elseif(num_points_ratio > .4)
-        ration_area_hardness = 0; 
+        ration_area_hardness = 2; 
       else
-        ration_area_hardness = 0; 
+        ration_area_hardness = 3; 
       end 
 
 

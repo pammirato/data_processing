@@ -16,11 +16,14 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_05_1'; %make this = 'all' to run all scenes
+group_name = 'all';
 group_name = 'all_minus_boring';
 model_number = '0';
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
+use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {'Kitchen_Living_02_1','Kitchen_Living_08_1','Bedroom_01_1','Office_01_1', 'Kitchen_05_1'} ;%populate this 
+custom_scenes_list = {'Kitchen_Living_01_1','Kitchen_Living_03_1','Kitchen_Living_03_2','Kitchen_Living_04_2','Kitchen_Living_06'};%populate this 
+
 
 
 view_direction = 1;%should the lines indicating camera direction be drawn?
@@ -28,7 +31,7 @@ view_direction = 1;%should the lines indicating camera direction be drawn?
 
 plot_type = 1; %  0 - 3D point plot 
                %  1 - 2D point plot
-save_figures = 0; % 0 - don't save
+save_figures = 2; % 0 - don't save
                   % 1 - save .fig file
                   % 2 - save .jpg image
 
@@ -157,8 +160,10 @@ for i=1:length(all_scenes)
         savefig(fullfile(meta_path,RECONSTRUCTION_DIR, ...
                 strcat(file_prefix, plot_type_suffix, '.fig')));
       case 2
-        saveas(positions_plot_fig, fullfile(meta_path,RECONSTRUCTION_DIR, ...
-                 strcat(file_prefix, plot_type_suffix, '.jpg')));
+        %saveas(positions_plot_fig, fullfile(meta_path,RECONSTRUCTION_DIR, ...
+        %         strcat(file_prefix, plot_type_suffix, '.jpg')));
+        saveas(positions_plot_fig, fullfile('/playpen/ammirato/Data/cam_pos_dirs/', ...
+                 strcat(scene_name, file_prefix, plot_type_suffix, '.jpg')));
     end
 
 

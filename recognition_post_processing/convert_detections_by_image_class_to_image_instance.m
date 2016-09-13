@@ -11,23 +11,23 @@ init;
 
 %% USER OPTIONS
 
-scene_name ='SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
+scene_name ='Kitchen_Living_02_1'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-recognition_system_name = 'ssd_coco';
+recognition_system_name = 'ssd_bigBIRD';
 
-class_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
+class_name = 'bigBIRD';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
 use_custom_classes = 0;
 custom_classes_list = {};
 
-label_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
+label_name = 'bigBIRD';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
 use_custom_labels = 0;
 custom_labels_list = {'chair5','chair6'};
 
 
-iou_threshold = .5;
+iou_threshold = .2;
 
 
 
@@ -92,21 +92,27 @@ for i=1:length(all_scenes)
     %get the class level detections         
     cur_image_name = all_image_names{j};
     cur_mat_name = strcat(cur_image_name(1:10), '.mat');  
+    try
     cur_detections_by_class = load(fullfile(meta_path, RECOGNITION_DIR,  ...
                                    recognition_system_name, BBOXES_BY_IMAGE_CLASS_DIR, ...
                                    cur_mat_name));
-
+    catch
+      continue;
+    end
+                                 
+                                 
     %get the true bbox for this instance in this image
-    cur_true_bboxes_by_instance = load(fullfile(scene_path, LABELING_DIR, ...
+    cur_true_bboxes_by_instance = load(fullfile(meta_path, LABELING_DIR, 'verified_labels', ...
                                     BBOXES_BY_IMAGE_INSTANCE_DIR, cur_mat_name));  
 
     %will hold all the detecitons to save
     cur_detections_by_instance = struct();
 
+    all_labels = fieldnames(cur_true_bboxes_by_instance);
     for k=1:length(all_labels) 
       cur_instance_name = all_labels{k};
       %get rid of extension
-      cur_instance_name = cur_instance_name(1:end-4);
+      %cur_instance_name = cur_instance_name(1:end-4);
 
       %set an empty detection for now
       cur_detections_by_instance.(cur_instance_name) = [];
@@ -122,8 +128,13 @@ for i=1:length(all_scenes)
       %get the class name of this instance by removing numbers at the end
       class_of_instance = get_class_name_from_instance_name(cur_instance_name);  
       %get the detections for this class in this image
-      detections_for_class = cur_detections_by_class.(class_of_instance);
-
+      try
+        detections_for_class = cur_detections_by_class.(class_of_instance);
+      catch
+        cur_detections_by_instance.(cur_instance_name) = zeros(1,6);
+        continue;
+      end
+          
       %find the detection with the highest score, that has
       %a proper iou(intersection over union) with the true bbox
       cur_detection_for_instance = get_best_scored_intersecting_box(cur_instance_true_bbox, ...
@@ -131,6 +142,9 @@ for i=1:length(all_scenes)
                                                                    iou_threshold); 
       if(~isempty(cur_detection_for_instance))
         cur_detections_by_instance.(cur_instance_name) = cur_detection_for_instance;
+      else
+        %the instance is present but was not detected -> score of 0
+        cur_detections_by_instance.(cur_instance_name) = zeros(1,6);
       end  
 
     end%for k, each instance label

@@ -58,7 +58,7 @@ end
 
 
 %% MAIN LOOP
-scenes_count_struct = struct('total', 0);
+scenes_count_struct = struct('total', [0 0]);
 for il=1:length(all_scenes)
  
   %% set scene specific data structures
@@ -72,55 +72,49 @@ for il=1:length(all_scenes)
   end
 
 
+  image_names = get_names_of_X_for_scene(scene_name, 'rgb_images');
 
 
 
 
 
-
-  count_struct = struct();
-  hard0_sum = 0;
-  hard1_sum = 0;
-  hard2_sum = 0;
-  hard3_sum = 0;
-  total_sum = 0;
   %% MAIN LOOP  for each label find its bounding box in each image
 
+  images_with_a_box = 0;
   %for each point cloud
-  for jl=1:length(label_names)
+  for jl=1:length(image_names)
     
     %get the name of the label
-    cur_label_name = label_names{jl};
-    disp(cur_label_name);
+    cur_image_name = image_names{jl};
+    disp(cur_image_name);
 
 
                      
     try
-    cur_instance_boxes = load(fullfile(meta_path, 'labels', 'verified_labels', ...
-                              'bounding_boxes_by_instance', strcat(cur_label_name, '.mat')));
+      cur_instance_boxes = load(fullfile(meta_path, 'labels', 'verified_labels', ...
+                         'bounding_boxes_by_image_instance', strcat(cur_image_name(1:10),'.mat')));
     catch
       continue;
     end
 
-    image_names = cur_instance_boxes.image_names; 
-    cur_instance_boxes =cell2mat( (cur_instance_boxes.boxes)');;
+    instance_names = fieldnames(cur_instance_boxes);
 
-    hard0 = length(find(cur_instance_boxes(:,5) == 0)); 
-    hard1 = length(find(cur_instance_boxes(:,5) == 1)); 
-    hard2 = length(find(cur_instance_boxes(:,5) == 2)); 
-    hard3 = length(find(cur_instance_boxes(:,5) == 3)); 
-    total = size(cur_instance_boxes,1);
+    has_box = 0;
+    for kl=1:length(instance_names)
+      if(~isempty(cur_instance_boxes.(instance_names{kl})))
+        has_box = 1;
+        break;
+      end
+    end
     
-    count_struct.(cur_label_name) = [hard0 hard1 hard2 hard3 total];
+    if(has_box)
+      images_with_a_box = images_with_a_box + 1;
+    end
 
-
-    hard0_sum = hard0_sum + hard0;
-    hard1_sum = hard1_sum + hard1;
-    hard2_sum = hard2_sum + hard2;
-    hard3_sum = hard3_sum + hard3;
-    total_sum = total_sum + total;
   end%for jl, each label struct
-  scenes_count_struct.(scene_name) = [hard0_sum hard1_sum hard2_sum hard3_sum total_sum];
-  scenes_count_struct.total = scenes_count_struct.total + total_sum;
+  scenes_count_struct.(scene_name) = [images_with_a_box, length(image_names)];
+  scenes_count_struct.total = scenes_count_struct.total + ...
+                                       [images_with_a_box, length(image_names)];
+
 end%for i, each scene_name
 

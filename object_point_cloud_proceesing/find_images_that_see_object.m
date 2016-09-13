@@ -14,7 +14,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_05_1'; %make this = 'all' to run all scenes
+scene_name = 'SN208_den2'; %make this = 'all' to run all scenes
 group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
@@ -191,8 +191,13 @@ for il=1:length(all_scenes)
       %for each rgb image, load a depth image
       for jl=1:length(image_names)
           rgb_name = image_names{jl};
+
+          if(mod(jl,50)==0)
+            disp(jl);
+          end
+
           
-          rgb_images{jl} = imread(fullfile(scene_path, 'rgb', rgb_name));
+          %rgb_images{jl} = imread(fullfile(scene_path, 'rgb', rgb_name));
 
           %depth_images{jl} = imread(fullfile(scene_path, 'filled_high_res_depth', ... 
           %         strcat(rgb_name(1:8),'04.png') ));
@@ -470,8 +475,14 @@ for il=1:length(all_scenes)
           disp('reading depth image...');
 %           depth_image = imread(fullfile(scene_path, 'high_res_depth', ... 
 %                          strcat(cur_image_name(1:8),'03.png') ));
-          depth_image = imread(fullfile(meta_path, 'improved_depths', ... 
+
+          try
+            depth_image = imread(fullfile(meta_path, 'improved_depths', ... 
                          strcat(cur_image_name(1:8),'05.png') ));
+          catch
+            depth_image = imread(fullfile(scene_path, 'high_res_depth', ... 
+                          strcat(cur_image_name(1:8),'03.png') ));
+          end
         else
           depth_image = depth_img_map(cur_image_name);
         end

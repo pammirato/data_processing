@@ -122,8 +122,7 @@ for i=1:length(all_scenes)
                            recognition_system_name, 'output_boxes',  ...
                             strcat(scene_name, '_', cur_mat_name)));
       catch
-        continue;
-      end
+        cont
                           
                           
       dets = cur_rec_struct.dets;

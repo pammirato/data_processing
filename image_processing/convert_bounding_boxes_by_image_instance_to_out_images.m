@@ -1,5 +1,3 @@
-%saves a map from a label (instance) name, to names of all images that 'see'
-% any of the reconstructed points on the object
 
 %TODO -get rid of image structs map. Just use indexes. (Make it sorted?)
 
@@ -18,9 +16,9 @@ scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 group_name = 'all';
 model_number = '0';
 use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
-%custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_1', 'Kitchen_Living_03_1', 'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1'};%populate this 
-custom_scenes_list = {'Kitchen_Living_03_2', 'Kitchen_Living_08_1'};%populate this 
-
+custom_scenes_list = {'Kitchen_Living_01_1',...
+                      'Kitchen_Living_02_1', 'Kitchen_Living_03_1', ...
+                      'Bedroom_01_1'};%populate this 
 
 
 
@@ -76,7 +74,10 @@ fclose(fid_bb_map);
 
 
 
-
+  save_base_path = fullfile('/playpen/ammirato/Data/RohitMetaMetaData/', 'labels', 'output_labels');
+  if(~exist(save_base_path, 'dir'))
+    mkdir(save_base_path);
+  end
 
 
 
@@ -89,6 +90,9 @@ for il=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
+
+
+
   %get the names of all the labels
   if(strcmp(label_to_process, 'all'))
     label_names = get_names_of_X_for_scene(scene_name, 'instance_labels');
@@ -97,14 +101,6 @@ for il=1:length(all_scenes)
   image_names = get_names_of_X_for_scene(scene_name, 'rgb_images');
 
 
-  save_base_path = fullfile('/playpen/ammirato/Data/Eunbyung_Data/', scene_name);
-  ann_save_path = fullfile(save_base_path, 'annotations');
-  img_save_path = fullfile(save_base_path, 'rgb');
-  if(~exist(save_base_path, 'dir'))
-    mkdir(save_base_path);
-    mkdir(ann_save_path);
-    mkdir(img_save_path);
-  end
 
 
 
@@ -115,50 +111,35 @@ for il=1:length(all_scenes)
   for jl=1:length(image_names)
     
     cur_image_name = image_names{jl};
-    if(mod(jl,50) == 0)
-      disp(cur_image_name);
-    end
+    disp(cur_image_name);
+
 
     cur_instance_boxes = load(fullfile(meta_path, 'labels', 'verified_labels', ...
                          'bounding_boxes_by_image_instance', strcat(cur_image_name(1:10), '.mat')));
 
-    ann_fid = fopen(fullfile(ann_save_path, strcat(cur_image_name(1:10), '_boxes.txt')), 'wt');
 
-    instance_names = fieldnames(cur_instance_boxes); 
-
+    boxes = [];
+    
+    instance_names = fields(cur_instance_boxes);
     for kl=1:length(instance_names)
       kl_name = instance_names{kl};
-      bbox = cur_instance_boxes.(kl_name);
-
-     
-
-      if(isempty(bbox) || (bbox(5) >2))
+      box = cur_instance_boxes.(kl_name);
+      if(isempty(box) | box(5) >2)
         continue;
       end
+      
       try
         cat_id = obj_cat_map(kl_name);
       catch
         continue;
       end
+      
+      boxes(end+1,:) = [box(1:4) cat_id];
+      
+    end%for kl
+    
+    save(fullfile(save_base_path, strcat(scene_name, '_', cur_image_name(1:10),'.mat')),'boxes');
 
-
-      %bbox = floor(bbox ./2);
-      %bbox(1) = max(bbox(1), 1);
-      %bbox(2) = max(bbox(2), 1);
-
-      fprintf(ann_fid, '%d %d %d %d %d\n', cat_id, bbox(1), bbox(2),bbox(3),bbox(4));
-
-    end%for kl, each instance name
-
-    fclose(ann_fid);
-
-
-
-    %img = imread(fullfile(scene_path, 'jpg_rgb', strcat(cur_image_name(1:10), '.jpg')));
-    img = imread(fullfile(scene_path, 'rgb', cur_image_name));
-    %img = imresize(img, .5);
-
-    imwrite(img, fullfile(img_save_path, strcat(cur_image_name(1:10), '.jpg')));
   end%for jl, each image
 end%for i, each scene_name
 

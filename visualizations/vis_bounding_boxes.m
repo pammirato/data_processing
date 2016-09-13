@@ -12,8 +12,9 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_04_2'; %make this = 'all' to run all scenes
-group_name = 'all_minus_boring';
+scene_name = 'Kitchen_Living_02_1_vid_1'; %make this = 'all' to run all scenes
+group_name = 'all';
+%group_name = 'all_minus_boring';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -21,7 +22,7 @@ custom_scenes_list = {};%populate this
 
 %OPTIONS for ground truth bounding boxes
 show_vatic_output = 1; %
-vatic_label_to_show = 'nutrigrain_harvest_blueberry_bliss'; 
+vatic_label_to_show = 'all'; 
 use_custom_vatic_labels = 0;
 custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 
@@ -33,7 +34,7 @@ show_instance_not_class = 0;
 recognition_label_to_show = 'all';
 use_custom_recognition_labels = 0;
 custom_recognition_labels = {};
-score_threshold = .4;
+score_threshold = .1;
 show_scores_of_boxes = 1;
 show_class_of_boxes = 1;
 font_size = 10;
@@ -150,7 +151,7 @@ for i=1:length(all_scenes)
       %vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
       %                     'instance_label_structs', strcat(cur_image_name(1:10),'.mat')));
       vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
-                           'raw_labels','bounding_boxes_by_image_instance', ...
+                           'verified_labels','bounding_boxes_by_image_instance', ...
                              strcat(cur_image_name(1:10),'.mat')));
       catch
         vatic_bboxes =struct();
@@ -216,7 +217,7 @@ for i=1:length(all_scenes)
         bboxes = recognition_bboxes.(labels_to_show{k});
 
         %if thes are detections, threshold on score
-        if(size(bboxes,2) == 5)
+        if(size(bboxes,2) > 4)
           bboxes = bboxes(bboxes(:,5) > score_threshold,:);
         end
 
@@ -269,6 +270,20 @@ for i=1:length(all_scenes)
     elseif(move_command =='w')
         %move forward 
         next_image_name = cur_image_struct.translate_forward;
+        if(next_image_name == -1)
+          next_image_name = cur_image_name;
+        end
+        cur_image_index = str2num(next_image_name(1:6));
+    elseif(move_command =='y')
+        %move forward 
+        next_image_name = cur_image_struct.translate_left;
+        if(next_image_name == -1)
+          next_image_name = cur_image_name;
+        end
+        cur_image_index = str2num(next_image_name(1:6));
+    elseif(move_command =='u')
+        %move forward 
+        next_image_name = cur_image_struct.translate_right;
         if(next_image_name == -1)
           next_image_name = cur_image_name;
         end

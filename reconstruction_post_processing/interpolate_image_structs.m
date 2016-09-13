@@ -1,6 +1,6 @@
 %
 
-%TODO
+%TODO - fix blank struct, shouldnt need all those fields
 
 clearvars;
 
@@ -11,11 +11,12 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
 group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
+custom_scenes_list = {'Kitchen_05_1', 'Office_01_1'};%populate this 
+
 
 cluster_size = 12;%how many images are in each cluster
 
@@ -59,7 +60,8 @@ for il=1:length(all_scenes)
                        DIRECTION, [], QUATERNION, [], ...
                        SCALED_WORLD_POSITION, [0,0,0], IMAGE_ID,'',...
                        CAMERA_ID, '', 'cluster_id', -1, 'rotate_cw', -1, ...
-                       'rotate_ccw',-1, 'translate_forward',-1,'translate_backward',-1);
+                       'rotate_ccw',-1, 'translate_forward',-1,'translate_backward',-1, ...
+                       'translate_left', -1 , 'translate_right', -1);
 
 
 
@@ -69,6 +71,10 @@ for il=1:length(all_scenes)
    
   image_structs = recon_struct_file.image_structs;
   scale = recon_struct_file.scale;
+
+
+  [image_structs.translate_right] = deal(-1);
+  [image_structs.translate_left] = deal(-1);
 
 
   %now make the image structs just for the main rgb images. 
@@ -143,6 +149,12 @@ for il=1:length(all_scenes)
       end
   
     end%for kl 
+    
+    if(length(defining_structs) >= counter)
+      defining_structs(counter:end) = [];
+    end
+    
+    assert(~isempty(defining_structs));
 
     if(method == 1) 
       pts = [defining_structs.t];

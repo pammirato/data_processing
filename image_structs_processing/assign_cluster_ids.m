@@ -11,18 +11,18 @@ init;
 %% USER OPTIONS
 
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
 group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
+custom_scenes_list = {'Kitchen_05_1','Office_01_1'};%populate this 
 
 
-method = 0; %  0 - by hand, get user to draw a box around each cluster
+method = 2; %  0 - by hand, get user to draw a box around each cluster
             %  1 - image index,  just assign cluster_id = image_index
-            %  2 - 
+            %  2 - by cluster size, assign cluter_id = image_index mod cluster size
 
-
+cluster_size = 12;
 
 %% SET UP GLOBAL DATA STRUCTURES
 
@@ -49,9 +49,13 @@ for i=1:length(all_scenes)
   %% set scene specific data structures
   scene_name = all_scenes{i};
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
+  meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
+
 
   %load image_structs for all images
-  image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
+  image_structs_file =  load(fullfile(meta_path, 'reconstruction_results', ...
+                                group_name, 'colmap_results', ...
+                                model_number, IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
   scale  = image_structs_file.scale;
 
@@ -139,7 +143,7 @@ for i=1:length(all_scenes)
 
 
     for j=1:length(image_structs)
-      cur_struct = image_structs{j};
+      cur_struct = image_structs(j);
      
       %get the name and index of the current iamge 
       cur_image_name = cur_struct.image_name;
@@ -147,7 +151,22 @@ for i=1:length(all_scenes)
    
       %assign the index to the cluster id 
       cur_struct.cluster_id = cur_image_index;
-      image_structs{j} = cur_struct;
+      image_structs(j) = cur_struct;
+    end%for j, each image_struct
+
+  elseif(method == 2) %cluster size 
+
+
+    for j=1:length(image_structs)
+      cur_struct = image_structs(j);
+     
+      %get the name and index of the current iamge 
+      cur_image_name = cur_struct.image_name;
+      cur_image_index =  str2num(cur_image_name(1:6));
+   
+      %assign the index to the cluster id 
+      cur_struct.cluster_id = floor((cur_image_index-1)/cluster_size);
+      image_structs(j) = cur_struct;
     end%for j, each image_struct
 
 
@@ -157,10 +176,25 @@ for i=1:length(all_scenes)
     display('method not supported');
   end
 
+  cluster_ids = [image_structs.cluster_id];
 
+  colors = rand(3, max(cluster_ids)+1);
+  
+  world_poses = [image_structs.world_pos];
+  
+  figure;
+  hold on;
+  for jl=1:length(world_poses)
+    color = colors( :,image_structs(jl).cluster_id + 1);
+    pos = image_structs(jl).world_pos;
+    plot(pos(1), pos(3),'.', 'Color', color);  
    
+  end
+  hold off;
   %save the update image structs  
-  save(fullfile(scene_path,IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
+  save(fullfile(meta_path, 'reconstruction_results', group_name, ...
+                'colmap_results', model_number,  IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
+
   
 end%for i,  each scene
 

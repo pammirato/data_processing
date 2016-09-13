@@ -11,12 +11,12 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_Density_2by2_same_chair'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_02_1'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-recognition_system_name = 'ssd_coco';
+recognition_system_name = 'ssd_bigBIRD';
 
 class_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
 use_custom_classes = 0;
@@ -99,34 +99,41 @@ for i=1:length(all_scenes)
        breakp=1;
     end
  
+    try
     %now save the detections by instance for this image
     cur_image_detections = load(fullfile(meta_path, RECOGNITION_DIR, recognition_system_name, ...
                                          BBOXES_BY_IMAGE_INSTANCE_DIR, cur_mat_name));
-
+    catch
+      continue;
+    end
 
 
     for k=1:length(all_instance_names)
       cur_instance_name = all_instance_names{k};
       %remove the .mat
-      cur_instance_name = cur_instance_name(1:end-4);
+      %cur_instance_name = cur_instance_name(1:end-4);
 
       cur_instance_bbox = cur_image_detections.(cur_instance_name); 
 
       cur_instance_struct = struct('image_name', cur_image_name, 'bbox', cur_instance_bbox);
 
-      instance_arrays{k,cur_image_index} = cur_instance_struct ; 
+      %instance_arrays{k,cur_image_index} = cur_instance_struct ; 
+      instance_arrays{k,j} = cur_instance_struct;
     end%for k, each instance name 
 
 
   end% for j, each label_name
 
 
-
+  
   %now for each instance, save the detections
   for j=1:length(all_instance_names)
     cur_instance_name = all_instance_names{j};
 
-    detections = cell2mat(instance_arrays(j,:));
+    t = instance_arrays(j,:);
+    t = t(~cellfun('isempty', t));
+    detections = cell2mat(t);
+    %detections = cell2mat(instance_arrays(j,:));
     save(fullfile(meta_path, RECOGNITION_DIR, recognition_system_name, ...
                   BBOXES_BY_INSTANCE_DIR, cur_instance_name),'detections');
   end%for j, each instance name

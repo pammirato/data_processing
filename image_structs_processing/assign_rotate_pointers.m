@@ -2,7 +2,7 @@
 %to it. This represents a rotation in the scene. Only structs from the same cluster 
 % are considered
 
-
+clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -13,9 +13,11 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'PhilKitchenLiving'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
+group_name = 'all';
+model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
+custom_scenes_list = {'Kitchen_05_1','Office_01_1'};%populate this 
 
 %% SET UP GLOBAL DATA STRUCTURES
 
@@ -45,31 +47,36 @@ for i=1:length(all_scenes)
   %% set scene specific data structures
   scene_name = all_scenes{i};
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
- 
+  meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
+
 
   %load image_structs for all images
-  image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
+  image_structs_file =  load(fullfile(meta_path, 'reconstruction_results', ...
+                                group_name, 'colmap_results', ...
+                                model_number, IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
   scale  = image_structs_file.scale;
 
-  %make this for easy access to data 
-  mat_image_structs = cell2mat(image_structs); 
-  
-  %make a map from image_name to image struct for easy saving later
-  img_structs_map = containers.Map({mat_image_structs.image_name}, image_structs);
+  %get a list of all the image file names
+  image_names = {image_structs.(IMAGE_NAME)};
+
+  %make a map from image name to image_struct
+  image_structs_map = containers.Map(image_names,...
+                                 cell(1,length(image_names)));
+  %populate the map
+  for jl=1:length(image_names)
+    image_structs_map(image_names{jl}) = image_structs(jl);
+  end
   
   %find max number of clusters 
-  max_cluster_id = max([mat_image_structs.cluster_id]);
+  max_cluster_id = max([image_structs.cluster_id]);
 
-
-  %make a map from image_name to image struct for easy saving later
-  image_structs_map = containers.Map({mat_image_structs.image_name}, image_structs);
 
 
   %for each cluster, assign the pointers to each image
-  for j=1:max_cluster_id
+  for j=0:max_cluster_id
 
-    cur_cluster = mat_image_structs(find([mat_image_structs.cluster_id] == j));
+    cur_cluster = image_structs(find([image_structs.cluster_id] == j));
    
     %for each image in the cluster 
     for k=1:length(cur_cluster)
@@ -86,8 +93,8 @@ for i=1:length(all_scenes)
       other_structs = cur_cluster;
       other_structs(k) = [];
       
-      ccw_name = '';
-      cw_name = '';
+      ccw_name = -1;
+      cw_name = -1;
       ccw_angle = 360;
       cw_angle = 360;
       for l=1:length(other_structs)
@@ -137,9 +144,10 @@ for i=1:length(all_scenes)
     end%for k, each point
   end%for j, each cluster
   
-  image_structs = image_structs_map.values;
+  image_structs = cell2mat(image_structs_map.values);
   
-  save(fullfile(scene_path, IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
+  save(fullfile(meta_path, 'reconstruction_results', group_name, ...
+                'colmap_results', model_number,  IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
 
 end%for each scene
 

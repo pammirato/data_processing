@@ -1,9 +1,3 @@
-%shows bounding boxes by image, with many options.  Can view vatic outputted boxes,
-%results from a recognition system, or both. Also allows changing of vatic boxes. 
-
-%TODO  - add scores to rec bboxes
-%      - add labels to rec bboxes
-%      - move picking labels to show outside of loop
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -129,14 +123,14 @@ for i=1:length(all_scenes)
       
 
 
-      if(image_index >=799)
-        col=9;
-        if(image_index <= 807)
-          row = image_index - 798;
-        else
-          row = row + 9;
-        end
-      end
+%      if(image_index >=799)
+%        col=9;
+%        if(image_index <= 807)
+%          row = image_index - 798;
+%        else
+%          row = row + 9;
+%        end
+%      end
 
 
 

@@ -11,7 +11,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Office_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_05_2'; %make this = 'all' to run all scenes
 group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
@@ -269,7 +269,7 @@ for il=1:length(all_scenes)
   end
 
   %image_names = {'0006460101.png', '0006810101.png'};
-  %image_names = image_names(170:end);
+  %image_names = image_names(950:end);
   for jl= 1:length(image_names) 
     
     

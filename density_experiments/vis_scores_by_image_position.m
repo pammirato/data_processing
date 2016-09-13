@@ -1,9 +1,4 @@
-%shows bounding boxes by image, with many options.  Can view vatic outputted boxes,
-%results from a recognition system, or both. Also allows changing of vatic boxes. 
 
-%TODO  - add scores to rec bboxes
-%      - add labels to rec bboxes
-%      - move picking labels to show outside of loop
 
 %initialize contants, paths and file names, etc. 
 init;

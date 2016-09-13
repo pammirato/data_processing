@@ -10,9 +10,12 @@
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_02_1_vid_3'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
+custom_scenes_list = {'Kitchen_Living_03_2','Kitchen_Living_08_1'};%populate this 
+
+
+
 
 
 
