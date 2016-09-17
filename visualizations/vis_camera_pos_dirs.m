@@ -16,13 +16,14 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_05_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_01_2'; %make this = 'all' to run all scenes
 group_name = 'all';
-group_name = 'all_minus_boring';
+%group_name = 'all_minus_boring';
 model_number = '0';
 use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {'Kitchen_Living_02_1','Kitchen_Living_08_1','Bedroom_01_1','Office_01_1', 'Kitchen_05_1'} ;%populate this 
-custom_scenes_list = {'Kitchen_Living_01_1','Kitchen_Living_03_1','Kitchen_Living_03_2','Kitchen_Living_04_2','Kitchen_Living_06'};%populate this 
+custom_scenes_list = {'Kitchen_Living_01_2','Kitchen_Living_02_2','Kitchen_Living_08_2','Kitchen_Living_04_1','Bedroom_01_2'};%populate this 
+custom_scenes_list = {'uwash_s7','NYUD2_Kitchen1','Kitchen_Living_01_1','Kitchen_Living_08_1'} ;%populate this 
 
 
 
@@ -31,7 +32,7 @@ view_direction = 1;%should the lines indicating camera direction be drawn?
 
 plot_type = 1; %  0 - 3D point plot 
                %  1 - 2D point plot
-save_figures = 2; % 0 - don't save
+save_figures = 0; % 0 - don't save
                   % 1 - save .fig file
                   % 2 - save .jpg image
 
@@ -67,12 +68,20 @@ end
 
 %% MAIN LOOP
 
+f = figure();
+
 for i=1:length(all_scenes)
  
   %% set scene specific data structures
   scene_name = all_scenes{i};
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
+
+  if(strcmp(scene_name, 'Kitchen_Living_01_1'))
+    group_name = 'all_minus_boring';
+  else
+    group_name = 'all';
+  end
 
   %file that has postions and other meta data for each image 
   try
@@ -97,14 +106,16 @@ for i=1:length(all_scenes)
   directions = [image_structs.direction];
 
   %make figure invisible if option is set
-  if(view_figure)
-    positions_plot_fig = figure;
-  else 
-    positions_plot_fig = figure('Visible', 'off');
-  end
+%   if(view_figure)
+%     positions_plot_fig = figure;
+%   else 
+%     positions_plot_fig = figure('Visible', 'off');
+%   end
 
  
   %% plot  sutff 
+
+  ax(i) = subplot(2,2,i);
 
   % plot positions 
   switch plot_type

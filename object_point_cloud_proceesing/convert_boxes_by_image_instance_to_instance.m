@@ -14,8 +14,8 @@ init;
 scene_name = 'SN208_den2'; %make this = 'all' to run all scenes
 group_name = 'all';
 model_number = '0';
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1'};%populate this 
+use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {'Den_den2','Den_den3','Den_den4'};%populate this 
 
 
 

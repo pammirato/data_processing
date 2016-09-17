@@ -12,7 +12,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_02_1_vid_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_02_1'; %make this = 'all' to run all scenes
 group_name = 'all';
 %group_name = 'all_minus_boring';
 model_number = '0';
@@ -21,24 +21,24 @@ custom_scenes_list = {};%populate this
 
 
 %OPTIONS for ground truth bounding boxes
-show_vatic_output = 1; %
+show_vatic_output = 0; %
 vatic_label_to_show = 'all'; 
 use_custom_vatic_labels = 0;
 custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 
 
 %options for FAST-RCNN bounding boxes
-show_recognition_output = 0;
+show_recognition_output = 1;
 recognition_system_name = 'ssd_bigBIRD';
-show_instance_not_class = 0;
-recognition_label_to_show = 'all';
+show_instance_not_class = 1;
+recognition_label_to_show = 'crystal_hot_sauce';
 use_custom_recognition_labels = 0;
 custom_recognition_labels = {};
 score_threshold = .1;
 show_scores_of_boxes = 1;
-show_class_of_boxes = 1;
-font_size = 10;
-
+show_class_of_boxes = 0;
+font_size = 30;
+line_width = 5;
 
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -116,6 +116,7 @@ for i=1:length(all_scenes)
   %requires  image sturcts map - image name to image struct
   %          image_names  - cell array of all image names
 
+  f = figure();
   cur_image_index = 1;
   cur_image_name  = image_names{cur_image_index};
   cur_image_struct =  image_structs_map(cur_image_name);
@@ -134,8 +135,8 @@ for i=1:length(all_scenes)
       %                      strcat(cur_image_name(1:8), '03.png')));
       depth_image = imread(fullfile(meta_path,'improved_depths', ...
                             strcat(cur_image_name(1:8), '05.png')));
-      h = imagesc(depth_image);
-      set(h,'AlphaData', .5);
+      %h = imagesc(depth_image);
+      %set(h,'AlphaData', .5);
     catch 
     end
 
@@ -177,10 +178,10 @@ for i=1:length(all_scenes)
           continue;
         end  
         rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
-                     'LineWidth',2, 'EdgeColor','r');
+                     'LineWidth',line_width, 'EdgeColor','r');
         t = text(bbox(1), bbox(2)-font_size,labels_to_show{k},  ...
                                     'FontSize',font_size, 'Color','white');
-        t.BackgroundColor = 'black';
+        t.BackgroundColor = 'red';
       end%for k, each label to show
       end%if vatic is not empty
     end%if show vatic output
@@ -192,15 +193,23 @@ for i=1:length(all_scenes)
     if(show_recognition_output)
 
       if(show_instance_not_class)
+        try
         recognition_bboxes = load(fullfile(meta_path,RECOGNITION_DIR, ...
                                           recognition_system_name , ...
                                           BBOXES_BY_IMAGE_INSTANCE_DIR, ...
                                    strcat(cur_image_name(1:10), '.mat')));
+        catch
+          recognition_bboxes = struct();
+        end
       else
+        try
         recognition_bboxes = load(fullfile(meta_path,RECOGNITION_DIR, ...
                                           recognition_system_name , ...
                                           BBOXES_BY_IMAGE_CLASS_DIR, ...
-                                   strcat(cur_image_name(1:10), '.mat')));
+                                    strcat(cur_image_name(1:10), '.mat')));
+        catch
+          recognition_bboxes = struct();
+        end
        end
 
 
@@ -214,6 +223,9 @@ for i=1:length(all_scenes)
 
 
       for k=1:length(labels_to_show)
+        if(isempty(fieldnames(recognition_bboxes)))
+          continue;
+        end
         bboxes = recognition_bboxes.(labels_to_show{k});
 
         %if thes are detections, threshold on score
@@ -232,18 +244,19 @@ for i=1:length(all_scenes)
           
 
           rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
-                     'LineWidth',2, 'EdgeColor','b');
+                     'LineWidth',line_width, 'EdgeColor','r');
           if(show_scores_of_boxes)
-            t = text(bbox(1), bbox(2)-font_size,strcat(num2str(bbox(5))),  ...
-                                    'FontSize',font_size, 'Color','white');
+            t = text(bbox(1) - (bbox(3)-bbox(1)), bbox(2)-font_size,...
+                                    sprintf('%1.3f', bbox(5)),  ...
+                                    'FontSize',font_size, 'Color','black');
 
-            t.BackgroundColor = 'black';
+            t.BackgroundColor = 'red';
           end
           if(show_class_of_boxes)
             t = text(bbox(3)-20, bbox(2)+font_size,labels_to_show{k},  ...
-                                    'FontSize',font_size, 'Color','white');
+                                    'FontSize',font_size, 'Color','black');
 
-            t.BackgroundColor = 'black';
+            t.BackgroundColor = 'red';
           end
 
         end%for l, each bbox
@@ -323,7 +336,14 @@ for i=1:length(all_scenes)
     elseif(move_command =='g')
         %move forward 100 images
         cur_image_index = cur_image_index + 100;
-   
+    elseif(move_command =='l')
+        %move forward 100 images
+        %saveas(f, fullfile('/playpen/ammirato/Pictures/icra_2016_figures/', ...
+        %  strcat(cur_image_name(1:10), recognition_label_to_show, '.png'))); 
+        set(gcf,'inverthardcopy','off');
+
+        print(fullfile('/playpen/ammirato/Pictures/icra_2016_figures/images_to_agg', ...
+          strcat(cur_image_name(1:10), recognition_label_to_show, '.png')), '-dpng'); 
 
     elseif(move_command =='v')
       %play a video of X images

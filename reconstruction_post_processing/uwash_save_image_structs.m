@@ -14,13 +14,10 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_01_2'; %make this = 'all' to run all scenes
-group_name = 'all';
-model_number = '0';
+scene_name = 'uwash_s7'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {'Den_den2', 'Den_den3','Den_den4'};%populate this 
 
-cluster_size = 12;%how many images are in each cluster
 
 
 
@@ -45,16 +42,13 @@ end
 
 
 %some constants that correspond to an index in each line the data is
-IMG_ID = 1;
-QW = 2;
-QX = 3;
-QY = 4;
-QZ = 5;
-TX = 6;
-TY = 7;
-TZ = 8;
-CAM_ID = 9;
-NAME = 10;
+QW = 1;
+QX = 2;
+QY = 3;
+QZ = 4;
+X = 5;
+Y = 6;
+Z = 7;
 
 
 
@@ -70,8 +64,7 @@ for il=1:length(all_scenes)
 
     
   %get the camera positions and orientations for the given images
-  fid_images = fopen(fullfile(meta_path,RECONSTRUCTION_DIR,group_name,'colmap_results', ...
-      model_number, IMAGES_RECONSTRUCTION)); 
+  fid_images = fopen(fullfile(meta_path,RECONSTRUCTION_DIR,'07.pose'));
 
   %if the file didn't open
   if(fid_images == -1)
@@ -80,13 +73,9 @@ for il=1:length(all_scenes)
   end
   
   %get the number of images for this scene
-  num_total_rgb_images = length(dir(fullfile(scene_path,RGB))) - 2;
+  %num_total_rgb_images = length(dir(fullfile(scene_path,RGB))) - 2;
+  num_total_rgb_images = 1000;%length(dir(fullfile(scene_path,RGB))) - 2;
 
-  %skip header
-  fgetl(fid_images); 
-  fgetl(fid_images); 
-  fgetl(fid_images); 
-  fgetl(fid_images); 
 
   %holds all the structs, one per image, for this scene
   blank_struct = struct(IMAGE_NAME, '', TRANSLATION_VECTOR, [], ...
@@ -96,11 +85,9 @@ for il=1:length(all_scenes)
                        CAMERA_ID, '', 'cluster_id', -1, 'rotate_cw', -1, ...
                        'rotate_ccw',-1, 'translate_forward',-1,'translate_backward',-1);
 
-  blank_p2d_struct = struct(IMAGE_NAME, '', POINTS_2D, []);
   %image_structs = cell(1,num_total_rgb_images); 
   image_structs = repmat(blank_struct,1,num_total_rgb_images); 
   %point_2d_structs = cell(1,num_total_rgb_images);
-  point_2d_structs = repmat(blank_p2d_struct,1,num_total_rgb_images);
 
 
   %for the orientation
@@ -117,62 +104,42 @@ for il=1:length(all_scenes)
 
     %get image info
     line = strsplit(line);
-    cur_image = str2double(line(1:end-1)); 
+    line = str2double(line(1:end)); 
 
     %stop when line is empty
-    if(length(cur_image) < QZ)
+    if(length(line) < QZ)
       disp('too small')
       break;
     end
 
-    %translation vector?
-    t = [cur_image(TX); cur_image(TY); cur_image(TZ)];
     
     %get quaternion and rotation matrix
-    quat = [cur_image(QW); cur_image(QX); cur_image(QY); cur_image(QZ)];
+    quat = [line(QW); line(QX); line(QY); line(QZ)];
+    quat = quat(end:-1:1);
     R = quaternion_to_matrix(quat); % get rotation matrix from quaternion orientation
-
     %get the 3D world position of the camera for this image
-    worldpos = (-R' * t);
-    
+    world_pos = [line(X) line(Y) line(Z)]';
+   
+    t = -R'*world_pos; 
     %calculate the camera direction
-    proj = [-R' worldpos];
+    proj = [-R' world_pos];
     cur_vec = (proj * vec1) - (proj*vec2);
 
     %get the name of the image 
-    name = line{end};
+    name = num2str(counter);
 
-    %skip hand scan images
-    image_index = str2double(name(1:6));
-    rgb_image_names = dir(fullfile(scene_path, 'rgb', '*.png'));
-    if(image_index > length(rgb_image_names))
-      disp(name);
-      line =fgetl(fid_images); 
-      line =fgetl(fid_images); 
-      continue;
-    end
-       
     %put all the info in a struct, with a place holder for scaled
     %position
     cur_struct = struct(IMAGE_NAME, name, TRANSLATION_VECTOR, t, ...
-                       ROTATION_MATRIX, R, WORLD_POSITION, (-R' * t), ...
+                       ROTATION_MATRIX, R, WORLD_POSITION, world_pos, ...
                        DIRECTION, -cur_vec, QUATERNION, quat, ...
-                       SCALED_WORLD_POSITION, [0,0,0], IMAGE_ID,line{IMG_ID},...
-                       CAMERA_ID, line{CAM_ID}, 'cluster_id', -1, 'rotate_cw', -1, ...
+                       SCALED_WORLD_POSITION, [0,0,0], IMAGE_ID,-1,...
+                       CAMERA_ID, -1, 'cluster_id', -1, 'rotate_cw', -1, ...
                        'rotate_ccw',-1, 'translate_forward',-1,'translate_backward',-1);
 
     %image_structs{counter} = cur_struct;
     image_structs(counter) = cur_struct;
     
-    %get Points2D 
-    line =fgetl(fid_images); 
-     
-    p2d_struct = struct(IMAGE_NAME, name, ...
-        POINTS_2D, str2double(strsplit(line)));
-    
-    %point_2d_structs{counter} = p2d_struct;
-    point_2d_structs(counter) = p2d_struct;
- 
     counter = counter+1;
     
     %get the next line                
@@ -186,7 +153,6 @@ for il=1:length(all_scenes)
   %point_2d_structs = point_2d_structs(~cellfun('isempty',point_2d_structs));
  
   image_structs(counter:end) = [];
-  point_2d_structs(counter:end) = [];
 
   image_structs = nestedSortStruct2(image_structs, 'image_name'); 
   %figure this out with another scirpt, just a place holder for now 
@@ -194,11 +160,8 @@ for il=1:length(all_scenes)
 
   %save everything
   %save(fullfile(scene_path,IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
-  save(fullfile(meta_path,RECONSTRUCTION_DIR,group_name,'colmap_results', model_number, 'image_structs.mat'), ...
+  save(fullfile(meta_path,RECONSTRUCTION_DIR, 'all', 'colmap_results', '0','image_structs.mat'), ...
                   IMAGE_STRUCTS, SCALE);
-  save(fullfile(meta_path, RECONSTRUCTION_DIR,group_name,'colmap_results',model_number, POINT_2D_STRUCTS_FILE), POINT_2D_STRUCTS);
-   
-
  
 end%for i, each scene
 

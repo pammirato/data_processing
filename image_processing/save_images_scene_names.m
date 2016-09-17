@@ -18,7 +18,7 @@ scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 group_name = 'all';
 model_number = '0';
 use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {'FB209_den1', 'SN208_den1', 'SN208_den2', 'Kitchen_Living_02_1_vid'};
+custom_scenes_list = {'Den_den2', 'Den_den3', 'Den_den4'};
 
 
 

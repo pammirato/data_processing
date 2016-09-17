@@ -1,16 +1,25 @@
 
 %initialize contants, paths and file names, etc. 
+clearvars;
 init;
 
 
 
 %% USER OPTIONS
 
-scene_name = 'SN208_den1'; %make this = 'all' to run all scenes
+scene_name = 'FB209_den1'; %make this = 'all' to run all scenes
 group_name = 'all';
 model_number = '0';
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
+use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {'FB209_den1', 'SN208_den1', 'SN208_den2', ...
+    'Kitchen_Living_02_1_vid_1','Kitchen_Living_02_1_vid_3' };%populate this 
+custom_scenes_list = {'Den_den2', 'Den_den3','Den_den4' };%populate this 
+custom_scenes_list = {'FB209_den1', 'SN208_den1', 'SN208_den2', ...
+    'Kitchen_Living_02_1_vid_1','Kitchen_Living_02_1_vid_3', ...
+    'Den_den2', 'Den_den3','Den_den4'};%populate this 
+  custom_scenes_list = {'FB209_den1', 'SN208_den2', ...
+   'Kitchen_Living_02_1_vid_3', ...
+   'Den_den3'};%populate this 
 
 instance_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
 use_custom_instances = 0;
@@ -43,8 +52,13 @@ end
 
 
 
+global_avg_diff_sums = zeros(1000,1);
+all_avg_diffs = -ones(200,length(all_scenes));
+
 
 %% MAIN LOOP
+
+f = figure();
 
 for i=1:length(all_scenes)
  
@@ -98,10 +112,15 @@ for i=1:length(all_scenes)
 
   for jl=1:length(image_names)
     image_name = image_names{jl};
+    
+    try
     dets = load(fullfile(meta_path, 'recognition_results', recognition_system_name, ...
                            'bounding_boxes_by_image_instance', ...
                           strcat(image_name(1:10), '.mat')));
-
+    catch
+      continue;
+    end
+                        
     detections_map(image_name) = dets; 
  end
 
@@ -123,7 +142,8 @@ for i=1:length(all_scenes)
     %det_jl = dets_jl.(instance_name);
     %score_jl = det_jl(5);
     scores_jl = dets_jl(:,5);
-
+    
+    scores_jl(scores_jl<0) = -100;
     all_scores(jl,:) = scores_jl;
 
     for kl = 1:length(image_names)
@@ -135,7 +155,7 @@ for i=1:length(all_scenes)
       %det_kl = dets_kl.(instance_name);
       %score_kl = det_kl(5); 
       scores_kl = dets_kl(:,5);
-
+      scores_kl(scores_kl<0) = -100;
 
       dist = pdist2(cam_pos_jl', cam_pos_kl');
       %score_diff = abs(score_jl - score_kl);
@@ -150,39 +170,68 @@ for i=1:length(all_scenes)
 
   end%for jl  
 
-  bin_size = 10;
+  bin_size = 20;
   max_dist = max(dists);
   num_bins = ceil(max_dist/bin_size);
   avg_score_diff_per_dist = -ones(num_bins,size(score_diffs,2));
   
   
-  figure; 
+  %f = figure(); 
+  ax(i) = subplot(2,2,i);
   hold on;
   for jl=1:size(avg_score_diff_per_dist,2)
     for kl=1:num_bins
       dist = kl*bin_size;
       %good_inds = find( (dists < dist) & (dists > (dist-bin_size))  & (score_diffs(:,jl) > 0));
-      good_inds = find( (dists < dist) & (dists > (dist-bin_size)));
-      avg_score_diff_per_dist(kl,jl) = mean(score_diffs(good_inds,jl));  
+      gi = find( (dists < dist) & (dists > (dist-bin_size)) & (dist>0));
+      gi2 = find(score_diffs(:,jl) <= 1);
+      good_inds = intersect(gi, gi2);
+      x= mean(score_diffs(good_inds,jl));  
+      if(isnan(x))
+        avg_score_diff_per_dist(kl,jl) = 0;
+      else
+        avg_score_diff_per_dist(kl,jl)  = x;
+      end
     end
     color = rand(3,1);
     plot(0:length(avg_score_diff_per_dist(:,jl)), [0;avg_score_diff_per_dist(:,jl)], 'Color',color)
 
   end%for jl
-  legend(all_instance_names);
+  %legend(all_instance_names);
   
   line([300/bin_size 300/bin_size], [0 max(avg_score_diff_per_dist(:))]);
-  xlabel('binned distance between cameras')
-  ylabel('avg score difference');
+%   xlabel('binned distance between cameras(2cm)')
+%   ylabel('avg score difference');
+  axis([0 100 0 1]);
   hold off;
   
+%   saveas(f, fullfile('/playpen/ammirato/Pictures/icra_2016_figures/', ...
+%           strcat(scene_name, 'density_2', '.jpg')));
   
+    max_diffs = max(avg_score_diff_per_dist);
+    bad_inds = max_diffs < .2;
+    avg_score_diff_per_dist(:,bad_inds) = [];
 
-  
-
-  
-  
+   avg_avg_diff = mean(avg_score_diff_per_dist,2);
+   
+   all_avg_diffs(1:length(avg_score_diff_per_dist),i) = avg_avg_diff;
+   
+    
+   global_avg_diff_sums(1:length(avg_avg_diff)) =  global_avg_diff_sums(1:length(avg_avg_diff)) + avg_avg_diff; 
 
 end%for each scene
 
+  
+xl =xlabel('Binned Distance Between Cameras(2cm)');
+yl = ylabel('Absolute Difference in Detection Score');
+set(xl,'Position', [-10 -.15]);
+set(yl, 'Position', [-150 1.1]);
+tt = title('How detection changes with movement');
+set(tt, 'Position', [-10 2.45]);
+
+% global_avg_diff = global_avg_diff_sums / length(all_scenes);
+% global_avg_diff(global_avg_diff ==0) = [];
+% 
+% figure;
+% plot(1:length(global_avg_diff), global_avg_diff);
 

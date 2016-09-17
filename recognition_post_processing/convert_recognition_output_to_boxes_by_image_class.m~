@@ -4,7 +4,7 @@
 %TODO  - what to add next
 
 %initialize contants, paths and file names, etc. 
-
+clearvars;
 init;
 
 
@@ -53,8 +53,6 @@ end
 fclose(fid_bb_map);
 
 
-mkdir(fullfile(meta_path, RECOGNITION_DIR, recognition_system_name, ...
-                    BBOXES_BY_IMAGE_CLASS_DIR));
 
 
 %% MAIN LOOP
@@ -65,6 +63,9 @@ for i=1:length(all_scenes)
   scene_name = all_scenes{i};
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
+  
+  mkdir(fullfile(meta_path, RECOGNITION_DIR, recognition_system_name, ...
+                    BBOXES_BY_IMAGE_CLASS_DIR));
 
 
   %get names of all images in the scene
@@ -122,9 +123,11 @@ for i=1:length(all_scenes)
                            recognition_system_name, 'output_boxes',  ...
                             strcat(scene_name, '_', cur_mat_name)));
       catch
-        cont
-                          
-                          
+        continue;
+      end
+      
+      
+      
       dets = cur_rec_struct.dets;
       cur_rec_struct = struct();
        

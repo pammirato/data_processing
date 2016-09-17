@@ -11,11 +11,9 @@ init;
 
 %% USER OPTIONS
 
-scene_name ='Kitchen_Living_02_1'; %make this = 'all' to run all scenes
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
-
-
+scene_name ='Kitchen_Living_02_1_vid_2'; %make this = 'all' to run all scenes
+use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {'Den_den2', 'Den_den3','Den_den4' };%populate this 
 recognition_system_name = 'ssd_bigBIRD';
 
 class_name = 'bigBIRD';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
@@ -27,7 +25,7 @@ use_custom_labels = 0;
 custom_labels_list = {'chair5','chair6'};
 
 
-iou_threshold = .2;
+iou_threshold = .1;
 
 
 
@@ -100,11 +98,15 @@ for i=1:length(all_scenes)
       continue;
     end
                                  
-                                 
+    try                             
     %get the true bbox for this instance in this image
     cur_true_bboxes_by_instance = load(fullfile(meta_path, LABELING_DIR, 'verified_labels', ...
                                     BBOXES_BY_IMAGE_INSTANCE_DIR, cur_mat_name));  
-
+    catch
+      continue
+    end
+                                  
+                                  
     %will hold all the detecitons to save
     cur_detections_by_instance = struct();
 
@@ -122,6 +124,11 @@ for i=1:length(all_scenes)
         cur_instance_true_bbox = cur_true_bboxes_by_instance.(cur_instance_name);    
       else
         %this instance is not in this image so skip it
+        cur_detections_by_instance.(cur_instance_name) = -ones(1,6);
+        continue;
+      end
+      if(isempty(cur_instance_true_bbox))
+        cur_detections_by_instance.(cur_instance_name) = -ones(1,6);
         continue;
       end
 

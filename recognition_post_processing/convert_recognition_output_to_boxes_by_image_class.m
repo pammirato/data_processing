@@ -4,16 +4,16 @@
 %TODO  - what to add next
 
 %initialize contants, paths and file names, etc. 
-
+clearvars;
 init;
 
 
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_02_1'; %make this = 'all' to run all scenes
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
+scene_name = 'Kitchen_Living_02_1_vid_3'; %make this = 'all' to run all scenes
+use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {'Den_den2', 'Den_den3','Den_den4' };%populate this 
 
 
 recognition_system_name = 'ssd_bigBIRD';
@@ -53,9 +53,6 @@ end
 fclose(fid_bb_map);
 
 
-mkdir(fullfile(meta_path, RECOGNITION_DIR, recognition_system_name, ...
-                    BBOXES_BY_IMAGE_CLASS_DIR));
-
 
 %% MAIN LOOP
 
@@ -65,6 +62,9 @@ for i=1:length(all_scenes)
   scene_name = all_scenes{i};
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
+  
+  mkdir(fullfile(meta_path, RECOGNITION_DIR, recognition_system_name, ...
+                    BBOXES_BY_IMAGE_CLASS_DIR));
 
 
   %get names of all images in the scene
@@ -126,7 +126,11 @@ for i=1:length(all_scenes)
       end
                           
                           
+
       dets = cur_rec_struct.dets;
+     % dets(:,[1 3]) = dets(:, [1 3]) * 1920/600;
+     % dets(:,[2 4]) = dets(:, [2 4]) * 1080/338;
+      
       cur_rec_struct = struct();
        
       cat_ids = unique(dets(:,6));
