@@ -12,23 +12,23 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_02_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_03_2'; %make this = 'all' to run all scenes
 group_name = 'all';
-%group_name = 'all_minus_boring';
+group_name = 'all_minus_boring';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
 %OPTIONS for ground truth bounding boxes
-show_vatic_output = 0; %
+show_vatic_output = 1; %
 vatic_label_to_show = 'all'; 
 use_custom_vatic_labels = 0;
 custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 
 
 %options for FAST-RCNN bounding boxes
-show_recognition_output = 1;
+show_recognition_output = 0;
 recognition_system_name = 'ssd_bigBIRD';
 show_instance_not_class = 1;
 recognition_label_to_show = 'crystal_hot_sauce';
@@ -37,8 +37,8 @@ custom_recognition_labels = {};
 score_threshold = .1;
 show_scores_of_boxes = 1;
 show_class_of_boxes = 0;
-font_size = 30;
-line_width = 5;
+font_size = 10;
+line_width = 2;
 
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -179,9 +179,9 @@ for i=1:length(all_scenes)
         end  
         rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
                      'LineWidth',line_width, 'EdgeColor','r');
-        t = text(bbox(1), bbox(2)-font_size,labels_to_show{k},  ...
-                                    'FontSize',font_size, 'Color','white');
-        t.BackgroundColor = 'red';
+        %t = text(bbox(1), bbox(2)-font_size,labels_to_show{k},  ...
+       %                             'FontSize',font_size, 'Color','white');
+       % t.BackgroundColor = 'red';
       end%for k, each label to show
       end%if vatic is not empty
     end%if show vatic output
@@ -306,15 +306,24 @@ for i=1:length(all_scenes)
         %move backward 
         next_image_name = cur_image_struct.translate_backward;
         cur_image_index = str2num(next_image_name(1:6));
+        if(next_image_name == -1)
+          next_image_name = cur_image_name;
+        end
     
     elseif(move_command =='d')
         %rotate clockwise
         next_image_name = cur_image_struct.rotate_cw;
         cur_image_index = str2num(next_image_name(1:6));
+        if(next_image_name == -1)
+          next_image_name = cur_image_name;
+        end
     elseif(move_command =='a')
         %rotate counter clockwise 
         next_image_name = cur_image_struct.rotate_ccw;
         cur_image_index = str2num(next_image_name(1:6));
+        if(next_image_name == -1)
+          next_image_name = cur_image_name;
+        end
 
     elseif(move_command =='n')
         %go forward one image 
@@ -391,27 +400,38 @@ for i=1:length(all_scenes)
         %update bbox by instance annotations
         try 
           %attempt to load the instance label file
-          instance_annotations_file = load(fullfile(scene_path, LABELING_DIR, ...
-                                           BBOXES_BY_INSTANCE_DIR, ...
+          instance_annotations = load(fullfile(meta_path, LABELING_DIR, ...
+                                           'verified_labels', BBOXES_BY_INSTANCE_DIR, ...
                                             strcat(inserted_label_name, '.mat')));         
 
-          instance_annotations = instance_annotations_file.annotations;
+          %instance_annotations = instance_annotations_file.annotations;
 
 
-          if(isempty(instance_annotations))
-            instance_annotations = [struct('image_name', cur_image_name, ...
-                                                'bbox',  bbox)];
-          else
-            %add the new label
-            instance_annotations(end+1)  = struct('image_name', cur_image_name, ...
-                                                'bbox',  bbox);
-          end
-                                              
-          %save the new annotations
-          annotations = instance_annotations;
-          save(fullfile(scene_path, LABELING_DIR,BBOXES_BY_INSTANCE_DIR, ...
-                       strcat(inserted_label_name, '.mat')), 'annotations');         
+%           if(isempty(instance_annotations))
+%             instance_annotations = [struct('image_name', cur_image_name, ...
+%                                                 'bbox',  bbox)];
+%           else
+%             %add the new label
+%             instance_annotations(end+1)  = struct('image_name', cur_image_name, ...
+%                                                 'bbox',  bbox);
+%           end
+%                                               
+%           %save the new annotations
+%           annotations = instance_annotations;
+%           save(fullfile(meta_path, LABELING_DIR,'verified_labels',BBOXES_BY_INSTANCE_DIR, ...
+%                        strcat(inserted_label_name, '.mat')), 'annotations');         
 
+
+          image_names = instance_annotations.image_names;
+          image_names{end+1} = cur_image_name;
+          %instance_annotations.image_names = image_names;
+          
+          boxes = instance_annotations.boxes;
+          boxes{end+1} = bbox;
+          %instance_annotations.bboxes = bboxes;
+          
+           save(fullfile(meta_path, LABELING_DIR,'verified_labels',BBOXES_BY_INSTANCE_DIR, ...
+                        strcat(inserted_label_name, '.mat')), 'image_names', 'boxes');
         catch
           disp('not a valid label name!');
           continue;
@@ -421,7 +441,7 @@ for i=1:length(all_scenes)
         %add the bbox to the current boxes
         vatic_bboxes.(inserted_label_name) = bbox; 
          
-        save(fullfile(scene_path,LABELING_DIR,BBOXES_BY_IMAGE_INSTANCE_DIR, ...
+        save(fullfile(meta_path,LABELING_DIR,'verified_labels',BBOXES_BY_IMAGE_INSTANCE_DIR, ...
                            strcat(cur_image_name(1:10),'.mat')), '-struct', 'vatic_bboxes');
 
 
