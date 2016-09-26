@@ -1,6 +1,9 @@
 function [pattern] = create_illumination_patter(inputImage, xCenter,yCenter,minIntensity, ...
                                                 maxIntensity, radius)
-%https://www.mathworks.com/matlabcentral/newsreader/view_thread/253588 
+%creates an illumination pattern on an image from a single light source
+%
+% credit to: 
+% https://www.mathworks.com/matlabcentral/newsreader/view_thread/253588 
 
   [rows, columns, numberOfColorBands] = size(inputImage);
   pattern = zeros(rows, columns);

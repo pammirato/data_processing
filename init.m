@@ -1,7 +1,10 @@
 %this files defines file paths, names, and string literals that are used in
 %multiple files, and may need to be changed for different machines.
 
+%TODO -  clean
 
+%CLEANED - no
+%TESTED - no
 
 addpath(genpath('./'));
 
@@ -12,6 +15,7 @@ addpath(genpath('./'));
 ROHIT_BASE_PATH = '/playpen/ammirato/Data/RohitData';
 
 ROHIT_META_BASE_PATH = '/playpen/ammirato/Data/RohitMetaData';
+ROHIT_METAMETA_BASE_PATH = '/playpen/ammirato/Data/RohitMetaMetaData';
 
 BIGBIRD_BASE_PATH = '/playpen/ammirato/Data/BigBIRD';
 
@@ -22,11 +26,12 @@ JPG_RGB = 'jpg_rgb';
 RAW_DEPTH = 'raw_depth';
 HIGH_RES_DEPTH = 'high_res_depth/';
 
-%holds outputs from reconstruction, and other data structures that relate
-RECONSTRUCTION_DIR = 'reconstruction_results/';
+%holds outputs from reconstruction, and other data structures that relate 
+RECONSTRUCTION_SETUP = 'reconstruction_setup/';
+RECONSTRUCTION_RESULTS = 'reconstruction_results/';
 
 %hold outputs from recongition systems(detectors, classifers, parsers, etc)
-RECOGNITION_DIR = 'recognition_results/';
+RECOGNITION_RESULTS = 'recognition_results/';
 
     FAST_RCNN_DIR = 'fast_rcnn/';
 
@@ -36,10 +41,10 @@ MISC_DIR = 'misc/';
 %holds labels and data used for labeling
 LABELING_DIR = 'labels';
 
-    BBOXES_BY_INSTANCE_DIR = 'bounding_boxes_by_instance';
-    BBOXES_BY_IMAGE_INSTANCE_DIR = 'bounding_boxes_by_image_instance';
-    BBOXES_BY_IMAGE_CLASS_DIR = 'bounding_boxes_by_image_class';
-    BBOXES_BY_CLASS_DIR = 'bounding_boxes_by_class';
+    BBOXES_BY_INSTANCE = 'bounding_boxes_by_instance';
+    BBOXES_BY_IMAGE_INSTANCE = 'bounding_boxes_by_image_instance';
+    BBOXES_BY_IMAGE_CLASS = 'bounding_boxes_by_image_class';
+    BBOXES_BY_CLASS = 'bounding_boxes_by_class';
 
     %data_for_labeling
     DATA_FOR_LABELING_DIR = 'data_for_labeling';

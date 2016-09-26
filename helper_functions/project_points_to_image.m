@@ -5,7 +5,7 @@ function [projected_points] = project_points_to_image(world_points, ...
 %disotortion model:  
 %http://docs.opencv.org/master/db/d58/group__calib3d__fisheye.html#gsc.tab=0 
 
-
+%see equations in above link for explaination
 
   %set the camera parameters
   k1 = distortion(1);

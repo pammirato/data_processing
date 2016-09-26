@@ -4,10 +4,10 @@ function [image_struct, annotation] = get_next_labeled_image(base_image_name,...
                                                            label_name, ...
                                                            images_that_see_label, ...
                                                            direction)
-
 %returns image name and bounding box annotation of the given label name
 % in the labeled image closest to the base_image_name in the given direction
-
+%
+% not currently used i think
 
   cur_image_name = base_image_name;
   

@@ -1,8 +1,17 @@
 % assigns a label to each bounding box indicating how difficult it may
 % for a detection system to duplicate
+%
+% It assumed boxes follow the following format:
+%
+%   [xmin ymin xmax ymax cat_id hardness ...]
+%
 
 
 %TODO
+
+%CLEANED - yes
+%TESTED - no
+
 
 clearvars;
 %initialize contants, paths and file names, etc. 
@@ -12,7 +21,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
+scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_1', 'Kitchen_Living_03_1', 'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1'};%populate this 
@@ -22,7 +31,8 @@ custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_
 label_to_process = 'all'; %make 'all' for every label
 label_names = {label_to_process};
 
-
+label_type = 'verified_labels';  %raw_labels - automatically generated labels
+                                %verified_labels - boxes looked over by human
 
 debug =0;
 
@@ -140,14 +150,14 @@ for il=1:length(all_scenes)
     disp(cur_label_name);%display progress
 
     %load the labeled point cloud for this label in this scene
-    cur_pc = pcread(fullfile(meta_path,'labels', ...
-                       'object_point_clouds', strcat(cur_label_name, '.ply')));
+    cur_pc = pcread(fullfile(meta_path,LABELING_DIR, ...
+                    OBJECT_POINT_CLOUDS, strcat(cur_label_name, '.ply')));
  
 
     %load the boxes for this instance                
     try
-      cur_instance_boxes = load(fullfile(meta_path, 'labels', 'verified_labels', ...
-                              'bounding_boxes_by_instance', strcat(cur_label_name, '.mat')));
+      cur_instance_boxes = load(fullfile(meta_path, LABELING_DIR, label_type, ...
+                              BBOXES_BY_INSTANCE, strcat(cur_label_name, '.mat')));
     catch
       %this instance hasn't been labeled yet, skip it
       continue;
@@ -278,7 +288,7 @@ for il=1:length(all_scenes)
       hardness = max([raw_area_hardness, ratio_area_hardness, num_points_hardness]);
 
       %add the hardness meseaure to the box 
-      cur_instance_boxes{kl} = [labeled_box(1:4) hardness];
+      cur_instance_boxes{kl} = [labeled_box(1:5) hardness];
     end%for kl, each image name
 
     %% save the newly classified boxes for this instance label
@@ -290,8 +300,8 @@ for il=1:length(all_scenes)
     cur_instance_boxes.image_names = image_names;
     cur_instance_boxes.boxes = boxes;
     %save 
-    save(fullfile(meta_path, 'labels', 'verified_labels', ...
-                            'bounding_boxes_by_instance',...
+    save(fullfile(meta_path,LABELING_DIR, label_type ...
+                            BBOXES_BY_INSTANCE,...
                              strcat(cur_label_name, '.mat')),...
                                '-struct', 'cur_instance_boxes');
   end%for jl, each instance label name 

@@ -1,4 +1,7 @@
 function [struct_distance] = distance_between_structs(struct1, struct2, dimensions)
+% returns the scaled distance between the cameras stored in two image structs  
+%
+% optional argument 'dimensions' - vector to select which of the 3 position dimensions to use
 
   %get the positions
   pos1 = struct1.scaled_world_pos; 
@@ -11,6 +14,4 @@ function [struct_distance] = distance_between_structs(struct1, struct2, dimensio
   end
 
   struct_distance = sqrt( sum( (pos1-pos2).^2));
-
-
 end%function
