@@ -1,27 +1,23 @@
-%saves a camera poistions and orientations from text file outputted from reconstruction
-%saves a cell array of these 'image structs', and also saves the scale 
+%saves a camera poistions and orientations from text file outputted from COLMAP 
+%saves an array of these 'image structs' (position, orientation, etc. for each image)
+%also saves a placeholder for the scale, which scales positions to mm units
 %also saves a list of reconstructed 3d points seen by each image
-
 
 %TODO - better name, processing for points2d
 
-clearvars;
+%CLEANED - yes 
+%TESTED - yes 
 
 %initialize contants, paths and file names, etc. 
 init;
 
 
-
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_01_2'; %make this = 'all' to run all scenes
-group_name = 'all';
+scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {'Den_den2', 'Den_den3','Den_den4'};%populate this 
-
-cluster_size = 12;%how many images are in each cluster
-
+custom_scenes_list = {};%populate this 
 
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -58,8 +54,7 @@ NAME = 10;
 
 
 
-
-
+%for each scene, save the image structs for that scene
 for il=1:length(all_scenes)
  
   %% set scene specific data structures
@@ -67,10 +62,10 @@ for il=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
-
-    
+   
+  %open the file outputted from COLMAP
   %get the camera positions and orientations for the given images
-  fid_images = fopen(fullfile(meta_path,RECONSTRUCTION_DIR,group_name,'colmap_results', ...
+  fid_images = fopen(fullfile(meta_path,RECONSTRUCTION_RESULTS,'colmap_results', ...
       model_number, IMAGES_RECONSTRUCTION)); 
 
   %if the file didn't open
@@ -96,14 +91,13 @@ for il=1:length(all_scenes)
                        CAMERA_ID, '', 'cluster_id', -1, 'rotate_cw', -1, ...
                        'rotate_ccw',-1, 'translate_forward',-1,'translate_backward',-1);
 
+  %holds the structs with list of reconstructed 3D points seen by each image
   blank_p2d_struct = struct(IMAGE_NAME, '', POINTS_2D, []);
-  %image_structs = cell(1,num_total_rgb_images); 
   image_structs = repmat(blank_struct,1,num_total_rgb_images); 
-  %point_2d_structs = cell(1,num_total_rgb_images);
   point_2d_structs = repmat(blank_p2d_struct,1,num_total_rgb_images);
 
 
-  %for the orientation
+  %used to calculate the orientation later
   cur_vec = zeros(1,3);
   vec1 = [0;0;1;1];
   vec2 = [0;0;0;1];
@@ -166,11 +160,8 @@ for il=1:length(all_scenes)
     
     %get Points2D 
     line =fgetl(fid_images); 
-     
     p2d_struct = struct(IMAGE_NAME, name, ...
         POINTS_2D, str2double(strsplit(line)));
-    
-    %point_2d_structs{counter} = p2d_struct;
     point_2d_structs(counter) = p2d_struct;
  
     counter = counter+1;
@@ -182,26 +173,22 @@ for il=1:length(all_scenes)
 
   %get rid of empty cells if not all images were reconstructed
   %(because we pre-allocated the cell arrays)
-  %image_structs = image_structs(~cellfun('isempty',image_structs));
-  %point_2d_structs = point_2d_structs(~cellfun('isempty',point_2d_structs));
- 
   image_structs(counter:end) = [];
   point_2d_structs(counter:end) = [];
 
+  %sort the image structs by image name
   image_structs = nestedSortStruct2(image_structs, 'image_name'); 
+
   %figure this out with another scirpt, just a place holder for now 
   scale = 0;
 
   %save everything
-  %save(fullfile(scene_path,IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
-  save(fullfile(meta_path,RECONSTRUCTION_DIR,group_name,'colmap_results', model_number, 'image_structs.mat'), ...
-                  IMAGE_STRUCTS, SCALE);
-  save(fullfile(meta_path, RECONSTRUCTION_DIR,group_name,'colmap_results',model_number, POINT_2D_STRUCTS_FILE), POINT_2D_STRUCTS);
+  save(fullfile(meta_path,RECONSTRUCTION_RESULTS,'colmap_results',...
+                 model_number, 'image_structs.mat'),IMAGE_STRUCTS, SCALE);
+                  
+  save(fullfile(meta_path, RECONSTRUCTION_RESULTS,'colmap_results',...
+                  model_number, POINT_2D_STRUCTS_FILE), POINT_2D_STRUCTS);
    
-
- 
-end%for i, each scene
-
-
+end%for il, each scene
 
 

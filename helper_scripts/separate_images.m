@@ -1,124 +1,121 @@
-clearvars;
+% Attempts to remove boring images to make reconstruction easier/faster
 
 
-boring_threshold = 50; %1080*1920*.15;
-not_blurry_threshold = 120;
-pick_out_every = 13;
+%CLEANED - yes 
+%TESTED - yes 
+
+%initialize contants, paths and file names, etc. 
+
+init;
 
 
+
+%% USER OPTIONS
+
+scene_name = 'Office_02_1'; %make this = 'all' to run all scenes
+model_number = '0';
+use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {};
+
+boring_threshold = 50; 
 cluster_size = 12;
-max_images = 3000;
-min_images_per_cluster = 5;
+min_images_per_cluster = 3;
 
 debug = 0;
 
-base_path = '/playpen/ammirato/Data/RohitMetaData/Kitchen_Living_0/reconstruction_setup';
-
-%where to move the images
-
-moved_rgb_path = fullfile(base_path, 'rgb_not_for_reconstruction');
-mkdir(moved_rgb_path);
-
-rgb_image_path = fullfile(base_path, 'rgb');
+%% SET UP GLOBAL DATA STRUCTURES
 
 
-rgb_image_names = dir(fullfile(rgb_image_path, '*.png'));
-rgb_image_names = {rgb_image_names.name};
+%get the names of all the scenes
+d = dir(ROHIT_BASE_PATH);
+d = d(3:end);
+all_scenes = {d.name};
 
 
-%set up data to make sure at least min_images_per_cluster images per cluster are kept
-org_num_images = length(rgb_image_names);
-num_clusters = org_num_images / cluster_size;
-
-%make sure each cluster has the same number of images
-assert(mod(org_num_images,cluster_size) == 0);
-%each cluster needs >= min_images_per_cluster pints, to define its circle
-min_images = num_clusters *min_images_per_cluster;
-max_images = max(max_images, min_images);
-fprintf('Max images: %d\n', max_images);
-
-num_images_removed = 0;
+%determine which scenes are to be processed 
+if(use_custom_scenes && ~isempty(custom_scenes_list))
+  %if we are using the custom list of scenes
+  all_scenes = custom_scenes_list;
+elseif(~strcmp(scene_name, 'all'))
+  %if not using custom, or all scenes, use the one specified
+  all_scenes = {scene_name};
+end
 
 
-%make data structure to keep track of how many images each cluster still has
-%cluster-id - on per cluster
-%images-kept, true/false if the ith image in the cluster will be kept for reconstruction
-%cluster_struct = struct('cluster_id', 1, 'images_kept', ones(1,cluster_size));
-%cluster_structs = repmat(cluster_struct, 1, num_clusters); %one struct per cluster
 
-cluster_images_kept = ones(num_clusters, cluster_size);
+%% MAIN LOOP
+
+%for each scene, copy all images and rename the copy
+for il=1:length(all_scenes)
+ 
+  %% set scene specific data structures
+  scene_name = all_scenes{il};
+  scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
+  meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
+
+  %where to move the images
+  moved_rgb_path = fullfile(meta_path, RECONSTRUCTION_SETUP, 'rgb_not_for_reconstruction');
+  mkdir(moved_rgb_path);
+
+  %path where all the images currently are
+  rgb_image_path = fullfile(meta_path,RECONSTRUCTION_SETUP, 'rgb');
+
+  %get all the image names
+  image_names = dir(fullfile(rgb_image_path, '*.png'));
+  image_names = {image_names.name};
 
 
-%first remove all the boring images 
-for il = 1:length(rgb_image_names)
+  %set up data to make sure at least min_images_per_cluster images per cluster are kept
+  org_num_images = length(image_names);
+  num_clusters = org_num_images / cluster_size;
 
-  %if we already removed as many images as we want, stop
-  if((org_num_images - num_images_removed) == max_images)
-    break;
-  end 
+  %make sure each cluster has the same number of images
+  assert(mod(org_num_images,cluster_size) == 0);
 
-  cur_image_name = rgb_image_names{il};
+  %each cluster needs >= min_images_per_cluster pints, to define its circle
+  min_images = num_clusters *min_images_per_cluster;
 
-  rgb_img = imread(fullfile(rgb_image_path, cur_image_name));
+  %make data structure to keep track of how many images each cluster still has
+  cluster_images_kept = ones(num_clusters, cluster_size);
 
 
-  metric = get_single_metric_for_image(rgb_img, 'boring');
+  %% remove all the boring images 
+  for jl = 1:length(image_names)
 
-  %if this image is boring, try to remove it
-  if(metric < boring_threshold)
-    [cluster_images_kept, success] = remove_image(cluster_images_kept, cur_image_name, ...
-                                                  min_images_per_cluster); 
+    %get the current image name and load the image
+    cur_image_name = image_names{jl};
+    rgb_img = imread(fullfile(rgb_image_path, cur_image_name));
+
+    %display progress
+    if(mod(jl, 50) == 0)
+      disp(cur_image_name);
+    end
+
+
+    %get the metric to see if the image is boring
+    metric = get_single_metric_for_image(rgb_img, 'boring');
+
+    %if this image is boring, try to remove it
+    if(metric < boring_threshold)
+      [cluster_images_kept, success] = safe_remove_image_from_cluster(cluster_images_kept,...
+                                                     cur_image_name, ...
+                                                    min_images_per_cluster); 
    
-    if(success)
-      num_images_removed = num_images_removed + 1;
-      movefile(fullfile(rgb_image_path, cur_image_name), ...
-                fullfile(moved_rgb_path, cur_image_name));
-    end
-  end
-
-  if(debug)
-    if(1 < 50)
-      imshow(rgb_img);
-      hold on;
-      title(num2str(metric));
-      ginput(1);
-    end
- end%if debug
-end%for il, each iamge name
-
-
-
-
-
-
-
-%while((org_num_images - num_images_removed) ~= max_images)
-%
-%
-%  rand_inds = randi(org_num_images, 1, (org_num_images-num_images_removed - max_images));
-%
-%  for jl=1:length(rand_inds)
-%
-%    cur_image_name = rgb_image_names{rand_inds(jl)};
-%
-%    [cluster_images_kept, success] = remove_image(cluster_images_kept, cur_image_name, ...
-%                                                min_images_per_cluster); 
-%   
-%    if(success)
-%      num_images_removed = num_images_removed + 1;
-%      movefile(fullfile(rgb_image_path, cur_image_name), ...
-%                fullfile(moved_rgb_path, cur_image_name));
-%    end
-%
-%  end%for jl, reach random index
-%
-%  disp('while loop');
-%
-%end %while we still have too many images
-
-
-
-
+      %if able to be removed, move the file to the new directory  
+      if(success)
+        movefile(fullfile(rgb_image_path, cur_image_name), ...
+                  fullfile(moved_rgb_path, cur_image_name));
+      end
+      %show what kind of images are removed
+      if(debug)
+        imshow(rgb_img);
+        hold on;
+        title(num2str(metric));
+        ginput(1);
+      end%if debug
+    end%if image is boring
+  end%for jl, each image name
+end%for il, each scene
 
 
 

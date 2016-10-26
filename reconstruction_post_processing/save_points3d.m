@@ -1,17 +1,20 @@
 %saves 3D positions and RGB for all reconstructed points in each scene 
 
 
+
+%CLEANED - yes 
+%TESTED - yes 
+
 %initialize contants, paths and file names, etc. 
 init;
 
 
 %% USER OPTIONS
 
-scene_name = 'FB209_den1'; %make this = 'all' to run all scenes
-group_name = 'all';
+scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
 model_number = '0';
-use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {'Den_den2', 'Den_den3','Den_den4'};%populate this 
+use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {};%populate this 
 
 
 
@@ -39,17 +42,17 @@ end
 
 %% MAIN LOOP
 
-for i=1:length(all_scenes)
+for il=1:length(all_scenes)
  
   %% set scene specific data structures
-  scene_name = all_scenes{i};
+  scene_name = all_scenes{il};
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
 
 
   %read in the file
-  fid_points3d = fopen(fullfile(meta_path,RECONSTRUCTION_DIR,group_name, ...
+  fid_points3d = fopen(fullfile(meta_path,RECONSTRUCTION_RESULTS, ...
                                 'colmap_results', model_number, 'points3D.txt'),'r');
  
   if(fid_points3d == -1)
@@ -112,7 +115,7 @@ for i=1:length(all_scenes)
 
   %save all the structs 
   points3d = cell2mat(all_structs);
-  save(fullfile(meta_path,RECONSTRUCTION_DIR, group_name, ...
+  save(fullfile(meta_path,RECONSTRUCTION_RESULTS, ...
                      'colmap_results', model_number', 'points3D.mat'),'points3d');
   
-end%for i, each scene
+end%for il, each scene

@@ -1,8 +1,12 @@
+%Make new depth images for each rgb image
 
-%TODO -get rid of image structs map. Just use indexes. (Make it sorted?)
+
+%TODO  - add in mesh
 
 
-%clearvars;
+%CLEANED - no
+%TESTED - no
+clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -11,8 +15,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_05_2'; %make this = 'all' to run all scenes
-group_name = 'all';
+scene_name = 'Kitchen_Living_01_2'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -84,7 +87,7 @@ for il=1:length(all_scenes)
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
   %% get info about camera position for each image
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', group_name, ...
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', ...
                                 'colmap_results', model_number,IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
   scale  = image_structs_file.scale;
@@ -152,7 +155,7 @@ for il=1:length(all_scenes)
 
 
   %% get camera info
-  fid_camera =  fopen(fullfile(meta_path,'reconstruction_results', group_name, ...
+  fid_camera =  fopen(fullfile(meta_path,'reconstruction_results', ...
                                 'colmap_results', model_number,'cameras.txt'));
 
   %the camera follows this camera model from opencv
@@ -247,7 +250,7 @@ for il=1:length(all_scenes)
 
 
   %% get info about camera position for each image
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', group_name, ...
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', ...
                                 'colmap_results', model_number,IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
   scale  = image_structs_file.scale;

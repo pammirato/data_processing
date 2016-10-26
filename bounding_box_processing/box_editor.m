@@ -384,7 +384,8 @@ handles.label_pop_up_menu.String = cat(2,{'Pick a label'},instance_labels);
 
 
 %get all the rgb image names for this scene
-all_image_names = get_names_of_X_for_scene(handles.selected_scene, 'rgb_images');
+all_image_names = get_scenes_rgb_names(fullfile(ROHIT_BASE_PATH, ...
+                                        handles.selected_scene));
 images = cell(1,length(all_image_names));
 
 %load all the images
@@ -445,7 +446,11 @@ cur_instance_labels = load(fullfile(ROHIT_META_BASE_PATH, handles.selected_scene
 
 %save the current list of image names and boxes for this instance
 handles.image_names = cur_instance_labels.image_names;
-handles.bboxes = cur_instance_labels.boxes;
+% handles.image_names = mat2cell(cur_instance_labels.image_names, ...
+%                     size(cur_instance_labels.image_names,1),14);
+handles.bboxes = mat2cell(cur_instance_labels.boxes, ...
+        repmat(1,1,size(cur_instance_labels.boxes,1)), ...
+            size(cur_instance_labels.boxes,2));
 %start from the first image
 handles.cur_image_index = 1;
 

@@ -7,22 +7,22 @@
 
 
 %TODO  -  support rgb and raw_depth at once
+%       - move the images back to one directory at end
 
 %CLEANED - yes 
-%TESTED - no
+%TESTED - yes 
 
-clearvars;
 %initialize contants, paths and file names, etc. init;
 init
 
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Office_04_1'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
-image_type = 2;   % 0 - just rgb
+image_type = 1;   % 0 - just rgb
                    % 1 - just raw_depth
 
 
@@ -54,17 +54,17 @@ end
 for il=1:length(all_scenes)
  
   %% set scene specific data structures
-  scene_name = all_scenes{i};
+  scene_name = all_scenes{il};
   scene_path = fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
 
   %get the path to load images from and save to
-  if(image_type = 0)
+  if(image_type == 0)
     folder_path = fullfile(meta_path,RECONSTRUCTION_SETUP, 'rgb');
     
     folder_path_new = fullfile(meta_path,RECONSTRUCTION_SETUP, 'rgb_new');% ...
-  elseif(image_type = 1)
+  elseif(image_type == 1)
     folder_path = fullfile(meta_path,RECONSTRUCTION_SETUP, 'raw_depth');
     
     folder_path_new = fullfile(meta_path,RECONSTRUCTION_SETUP, 'raw_new');% ...

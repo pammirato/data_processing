@@ -1,10 +1,13 @@
-%saves a map from a label (instance) name, to names of all images that 'see'
-% any of the reconstructed points on the object
+% Saves a copy of each image, renamed with its scene_name as a prefix.
+% this allows all images to be stored in a single folder, 
 
-%TODO -get rid of image structs map. Just use indexes. (Make it sorted?)
+%CLEANED - yes 
+%TESTED - no
 
 
-%clearvars;
+%TODO -  
+
+clearvars;
 
 %initialize contants, paths and file names, etc. 
 
@@ -21,22 +24,10 @@ use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {'Den_den2', 'Den_den3', 'Den_den4'};
 
 
+%where to save all the images
+save_base_path = fullfile('/playpen/ammirato/Data/RohitMetaMetaData/all_jpgs');
 
-
-
-label_to_process = 'all'; %make 'all' for every label
-label_names = {label_to_process};
-
-
-
-debug =0;
-
-kinect_to_use = 1;
-
-%size of rgb image in pixels
-kImageWidth = 1920;
-kImageHeight = 1080;
-
+jpg_images = 1;
 
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -58,33 +49,16 @@ elseif(~strcmp(scene_name, 'all'))
 end
 
 
-
-
-
-%load mapping from bigbird name ot category id
-obj_cat_map = containers.Map();
-fid_bb_map = fopen('/playpen/ammirato/Data/RohitMetaMetaData/big_bird_cat_map.txt', 'rt');
-
-line = fgetl(fid_bb_map);
-while(ischar(line))
-  line = strsplit(line);
-  obj_cat_map(line{1}) = str2double(line{2}); 
-  line = fgetl(fid_bb_map);
+%make the save folder if it doesn't exist
+if(~exist(save_base_path, 'dir'))
+  mkdir(save_base_path);
 end
-fclose(fid_bb_map);
-
-
-
-
-  save_base_path = fullfile('/playpen/ammirato/Data/RohitMetaMetaData/', 'labels', 'output_labels');
-  if(~exist(save_base_path, 'dir'))
-    mkdir(save_base_path);
-  end
 
 
 
 %% MAIN LOOP
 
+%for each scene, copy all images and rename the copy
 for il=1:length(all_scenes)
  
   %% set scene specific data structures
@@ -92,29 +66,32 @@ for il=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
-
-  image_names = get_names_of_X_for_scene(scene_name, 'rgb_images');
+  %get all rgb iamge names (png)
+  image_names = get_scenes_rgb_names(scene_name);
 
   %% MAIN LOOP  for each label find its bounding box in each image
-
-  %for each point cloud
-%  image_names = image_names(640:end);
   for jl=1:length(image_names)
     cur_image_name = image_names{jl};
-    org_file = fullfile(scene_path, 'jpg_rgb', ...
+
+    if(jpg_images) 
+      org_file = fullfile(scene_path, JPG_RGB, ...
                       strcat(cur_image_name(1:10), '.jpg'));
-
-    new_file = fullfile('/playpen/ammirato/Data/RohitMetaMetaData/jpgs/', ...
+      new_file = fullfile(save_base_path, ...
                           strcat(scene_name,'_', cur_image_name(1:10), '.jpg'));
-    %new_file = fullfile(save_base_path, ...
-    %                      strcat(scene_name, cur_image_name(1:10), '.jpg'));
-
+    else
+      org_file = fullfile(scene_path, RGB, ...
+                        strcat(cur_image_name(1:10), '.png'));
+      new_file = fullfile(save_base_path, ...
+                          strcat(scene_name,'_', cur_image_name(1:10), '.png'));
+    end
 
     copyfile(org_file, new_file);
 
+    %show progress
     if(mod(jl,50) == 0)
-      disp(new_file);    
+      disp(new_file);
     end 
   end%for jl, each image
 end%for i, each scene_name
+
 

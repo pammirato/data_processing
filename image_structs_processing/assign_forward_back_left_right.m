@@ -1,6 +1,16 @@
 %assigns pointers in each image sturct to the image structs that are in front and behind it, 
 %representing forward or backward movements. Takes into account  direction of camera for each
 %image, and does not assign pointers within a cluster
+%
+% left and right movements also added
+%
+
+%TODO  - test
+%      - improve accuracy, consistency
+%      - remove dependancy on cluster_ids(min dist apart)
+
+%CLEANED - ish 
+%TESTED - no
 
 clearvars;
 
@@ -8,24 +18,12 @@ clearvars;
 init;
 
 
-%TODO  - test
-%      - remove dependancy on cluster_ids(min dist apart)
-
-
-
-
-
-
-
 %% USER OPTIONS
 
 scene_name = 'Kitchen_05_1'; %make this = 'all' to run all scenes
-group_name = 'all';
-%group_name = 'all_minus_boring';
 model_number = '0';
-use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {'Kitchen_Living_02_1','Kitchen_Living_08_1','Bedroom_01_1','Office_01_1'} ;%populate this 
-%custom_scenes_list = {'Kitchen_Living_01_1','Kitchen_Living_03_1','Kitchen_Living_03_2','Kitchen_Living_04_2','Kitchen_Living_06'};%populate this 
+use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {} ;%populate this 
 
 
 %whether to threshold on distance, then find the smallest angle, or 
@@ -62,23 +60,23 @@ end
 
 %% MAIN LOOP
 
-for i=1:length(all_scenes)
+for il=1:length(all_scenes)
  
   %% set scene specific data structures
-  scene_name = all_scenes{i};
+  scene_name = all_scenes{il};
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
 
   %load image_structs for all images
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', group_name, ...
+  image_structs_file =  load(fullfile(meta_path,RECONSTRUCTION_RESULTS, ...
                                 'colmap_results', model_number,IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
   scale  = image_structs_file.scale;
 
-
-  [image_structs.translate_right] = deal(-1);
+  %give initial values for left and right movements
   [image_structs.translate_left] = deal(-1);
+  [image_structs.translate_right] = deal(-1);
 
 
   %get a list of all the image file names
@@ -97,27 +95,26 @@ for i=1:length(all_scenes)
   
   
   
-  %for each cluster, assign pointers for all points in that cluster
-  for j=0:max_cluster_id
+  %% for each cluster, assign pointers for all points in that cluster
+  for jl=0:max_cluster_id
 
-    disp(['Cluster:  ' num2str(j)]);
+    disp(['Cluster:  ' num2str(jl)]);
 
     %get structs for this cluster 
-    cur_cluster = image_structs(find([image_structs.cluster_id] == j));
+    cur_cluster = image_structs(find([image_structs.cluster_id] == jl));
    
     %get structs from all other clusters 
-    other_structs = image_structs(find([image_structs.cluster_id] ~= j));
+    other_structs = image_structs(find([image_structs.cluster_id] ~= jl));
   
     %for each image in this cluster
-    for k=1:length(cur_cluster)
-      cur_struct = cur_cluster(k);
+    for kl=1:length(cur_cluster)
+      cur_struct = cur_cluster(kl);
 
-
+      %for debugging
       if(strcmp(cur_struct.image_name,'0000010101.png'))
         breakp =1;
       end
 
-     
       %get this image's world position and direciton 
       cur_world = cur_struct.world_pos*scale;
       cur_world = [cur_world(1), cur_world(3)];
@@ -141,10 +138,10 @@ for i=1:length(all_scenes)
 
 
       %for each image not in the current cluster
-      for l=1:length(other_structs)
+      for ll=1:length(other_structs)
 
         %get world position/direction for other image
-        o_struct = other_structs(l);
+        o_struct = other_structs(ll);
         o_world = o_struct.world_pos * scale;
         o_world = [o_world(1) o_world(3)];
         o_dir = get_normalized_2D_vector(o_struct.direction);
@@ -158,6 +155,9 @@ for i=1:length(all_scenes)
 
         %calculate angle between cur_direction and point direction
         point_angle = acosd(dot(cur_dir,point_vec));
+        %point angle determines forward or backward.
+        %a point_angle near 0 means forward, near 180 means backward
+        %near 90 means left or right
        
         %calculate distance between cur point and 'other' point 
         distance = sqrt( sum((o_world - cur_world).^2) );
@@ -179,24 +179,27 @@ for i=1:length(all_scenes)
               backward_name = o_struct.image_name;
             end
 
+            %do the same but for left/right
+            %if the position is to the left
             if(is_left)
+              %if point angle is near 90
               if(abs(point_angle-90) < left_angle)
                 left_angle = abs(point_angle - 90);
                 left_name = o_struct.image_name;
               end
-            else
+            else%the position is to the right
               if(abs(point_angle-90) < right_angle)
                 right_angle = abs(point_angle - 90);
                 right_name = o_struct.image_name;
               end
             end
 
-          end
+          end%if dir angle and distance are below thresholds
         else%if we are thresholding on the direction angle
           if(dir_angle < dir_angle_thresh) 
             %point angle determines forward or backward.
             %a point_angle near 0 means forward, near 180 means backward
-
+            %near 90 means left or right
 
             %want the closest point to current point that passes thresholds
             if(distance < forward_dist && point_angle < point_angle_thresh)
@@ -209,6 +212,8 @@ for i=1:length(all_scenes)
               backward_dist = distance;
               backward_name = o_struct.image_name;
             end
+          
+            %same but for left/right
             if(is_left)
               if(distance < left_dist && abs(point_angle-90) < point_angle_thresh)
                 left_dist = distance;
@@ -219,44 +224,26 @@ for i=1:length(all_scenes)
                 right_dist = distance;
                 right_name = o_struct.image_name;
               end
-            end
-%          elseif(abs(dir_angle-90) < dir_angle_thresh)
-%
-%            if(is_left)
-%              if(distance < left_dist && abs(point_angle-90) < point_angle_thresh)
-%                left_dist = distance;
-%                left_name = o_struct.image_name;
-%              end
-%            else
-%              if(distance < right_dist && abs(point_angle-90) < point_angle_thresh)
-%                right_dist = distance;
-%                right_name = o_struct.image_name;
-%              end
-%            end
+            end%if is left
           end%if dir angle < thresh
         end %else, threshold on angel
-      end%for l, each other point in cluster
+      end%for ll, each other point in cluster
       
-      
+      %assign the found image names to the image struct 
       cur_struct.translate_forward = forward_name;
       cur_struct.translate_backward = backward_name;
       cur_struct.translate_left = left_name;
       cur_struct.translate_right = right_name;
 
-      
+      %save the updated image struct 
       image_structs_map(cur_struct.image_name) = cur_struct;
-        
-    end%for k, each point
-    
-    %structs(find([structs.cluster_id] == j)) = cur_cluster;
-  end%for j, each cluster
-  
-      
+    end%for kl, each point
+  end%for jl, each cluster
+ 
+  %save all the updated structs to file 
   image_structs = cell2mat(image_structs_map.values);
-  
   save(fullfile(meta_path, 'reconstruction_results', group_name, ...
                 'colmap_results', model_number,  IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
-
-end%for each scene
+end%for il,  each scene
 
 

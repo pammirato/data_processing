@@ -14,7 +14,7 @@
 
 %TODO  - is it dumb to reread boxes by image files over and over?
 
-%CLEANED - yes 
+%CLEANED - no 
 %TESTED - no
 
 clearvars;
@@ -26,7 +26,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Bedroom_01_2'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -75,7 +75,7 @@ for il=1:length(all_scenes)
 
   %get the names of all the images that have a file for boxes
   labeled_image_names = dir(fullfile(meta_path,LABELING_DIR,label_type, ...
-                             BBOXES_BY_IMAGE_INSTANCE_DIR,'*.mat'));
+                             BBOXES_BY_IMAGE_INSTANCE,'*.mat'));
   labeled_image_names = {labeled_image_names.name};
 
  
@@ -89,9 +89,16 @@ for il=1:length(all_scenes)
     cur_file = load(fullfile(meta_path, LABELING_DIR, label_type,...
                       BBOXES_BY_IMAGE_INSTANCE, ...
                       strcat(cur_image_name(1:10), '.mat'))); 
-    image_labels{jl} = cur_file.boxes;
+
+    boxes = cur_file.boxes;
+    boxes = [boxes repmat(jl, size(boxes,1), 1)];
+    image_labels{jl} = boxes;
   end%for jl, each labeled image name
-  image_labels = cell2mat(image_labels);
+
+  %remove empty cells(image had no labels)
+  image_labels = image_labels(~cellfun('isempty',image_labels)); 
+
+  image_labels = cell2mat(image_labels');
 
   %for each instance name, get all boxes for the instance and save them
   for jl=1:length(instance_names)
@@ -105,9 +112,15 @@ for il=1:length(all_scenes)
 
     %get the boxes and image names for just this instance
     cur_inds = find(image_labels(:,5) == cur_instance_id);
-    boxes = image_labels.(cur_inds,:);
-    image_names = cell2mat(labeled_image_names(cur_inds));
-    image_names(:,11:end) = '.png';
+    boxes = image_labels(cur_inds,:);
+    image_inds = boxes(:,6);
+    image_names = cell2mat(labeled_image_names(image_inds)');
+    image_names(:,11:end) = repmat('.png', size(image_names,1),1);
+    image_names = mat2cell(image_names, repmat(1,1,size(image_names,1)), size(image_names,2));
+
+    if(isempty(image_names))
+      continue; %dont save anything if the object is not present in this scene
+    end
 
     %save the newly formatted boxes 
     save(fullfile(save_path, strcat(cur_instance_name,'.mat')), 'image_names', 'boxes');

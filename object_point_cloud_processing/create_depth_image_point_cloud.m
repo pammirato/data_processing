@@ -1,43 +1,27 @@
-%saves a map from a label (instance) name, to names of all images that 'see'
-% any of the reconstructed points on the object
+%Creates a point cloud in world coordinates using a depth image, 
+%reconstruction image position, and scale for the reconstruction
+%
+%a gives a color and 3D position for each pixel in the depth image
 
-%TODO -get rid of image structs map. Just use indexes. (Make it sorted?)
+%TODO -  choose images at top
 
-
+%CLEANED - no
+%TESTED - no
 clearvars;
 
 %initialize contants, paths and file names, etc. 
-
 init;
-
-
 
 %% USER OPTIONS
 
-scene_name = 'Den_den4'; %make this = 'all' to run all scenes
-group_name = 'all';
+scene_name = 'Kitchen_Living_01_2'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-label_to_process = 'all'; %make 'all' for every label
-label_names = {label_to_process};
-
-
-
-do_occlusion_filtering = 1;
-occlusion_threshold = 100;  %make > 12000 to remove occlusion thresholding 
-
-use_global_pc = 0;
-use_color_check = 1;
-
-
-count = 0;
-
 debug =0;
 
-kinect_to_use = 1;
 
 %size of rgb image in pixels
 kImageWidth = 1920;
@@ -75,16 +59,9 @@ for il=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
-  %get the names of all the labels
-  if(strcmp(label_to_process, 'all'))
-    label_names = get_names_of_X_for_scene(scene_name, 'instance_labels');
-  end
-
-
-
 
   %% get camera info
-  fid_camera =  fopen(fullfile(meta_path,'reconstruction_results', group_name, ...
+  fid_camera =  fopen(fullfile(meta_path,'reconstruction_results', ...
                                 'colmap_results', model_number,'cameras.txt'));
 
  
@@ -174,7 +151,7 @@ for il=1:length(all_scenes)
   
 
   %% get info about camera position for each image
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', group_name, ...
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results',  ...
                                 'colmap_results', model_number,IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
   scale  = image_structs_file.scale;
@@ -198,16 +175,7 @@ for il=1:length(all_scenes)
 
   %% make struct for holding the labels (bounding boxes) for each label in each image
 
-  %make a blank struct with an empty box for each label
-  %the field is the label name, the value for that field is the box
-  blank_struct = struct();
-  blank_struct.image_name = '';
-  for jl=1:length(label_names)
-    blank_struct.(label_names{jl}) = []; 
-  end
 
-  %make a struct array of the empty label struct made above. One struct per image in this scene
-  label_structs = repmat(blank_struct, length(image_structs), 1);
 
 
 
@@ -215,7 +183,8 @@ for il=1:length(all_scenes)
   ref_dir = ref_struct.direction; 
   ref_dir = ref_dir([1 3]);
 
-  image_names = {'0000300101.png', '0000750101.png'};
+  image_names = {'0002650101.jpg', '0000490101.jpg','0002930101.jpg'};%,...
+                %'0004900101.png','0004070101.png','0000770101.png'};
   %image_names = {'0009640101.png'};
   %image_names = image_names(1:20);
   %all_pcs = cell(1,length(image_names));
@@ -247,7 +216,8 @@ for il=1:length(all_scenes)
     
     %rgb_img = rgb_images{jl};
     %depth_image = depth_images{jl};%reshape(depth_images{jl}, 1080*1920,1);
-    rgb_img = imread(fullfile(scene_path, 'rgb',cur_image_name)); 
+    %rgb_img = imread(fullfile(scene_path, 'rgb',cur_image_name)); 
+    rgb_img = imread(fullfile(scene_path, 'jpg_rgb',cur_image_name)); 
     depth_image = imread(fullfile(scene_path, 'high_res_depth', ...
                             strcat(cur_image_name(1:8), '03.png')));
 

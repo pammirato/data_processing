@@ -6,6 +6,10 @@
 %TODO:     - add option to plot reconstructed points, and save those figs/images
 %          - add option to list image names next to points(or click point and get image name)           
 
+%CLEANED - no
+%TESTED - no
+clearvars;
+
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -16,15 +20,10 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_01_2'; %make this = 'all' to run all scenes
-group_name = 'all';
-%group_name = 'all_minus_boring';
+scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {'Kitchen_Living_02_1','Kitchen_Living_08_1','Bedroom_01_1','Office_01_1', 'Kitchen_05_1'} ;%populate this 
-custom_scenes_list = {'Kitchen_Living_01_2','Kitchen_Living_02_2','Kitchen_Living_08_2','Kitchen_Living_04_1','Bedroom_01_2'};%populate this 
-custom_scenes_list = {'uwash_s7','NYUD2_Kitchen1','Kitchen_Living_01_1','Kitchen_Living_08_1'} ;%populate this 
-
+custom_scenes_list = {};%populate this 
 
 
 view_direction = 1;%should the lines indicating camera direction be drawn?
@@ -68,7 +67,7 @@ end
 
 %% MAIN LOOP
 
-f = figure();
+%f = figure();
 
 for i=1:length(all_scenes)
  
@@ -77,16 +76,11 @@ for i=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
-  if(strcmp(scene_name, 'Kitchen_Living_01_1'))
-    group_name = 'all_minus_boring';
-  else
-    group_name = 'all';
-  end
-
   %file that has postions and other meta data for each image 
   try
     %image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
-    image_structs_file =  load(fullfile(meta_path,'reconstruction_results',group_name, 'colmap_results',model_number,IMAGE_STRUCTS_FILE));
+    image_structs_file =  load(fullfile(meta_path,RECONSTRUCTION_RESULTS,...
+                              'colmap_results',model_number,IMAGE_STRUCTS_FILE));
   catch
     disp(strcat('No image structs file: ', scene_name));
     continue;
@@ -105,17 +99,9 @@ for i=1:length(all_scenes)
 
   directions = [image_structs.direction];
 
-  %make figure invisible if option is set
-%   if(view_figure)
-%     positions_plot_fig = figure;
-%   else 
-%     positions_plot_fig = figure('Visible', 'off');
-%   end
-
- 
   %% plot  sutff 
 
-  ax(i) = subplot(2,2,i);
+%  ax(i) = subplot(2,2,i);
 
   % plot positions 
   switch plot_type
@@ -168,7 +154,7 @@ for i=1:length(all_scenes)
     %% save the figure if option is set
     switch save_figures
       case 1
-        savefig(fullfile(meta_path,RECONSTRUCTION_DIR, ...
+        savefig(fullfile(meta_path,RECONSTRUCTION_RESULTS, ...
                 strcat(file_prefix, plot_type_suffix, '.fig')));
       case 2
         %saveas(positions_plot_fig, fullfile(meta_path,RECONSTRUCTION_DIR, ...

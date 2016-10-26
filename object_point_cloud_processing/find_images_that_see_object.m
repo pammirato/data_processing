@@ -3,8 +3,9 @@
 
 %TODO -get rid of image structs map. Just use indexes. (Make it sorted?)
 
-
-%clearvars;
+%CLEANED - no
+%TESTED - no
+clearvars;
 
 %initialize contants, paths and file names, etc. 
 
@@ -14,11 +15,10 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Den_den3'; %make this = 'all' to run all scenes
-group_name = 'all';
+scene_name = 'Bedroom_01_2'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {'Den_den2','Den_den3','Den_den4'};%populate this 
+custom_scenes_list = {};%populate this 
 
 
 label_to_process = 'all'; %make 'all' for every label
@@ -82,16 +82,17 @@ for il=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
+  instance_name_to_id_map = get_instance_name_to_id_map();
   %get the names of all the labels
   if(strcmp(label_to_process, 'all'))
-    label_names = get_names_of_X_for_scene(scene_name, 'instance_labels');
+    label_names = keys(instance_name_to_id_map);
   end
 
 
 
 
   %% get camera info
-  fid_camera =  fopen(fullfile(meta_path,'reconstruction_results', group_name, ...
+  fid_camera =  fopen(fullfile(meta_path,'reconstruction_results',  ...
                                 'colmap_results', model_number,'cameras.txt'));
 
  
@@ -129,7 +130,7 @@ for il=1:length(all_scenes)
 
 
   %% get info about camera position for each image
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', group_name, ...
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results',  ...
                                 'colmap_results', model_number,IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
   scale  = image_structs_file.scale;
@@ -232,7 +233,7 @@ for il=1:length(all_scenes)
 
   %% load the full point cloud for the entire scene
   if(use_global_pc)
-    global_pc = pcread(fullfile(meta_path,'reconstruction_results', group_name, ...
+    global_pc = pcread(fullfile(meta_path,'reconstruction_results', ...
                        'undistorted_images','pmvs', 'annotated_models','merged_mesh.ply'));
   end
 
@@ -249,9 +250,12 @@ for il=1:length(all_scenes)
     disp(cur_label_name);
 
     %load the labeled point cloud for this label in this scene
-    cur_pc = pcread(fullfile(meta_path,'labels', ...
+    try
+      cur_pc = pcread(fullfile(meta_path,'labels', ...
                        'object_point_clouds', strcat(cur_label_name, '.ply')));
- 
+    catch
+      continue;
+    end 
    
     %will hold the names of all the images that have a valid bounding box for this label
     %really just for debugging
@@ -905,9 +909,23 @@ for il=1:length(all_scenes)
       end%for kl
 
        save(save_file_path, '-struct', 'prev_labels');
-
+       disp('EXISTS :(');
      else
-       save(save_file_path, '-struct', 'cur_struct');
+
+       cur_fields = fieldnames(cur_struct);
+       boxes = cell(0);
+       for kl=1:length(cur_fields)
+          inst_id = instance_name_to_id_map(cur_fields{kl});
+          temp = cur_struct.(cur_fields{kl});
+          if(isempty(temp))
+            continue;
+          end
+          boxes{end+1} = [temp inst_id];
+       end%for kl
+
+       boxes = cell2mat(boxes');
+       %save(save_file_path, '-struct', 'cur_struct');
+       save(save_file_path, 'boxes');
      end
    end%for jl, each label struct
 

@@ -1,21 +1,27 @@
-% allows HAND LABELING of cluster ids by showing a 2D plot of camera positions and 
-% having a user draw a box(using 2 clicks, top left and bottom right) around each cluster 
+% Assign cluster id to each image struct. 
+%
+% A cluster is a set of images where the only movement action needed to visit any
+% image in the cluster from an other image in the cluster is rotation. In other
+% words a cluster is all the images at a point where the robot rotated during capture.
+
+%TODO  
+
+%CLEANED - yes 
+%TESTED - no
+
+clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
-
-
-%TODO  - add automatic option using output from collection programs
 
 
 %% USER OPTIONS
 
 
 scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
-group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {'Kitchen_05_1','Office_01_1'};%populate this 
+custom_scenes_list = {};%populate this 
 
 
 method = 2; %  0 - by hand, get user to draw a box around each cluster
@@ -44,28 +50,27 @@ end
 
 %% MAIN LOOP
 
-for i=1:length(all_scenes)
+for il=1:length(all_scenes)
  
   %% set scene specific data structures
-  scene_name = all_scenes{i};
+  scene_name = all_scenes{il};
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
 
   %load image_structs for all images
-  image_structs_file =  load(fullfile(meta_path, 'reconstruction_results', ...
-                                group_name, 'colmap_results', ...
+  image_structs_file =  load(fullfile(meta_path, RECONSTRUCTION_RESULTS, ...
+                                'colmap_results', ...
                                 model_number, IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
-  scale  = image_structs_file.scale;
+  scale  = image_structs_file.scale;%just keep track of this to save later
 
 
   %choose a method
   if(method == 0) % by hand
 
     %get the world positions of all images
-    temp = cell2mat(image_structs);
-    world_positions = [temp.scaled_world_pos];
+    world_positions = [image_structs.scaled_world_pos];
 
     %plot the 2D positions 
     plot(world_positions(1,:),world_positions(3,:),'r.');
@@ -103,10 +108,10 @@ for i=1:length(all_scenes)
     hold on;
 
     %for each struct, see what box it is inside, and assign the apporpriate cluster
-    for j=1:length(image_structs)
+    for jl=1:length(image_structs)
 
        %get the cur struct and its 2D position
-       cur_struct = image_structs{j};
+       cur_struct = image_structs(jl);
        cur_point = cur_struct.scaled_world_pos;
        cp = [cur_point(1),cur_point(3)];
 
@@ -131,7 +136,7 @@ for i=1:length(all_scenes)
            plot(cp(1),cp(2),'.','Color',colors(:,cluster_id));
 
            cur_struct.cluster_id = cluster_id;
-           image_structs{j} = cur_struct;
+           image_structs(jl) = cur_struct;
        end
     end %for j
 
@@ -142,8 +147,8 @@ for i=1:length(all_scenes)
   elseif(method == 1) % image index
 
 
-    for j=1:length(image_structs)
-      cur_struct = image_structs(j);
+    for jl=1:length(image_structs)
+      cur_struct = image_structs(jl);
      
       %get the name and index of the current iamge 
       cur_image_name = cur_struct.image_name;
@@ -151,14 +156,14 @@ for i=1:length(all_scenes)
    
       %assign the index to the cluster id 
       cur_struct.cluster_id = cur_image_index;
-      image_structs(j) = cur_struct;
+      image_structs(jl) = cur_struct;
     end%for j, each image_struct
 
   elseif(method == 2) %cluster size 
 
 
-    for j=1:length(image_structs)
-      cur_struct = image_structs(j);
+    for jl=1:length(image_structs)
+      cur_struct = image_structs(jl);
      
       %get the name and index of the current iamge 
       cur_image_name = cur_struct.image_name;
@@ -166,7 +171,7 @@ for i=1:length(all_scenes)
    
       %assign the index to the cluster id 
       cur_struct.cluster_id = floor((cur_image_index-1)/cluster_size);
-      image_structs(j) = cur_struct;
+      image_structs(jl) = cur_struct;
     end%for j, each image_struct
 
 
@@ -176,25 +181,32 @@ for i=1:length(all_scenes)
     display('method not supported');
   end
 
-  cluster_ids = [image_structs.cluster_id];
 
+
+
+  %% display the assign clusters
+
+  %get all the clusters and give a random color to each cluster
+  cluster_ids = [image_structs.cluster_id];
   colors = rand(3, max(cluster_ids)+1);
-  
+ 
+  %get all the camera positions 
   world_poses = [image_structs.world_pos];
-  
+
+  %plot  
   figure;
   hold on;
   for jl=1:length(world_poses)
     color = colors( :,image_structs(jl).cluster_id + 1);
     pos = image_structs(jl).world_pos;
     plot(pos(1), pos(3),'.', 'Color', color);  
-   
   end
   hold off;
-  %save the update image structs  
-  save(fullfile(meta_path, 'reconstruction_results', group_name, ...
-                'colmap_results', model_number,  IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
 
-  
-end%for i,  each scene
+
+  %save the update image structs  
+  save(fullfile(meta_path, RECONSTRUCTION_RESULTS, 'colmap_results', ...
+                model_number,  IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
+end%for il,  each scene
+
 

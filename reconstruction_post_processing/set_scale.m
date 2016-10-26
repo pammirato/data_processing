@@ -11,14 +11,13 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Den_den4'; %make this = 'all' to run all scenes
-group_name = 'all';
+scene_name = 'Kitchen_Living_01_2'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-scale = 180;
+scale = 555;
 
 %% SET UP GLOBAL DATA STRUCTURES
 
@@ -54,7 +53,7 @@ for i=1:length(all_scenes)
 
   %get the image structs and make a map
   %image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', group_name, ...
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results',  ...
                               'colmap_results', model_number,IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
 
@@ -62,6 +61,6 @@ for i=1:length(all_scenes)
   
     %save the new data 
     %save(fullfile(scene_path, IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE); 
-    save(fullfile(meta_path,'reconstruction_results',group_name,'colmap_results',model_number,... 
+    save(fullfile(meta_path,'reconstruction_results','colmap_results',model_number,... 
                      IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE); 
 end%for i, each scene

@@ -5,15 +5,17 @@
 %      - add labels to rec bboxes
 %      - move picking labels to show outside of loop
 
+%CLEANED - no
+%TESTED - no
+clearvars
+
 %initialize contants, paths and file names, etc. 
 init;
 
 
-
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_02_1'; %make this = 'all' to run all scenes
-group_name = 'all';
+scene_name = 'Bedroom_01_2'; %make this = 'all' to run all scenes
 %group_name = 'all_minus_boring';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
@@ -79,7 +81,7 @@ for i=1:length(all_scenes)
  % structs_names = {temp.image_name}; 
  % image_structs_map = containers.Map(structs_names, image_structs);
 
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', group_name, ...
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results',  ...
                                 'colmap_results', model_number,IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
   image_structs = nestedSortStruct2(image_structs, 'image_name');
@@ -152,7 +154,7 @@ for i=1:length(all_scenes)
       %vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
       %                     'instance_label_structs', strcat(cur_image_name(1:10),'.mat')));
       vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
-                           'verified_labels','bounding_boxes_by_image_instance', ...
+                           'raw_labels','bounding_boxes_by_image_instance', ...
                              strcat(cur_image_name(1:10),'.mat')));
       catch
         vatic_bboxes =struct();
