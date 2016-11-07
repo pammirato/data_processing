@@ -24,13 +24,15 @@ init
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_01_2'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
 label_type = 'verified_labels';  %raw_labels - automatically generated labels
                             %verified_labels - boxes looked over by human
+
+label_loc = 'meta'; %which path to use: scene or meta 
 
 %% SET UP GLOBAL DATA STRUCTURES
 
@@ -57,21 +59,27 @@ end
 for il=1:length(all_scenes)
  
   %% set scene specific data structures
-  scene_name = all_scenes{i};
+  scene_name = all_scenes{il};
   scene_path = fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
+
+  if(strcmp(label_loc,'meta'))
+    label_path = meta_path;
+  else
+    label_path = scene_path;
+  end
 
   %get a list of all the instances in the scene
   instance_name_to_id_map = get_instance_name_to_id_map();
   instance_names = keys(instance_name_to_id_map);
 
   %get names of all the images in the scene
-  all_image_names  = get_names_of_X_for_scene(scene_name, 'rgb_images');
+  all_image_names  = get_scenes_rgb_names(scene_path);
 
   %make a struct for each image, and put them all in a map based on name
 
   %make a cell array with an array for each image
-  label_array = -ones(length(instance_names),6) %holds boxes for all instance in 1 image
+  label_array = -ones(length(instance_names),6); %holds boxes for all instance in 1 image
   all_arrays = cell(length(all_image_names),1);
   for jl=1:length(all_arrays)
     all_arrays{jl} = label_array;
@@ -84,15 +92,15 @@ for il=1:length(all_scenes)
   %% populate the structs for each image
   
   %for each instance, add a box to each image's struct that has this instance
-  for jl=1:length(all_instance_names)
-    cur_instance_name = all_instance_names{jl}; 
+  for jl=1:length(instance_names)
+    cur_instance_name = instance_names{jl}; 
     cur_instance_file_name = strcat(cur_instance_name, '.mat');
     cur_instance_id = instance_name_to_id_map(cur_instance_name);
     disp(cur_instance_name);
  
     %load the boxes for this instance and make a map
     try
-      cur_instance_labels= load(fullfile(meta_path,LABELING_DIR, label_type, ...
+      cur_instance_labels= load(fullfile(label_path,LABELING_DIR, label_type, ...
                                   BBOXES_BY_INSTANCE, cur_instance_file_name));
     catch
       %this instance may not be in this scene, so skip it
@@ -108,8 +116,12 @@ for il=1:length(all_scenes)
     for kl=1:length(instance_image_names)
 
       %get the name of the image for this label and the box
-      cur_image_name = all_image_names{kl};
+      cur_image_name = instance_image_names{kl};
       bbox = instance_boxes{kl};
+
+      if(length(bbox) < 6)
+        bbox = [bbox -1];
+      end
 
       %get the label array for this image, add this label, update the  map
       cur_label_array = label_array_map(cur_image_name);
@@ -130,7 +142,7 @@ for il=1:length(all_scenes)
 
     %save the boxes
     boxes = cur_label_array;    
-    save(fullfile(meta_path,LABELING_DIR, label_type, BBOXES_BY_IMAGE_INSTANCE, ...
+    save(fullfile(label_path,LABELING_DIR, label_type, BBOXES_BY_IMAGE_INSTANCE, ...
                   strcat(cur_image_name(1:10),'.mat')), 'boxes');
 
   end %for jl, each image

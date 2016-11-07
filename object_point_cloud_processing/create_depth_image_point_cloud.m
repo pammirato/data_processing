@@ -14,7 +14,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_01_2'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_04_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -183,7 +183,7 @@ for il=1:length(all_scenes)
   ref_dir = ref_struct.direction; 
   ref_dir = ref_dir([1 3]);
 
-  image_names = {'0002650101.jpg', '0000490101.jpg','0002930101.jpg'};%,...
+  image_names = {'0000010101.jpg', '0002040101.jpg','0005940101.jpg'};%,...
                 %'0004900101.png','0004070101.png','0000770101.png'};
   %image_names = {'0009640101.png'};
   %image_names = image_names(1:20);

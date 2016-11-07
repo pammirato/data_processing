@@ -20,7 +20,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_04_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -41,7 +41,7 @@ view_figure = 1; %whether or not to make the figure(s) visible
 
 use_scaled_positions = 0;%use positions in meters, not arbitrary reconstruction coords
 
-show_image_names = 1;
+show_image_names = 0;
 
 
 %% SET UP DATA STRUCTURES

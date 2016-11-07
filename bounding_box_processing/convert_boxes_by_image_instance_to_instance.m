@@ -14,8 +14,8 @@
 
 %TODO  - is it dumb to reread boxes by image files over and over?
 
-%CLEANED - no 
-%TESTED - no
+%CLEANED - ish 
+%TESTED - ish
 
 clearvars;
 
@@ -26,13 +26,17 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_2'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_01_2'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
-label_type = 'raw_labels';  %raw_labels - automatically generated labels
+label_type = 'verified_labels';  %raw_labels - automatically generated labels
                             %verified_labels - boxes looked over by human
+label_loc = 'meta';  %where are the labels located?
+                     %meta - in the meta_path
+                     %scene - in the scene path
+
 
 %% SET UP GLOBAL DATA STRUCTURES
 
@@ -61,8 +65,16 @@ for il=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
+  %determine where to look for/save the labels
+  label_path = '';
+  if(strcmp(label_loc, 'meta'))
+    label_path = meta_path;
+  else
+    label_path = scene_path;
+  end
+
   %where to save the boxes by instance files
-  save_path = fullfile(meta_path, LABELING_DIR, label_type,...
+  save_path = fullfile(label_path, LABELING_DIR, label_type,...
                          BBOXES_BY_INSTANCE);
   if(~exist(save_path,'dir'))
    mkdir(save_path);
@@ -74,7 +86,7 @@ for il=1:length(all_scenes)
 
 
   %get the names of all the images that have a file for boxes
-  labeled_image_names = dir(fullfile(meta_path,LABELING_DIR,label_type, ...
+  labeled_image_names = dir(fullfile(label_path,LABELING_DIR,label_type, ...
                              BBOXES_BY_IMAGE_INSTANCE,'*.mat'));
   labeled_image_names = {labeled_image_names.name};
 
@@ -86,11 +98,12 @@ for il=1:length(all_scenes)
   for jl=1:length(labeled_image_names)
 
     cur_image_name = labeled_image_names{jl};
-    cur_file = load(fullfile(meta_path, LABELING_DIR, label_type,...
+    cur_file = load(fullfile(label_path, LABELING_DIR, label_type,...
                       BBOXES_BY_IMAGE_INSTANCE, ...
                       strcat(cur_image_name(1:10), '.mat'))); 
 
     boxes = cur_file.boxes;
+    %add the image index to the box for now
     boxes = [boxes repmat(jl, size(boxes,1), 1)];
     image_labels{jl} = boxes;
   end%for jl, each labeled image name
@@ -113,7 +126,8 @@ for il=1:length(all_scenes)
     %get the boxes and image names for just this instance
     cur_inds = find(image_labels(:,5) == cur_instance_id);
     boxes = image_labels(cur_inds,:);
-    image_inds = boxes(:,6);
+    image_inds = boxes(:,end);
+    boxes = boxes(:,1:end-1); %remove image index
     image_names = cell2mat(labeled_image_names(image_inds)');
     image_names(:,11:end) = repmat('.png', size(image_names,1),1);
     image_names = mat2cell(image_names, repmat(1,1,size(image_names,1)), size(image_names,2));

@@ -24,7 +24,8 @@ BIGBIRD_BASE_PATH = '/playpen/ammirato/Data/BigBIRD';
 RGB = 'rgb';
 JPG_RGB = 'jpg_rgb';
 RAW_DEPTH = 'raw_depth';
-HIGH_RES_DEPTH = 'high_res_depth/';
+HIGH_RES_DEPTH = 'high_res_depth';
+IMPROVED_DEPTH = 'improved_depths';
 
 %holds outputs from reconstruction, and other data structures that relate 
 RECONSTRUCTION_SETUP = 'reconstruction_setup/';
@@ -40,6 +41,11 @@ MISC_DIR = 'misc/';
 
 %holds labels and data used for labeling
 LABELING_DIR = 'labels';
+
+  RAW_LABELS = 'raw_labels';
+  VERIFIED_LABELS = 'verified_labels';
+  LOOSE_LABELS = 'loose_labels';
+  
 
     BBOXES_BY_INSTANCE = 'bounding_boxes_by_instance';
     BBOXES_BY_IMAGE_INSTANCE = 'bounding_boxes_by_image_instance';

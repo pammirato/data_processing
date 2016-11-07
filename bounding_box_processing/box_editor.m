@@ -542,7 +542,7 @@ switch keyPressed
   case 'v'
     res_down_button_Callback(hObject, eventdata, handles)
   case 'b'
-    res_up_Callback(hObject, eventdata, handles)
+    res_up_button_Callback(hObject, eventdata, handles)
 end
 
 
@@ -557,9 +557,13 @@ function save_button_Callback(hObject, eventdata, handles)
 init;
 image_names = handles.image_names;
 boxes = handles.bboxes;
-save(fullfile(ROHIT_META_BASE_PATH, handles.selected_scene, ...
-                            'labels', 'verified_labels', 'bounding_boxes_by_instance', ...
-                            handles.selected_instance),'image_names','boxes' );
+save_dir = fullfile(ROHIT_META_BASE_PATH, handles.selected_scene, ...
+                       LABELING_DIR, VERIFIED_LABELS, BBOXES_BY_INSTANCE);
+if(~exist(save_dir,'dir'))
+  mkdir(save_dir);
+end
+save(fullfile(save_dir, handles.selected_instance),'image_names','boxes' );
+                            
 
 
 % --- Executes on button press in res_up_button.
