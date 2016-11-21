@@ -14,7 +14,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_04_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_11_2'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -169,6 +169,11 @@ for il=1:length(all_scenes)
     %get the next line                
     line = fgetl(fid_images);
 
+    %just to show progress
+    if(mod(counter,100)==0)
+      disp(counter)
+    end
+
   end%while there is another line to process
 
   %get rid of empty cells if not all images were reconstructed
@@ -181,6 +186,8 @@ for il=1:length(all_scenes)
 
   %figure this out with another scirpt, just a place holder for now 
   scale = 0;
+
+  disp('saving...');
 
   %save everything
   save(fullfile(meta_path,RECONSTRUCTION_RESULTS,'colmap_results',...

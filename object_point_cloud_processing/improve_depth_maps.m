@@ -15,13 +15,13 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_02_2'; %make this = 'all' to run all scenes
+scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 similar_point_dist_thresh = .001;
-slice_dists = [300:100:1000];
+slice_dists = [300:100:500];
 dir_angle_threshs = [30:30:90];
 num_pcs_to_use = 24;
 max_valid_depth = 7000;
@@ -544,7 +544,24 @@ for il=1:length(all_scenes)
       %kl_pc = pcread(fullfile(meta_path, 'point_clouds', strcat(kl_image_name(1:10), '.ply')));
 
 
-      depth_img = depth_img_map(kl_image_name);
+
+
+
+
+      if(depths_loaded)
+        cur_depth_img = depth_img_map(cur_image_name);
+      else
+        cur_depth_img = imread(fullfile(scene_path, 'high_res_depth', strcat(cur_image_name(1:8), ...
+                          '03.png')));
+      end
+
+      depth_img = cur_depth_img;
+
+      %depth_img = depth_img_map(kl_image_name);
+
+
+
+
 
       %% get point clouds from depth image
      

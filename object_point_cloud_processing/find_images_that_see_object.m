@@ -4,7 +4,7 @@
 %TODO  - project all objects into each image at once?
 %       - remove boxes from prev labels with this single label 
 
-%CLEANED - ish 
+%CLEANED -no  ish 
 %TESTED - ish 
 
 
@@ -13,19 +13,21 @@
 init;
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_01_2'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_08_2'; %make this = 'all' to run all scenes
 model_number = '0'; %colmap model number
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
-label_to_process = 'quaker_chewy_low_fat_chocolate_chunk'; %make 'all' for every label
+label_to_process = 'all'; %make 'all' for every label
 use_custom_labels = 0;
 label_names_list = {}; 
 
 method = 0; %0 - oclusion filtering, uses improved depth maps if they exist
             %1 - no ocllusion filtering
             
-occlusion_threshold = 15;  %amount in mm that point cloud can differ from depth
+occlusion_threshold = 60;  %amount in mm that point cloud can differ from depth
+include_0 = 1;
+
 
 debug =0;
 
@@ -327,7 +329,11 @@ for il=1:length(all_scenes)
 
         %remove point if distance is much different than depth(or depth image is 0)
         dist_flags = abs(double(world_dists) - double(depths)) >  occlusion_threshold;
-        depth_flags = dist_flags | (depths == 0);
+        if(include_0)
+          depth_flags = dist_flags;
+        else
+          depth_flags = dist_flags | (depths == 0);
+        end
         bad_inds = find(depth_flags);
         distorted_points(:,bad_inds) = [];
       end%if do occlusion

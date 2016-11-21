@@ -15,7 +15,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_03_2'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
 %group_name = 'all_minus_boring';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
@@ -40,7 +40,7 @@ score_threshold = .1;
 show_scores_of_boxes = 1;
 show_class_of_boxes = 0;
 font_size = 30;
-line_width = 5;
+line_width = 3;
 
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -135,8 +135,8 @@ for i=1:length(all_scenes)
     try
       %depth_image = imread(fullfile(scene_path,'high_res_depth', ...
       %                      strcat(cur_image_name(1:8), '03.png')));
-      depth_image = imread(fullfile(meta_path,'improved_depths', ...
-                            strcat(cur_image_name(1:8), '05.png')));
+      %depth_image = imread(fullfile(meta_path,'improved_depths', ...
+      %                      strcat(cur_image_name(1:8), '05.png')));
       %h = imagesc(depth_image);
       %set(h,'AlphaData', .5);
     catch 
@@ -195,8 +195,8 @@ for i=1:length(all_scenes)
 
         rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
                      'LineWidth',line_width, 'EdgeColor','r');
-        t = text(bbox(1), bbox(2)-font_size,num2str(bbox(5)),  ...
-                                    'FontSize',font_size, 'Color','white');
+        %t = text(bbox(1), bbox(2)-font_size,num2str(bbox(5)),  ...
+        %                            'FontSize',font_size, 'Color','white');
         t.BackgroundColor = 'red';
       end%for kl, each label to show
 

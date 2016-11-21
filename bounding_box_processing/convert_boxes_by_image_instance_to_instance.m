@@ -26,13 +26,14 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_01_2'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_08_2'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
-label_type = 'verified_labels';  %raw_labels - automatically generated labels
+label_type = 'raw_labels';  %raw_labels - automatically generated labels
                             %verified_labels - boxes looked over by human
+
 label_loc = 'meta';  %where are the labels located?
                      %meta - in the meta_path
                      %scene - in the scene path

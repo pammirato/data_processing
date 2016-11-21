@@ -18,7 +18,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
+scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 model_number = '0';%colmap model number
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_1', 'Kitchen_Living_03_1', 'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1', 'Kitchen_Living_08_1', 'Kitchen_Living_03_2'};%populate this 
@@ -64,7 +64,7 @@ for il=1:length(all_scenes)
   instance_name_to_id_map = get_instance_name_to_id_map();
   %get the names of all the labels
   if(strcmp(label_to_process, 'all'))
-    label_names = keys(instance_name_to_id_map;
+    label_names = keys(instance_name_to_id_map);
   end
 
   %make a struct to hold counts for each instance in this scene
@@ -93,8 +93,10 @@ for il=1:length(all_scenes)
     end
 
     %get all the boxes for this instance in a matrix
-    cur_instance_boxes =cell2mat( (cur_instance_boxes.boxes)');;
-
+    %cur_instance_boxes =cell2mat( (cur_instance_boxes.boxes));
+    cur_instance_boxes =cur_instance_boxes.boxes;
+    assert(size(cur_instance_boxes,2) > 5);
+    
     %count the boxes for each hardness level and a total
     hard0 = length(find(cur_instance_boxes(:,6) == 0)); 
     hard1 = length(find(cur_instance_boxes(:,6) == 1)); 
@@ -118,7 +120,7 @@ for il=1:length(all_scenes)
   scenes_count_struct.total = scenes_count_struct.total + total_sum;
 end%for il, each scene_name
 
-fprintf('Total boxes in %d scenes: %d', length(all_scenes),...
+fprintf('Total boxes in %d scenes: %d\n', length(all_scenes),...
                                         scenes_count_struct.total);
 
 

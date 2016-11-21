@@ -556,7 +556,10 @@ function save_button_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 init;
 image_names = handles.image_names;
-boxes = handles.bboxes;
+boxes = cell2mat(handles.bboxes);
+if(size(boxes,1) ==1)
+  boxes = cell2mat(handles.bboxes');
+end
 save_dir = fullfile(ROHIT_META_BASE_PATH, handles.selected_scene, ...
                        LABELING_DIR, VERIFIED_LABELS, BBOXES_BY_INSTANCE);
 if(~exist(save_dir,'dir'))

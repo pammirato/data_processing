@@ -20,7 +20,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_04_1'; %make this = 'all' to run all scenes
+scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -31,11 +31,12 @@ view_direction = 1;%should the lines indicating camera direction be drawn?
 
 plot_type = 1; %  0 - 3D point plot 
                %  1 - 2D point plot
-save_figures = 0; % 0 - don't save
+save_figures = 2; % 0 - don't save
                   % 1 - save .fig file
                   % 2 - save .jpg image
 
 
+show_cluster_ids = 0;
 
 view_figure = 1; %whether or not to make the figure(s) visible
 
@@ -99,6 +100,12 @@ for i=1:length(all_scenes)
 
   directions = [image_structs.direction];
 
+
+  if(view_figure)
+    positions_plot_fig = figure();
+  else
+    positions_plot_fig = figure('Visible', 'off');
+  end
   %% plot  sutff 
 
 %  ax(i) = subplot(2,2,i);
@@ -113,6 +120,22 @@ for i=1:length(all_scenes)
 
   %makes plot prettier
   axis equal;
+
+
+  if(show_cluster_ids)
+   
+    cluster_ids = [image_structs.cluster_id]; 
+
+    for jl=1:length(cluster_ids)
+      cur_id = num2str(cluster_ids(jl)); 
+      switch plot_type
+        case 0 %use 3D plot
+          text(world_poses(1,jl),world_poses(2,jl), world_poses(3,jl),cur_id);
+        case 1 % make plot just 2D
+          text(world_poses(1,jl),world_poses(3,jl),cur_id,'FontSize', 10);
+      end
+    end%for jl, each images cluster id 
+  end %if show cluster ids
 
   %plot direction arrows if option is set
   if(view_direction)

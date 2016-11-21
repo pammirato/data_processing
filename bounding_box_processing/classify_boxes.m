@@ -36,7 +36,8 @@ label_type = 'verified_labels';  %raw_labels - automatically generated labels
 
 debug =0;
 
-
+kImageWidth = 1920;
+kImageHeight = 1080;
 %% SET UP GLOBAL DATA STRUCTURES
 
 
@@ -69,7 +70,8 @@ for il=1:length(all_scenes)
 
   %get the names of all the labels
   if(strcmp(label_to_process, 'all'))
-    label_names = get_names_of_X_for_scene(scene_name, 'instance_labels');
+    instance_name_to_id_map = get_instance_name_to_id_map();
+    label_names = keys(instance_name_to_id_map);
   end
 
 
@@ -113,7 +115,7 @@ for il=1:length(all_scenes)
 
 
   %% get info about camera position for each image
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', group_name, ...
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', ...
                                 'colmap_results', model_number,IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
   scale  = image_structs_file.scale;
@@ -141,7 +143,10 @@ for il=1:length(all_scenes)
 
 
   %% MAIN LOOP for each intsance label, get all of its boxes and classify them 
-
+  num_raw = 0;
+  num_occ = 0;
+  num_points = 0;
+  counter = 0;
   %for each  instance label
   for jl=1:length(label_names)
     
@@ -150,9 +155,14 @@ for il=1:length(all_scenes)
     disp(cur_label_name);%display progress
 
     %load the labeled point cloud for this label in this scene
-    cur_pc = pcread(fullfile(meta_path,LABELING_DIR, ...
+    try
+      cur_pc = pcread(fullfile(meta_path,LABELING_DIR, ...
                     OBJECT_POINT_CLOUDS, strcat(cur_label_name, '.ply')));
- 
+    catch
+      %this instance does not have a point cloud
+      continue;
+    end
+                 
 
     %load the boxes for this instance                
     try
@@ -162,13 +172,28 @@ for il=1:length(all_scenes)
       %this instance hasn't been labeled yet, skip it
       continue;
     end
+    
+        %load the labeled point cloud for this label in this scene
+%     try
+      cur_pc = pcread(fullfile(meta_path,LABELING_DIR, ...
+                    OBJECT_POINT_CLOUDS, strcat(cur_label_name, '.ply')));
+%     catch
+%       %this instance does not have a point cloud
+%       disp('N
+%     end
+    
 
     %get all the image names and boxes for the instance 
     image_names = cur_instance_boxes.image_names; 
     cur_instance_boxes = cur_instance_boxes.boxes;
 
+    assert(length(image_names) == size(cur_instance_boxes,1));
+
+    
+
     %% for each box,image classify the box 
     for kl = 1:length(image_names) 
+      counter = counter+1;
       %get the image name, and the coressponding image struct     
       cur_image_name = image_names{kl};
       cur_image_struct = image_structs_map(cur_image_name);
@@ -217,15 +242,19 @@ for il=1:length(all_scenes)
       %% classify the box
 
       %get dimensions of the box just found(without occlusion filtering) 
-      minx = min(distorted_points(1,:));
-      miny = min(distorted_points(2,:));
-      maxx = max(distorted_points(1,:));
-      maxy = max(distorted_points(2,:));
-      box_area = (maxx - minx) * (maxy-miny);
-
+      if(isempty(distorted_points))
+        0/0;
+        box_area = Inf;
+      else
+        minx = min(distorted_points(1,:));
+        miny = min(distorted_points(2,:));
+        maxx = max(distorted_points(1,:));
+        maxy = max(distorted_points(2,:));
+        box_area = (maxx - minx) * (maxy-miny);
+      end
 
       %get the true labeled box and its dimensions 
-      labeled_box = cur_instance_boxes{kl};
+      labeled_box = cur_instance_boxes(kl,:);
       labeled_box_area = (labeled_box(3) - labeled_box(1)) * (labeled_box(4)-labeled_box(2));
       labeled_min_dim = min((labeled_box(3)-labeled_box(1)), (labeled_box(4)-labeled_box(2)));
       labeled_max_dim = max((labeled_box(3)-labeled_box(1)), (labeled_box(4)-labeled_box(2)));
@@ -285,10 +314,19 @@ for il=1:length(all_scenes)
       end 
 
       %the final hardness is the max hardness of any of the three measures
-      hardness = max([raw_area_hardness, ratio_area_hardness, num_points_hardness]);
+      [hardness, ind]= max([raw_area_hardness, ratio_area_hardness, num_points_hardness]);
+
+
+      if(ind==1)
+        num_raw = num_raw+1; 
+      elseif(ind==2)
+        num_raw = num_occ+1; 
+      elseif(ind==3)
+        num_raw = num_points+1; 
+      end
 
       %add the hardness meseaure to the box 
-      cur_instance_boxes{kl} = [labeled_box(1:5) hardness];
+      cur_instance_boxes(kl,:) = [labeled_box(1:5) hardness];
     end%for kl, each image name
 
     %% save the newly classified boxes for this instance label
@@ -300,10 +338,10 @@ for il=1:length(all_scenes)
     cur_instance_boxes.image_names = image_names;
     cur_instance_boxes.boxes = boxes;
     %save 
-    save(fullfile(meta_path,LABELING_DIR, label_type ...
-                            BBOXES_BY_INSTANCE,...
-                             strcat(cur_label_name, '.mat')),...
-                               '-struct', 'cur_instance_boxes');
+    %save(fullfile(meta_path,LABELING_DIR, label_type ...
+    %                        BBOXES_BY_INSTANCE,...
+    %                         strcat(cur_label_name, '.mat')),...
+    %                           '-struct', 'cur_instance_boxes');
   end%for jl, each instance label name 
 end%for il, each scene_name
 

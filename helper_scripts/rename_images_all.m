@@ -18,11 +18,11 @@ init
 
 %% USER OPTIONS
 
-scene_name = 'Office_04_1'; %make this = 'all' to run all scenes
+scene_name = 'Kitchen_Living_12_1'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
-image_type = 1;   % 0 - just rgb
+image_type = 0;   % 0 - just rgb
                    % 1 - just raw_depth
 
 

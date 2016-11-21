@@ -1,40 +1,34 @@
-%
+%Interpolates a position and orientation of the images that were not reconstructed.
 
-%TODO - fix blank struct, shouldnt need all those fields
+%TODO - finish testing of new direction computation 
+%     - dont check which images were reconstructed twice
+%     - do we need cw_Struct and ccw_struct or just one?
 
+
+%CLEANED - ish 
+%TESTED - ish  -does new angle work for angle > 90?  > 180?
 clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
 
-
-
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
-group_name = 'all';
+scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {'Kitchen_05_1', 'Office_01_1'};%populate this 
 
-
 cluster_size = 12;%how many images are in each cluster
-
-
-method = 0;   % 0 - dumb, just world pos and direction
-              % 1 - smart, doesnt work
-            
 
 debug = 0;
 
 %% SET UP GLOBAL DATA STRUCTURES
 
-
 %get the names of all the scenes
 d = dir(ROHIT_BASE_PATH);
 d = d(3:end);
 all_scenes = {d.name};
-
 
 %determine which scenes are to be processed 
 if(use_custom_scenes && ~isempty(custom_scenes_list))
@@ -45,7 +39,7 @@ elseif(~strcmp(scene_name, 'all'))
   all_scenes = {scene_name};
 end
 
-
+%% MAIN LOOP
 for il=1:length(all_scenes)
  
   %% set scene specific data structures
@@ -53,156 +47,90 @@ for il=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
-
-  %place holder struct for struct array
-  blank_struct = struct(IMAGE_NAME, '', TRANSLATION_VECTOR, [], ...
-                       ROTATION_MATRIX, [], WORLD_POSITION, [], ...
-                       DIRECTION, [], QUATERNION, [], ...
-                       SCALED_WORLD_POSITION, [0,0,0], IMAGE_ID,'',...
-                       CAMERA_ID, '', 'cluster_id', -1, 'rotate_cw', -1, ...
-                       'rotate_ccw',-1, 'translate_forward',-1,'translate_backward',-1, ...
-                       'translate_left', -1 , 'translate_right', -1);
-
-
-
-  %load the structs 
-  recon_struct_file = load(fullfile(meta_path,RECONSTRUCTION_DIR,group_name, 'colmap_results',...
+  %load the structs for the reconstructed images and make a map
+  recon_struct_file = load(fullfile(meta_path,RECONSTRUCTION_RESULTS, 'colmap_results',...
                        model_number, 'image_structs.mat'));
    
   image_structs = recon_struct_file.image_structs;
   scale = recon_struct_file.scale;
 
-
-  [image_structs.translate_right] = deal(-1);
-  [image_structs.translate_left] = deal(-1);
+  image_structs_map = make_image_structs_map(image_structs); 
 
 
-  %now make the image structs just for the main rgb images. 
-  %Main rgb images are all the images that are given to move around the scene, not the hand
-  %scan. Not all of these were reconstructed, so we need to remove the hand scan, and 
-  %interpolate to add the not reconstructed main images
+  %get the names of all rgb images for this scene 
+  image_names = get_scenes_rgb_names(scene_path);
 
-  %get how many main rgb images there are
-  num_main_rgb_images = length(dir(fullfile(scene_path, 'rgb')));
-
-  %% first remove the hand scan images
-  inds_to_remove = []; 
-  
-  for jl =1:length(image_structs)
- 
-    cur_image_struct = image_structs(jl);
-    cur_image_name = cur_image_struct.image_name; 
-
-    image_index = str2double(cur_image_name(1:6)); 
-    
-    if(image_index > num_main_rgb_images)
-      inds_to_remove(end+1) = jl;
-    end
-    
-  end%for jl, each image struct
-
-
-  image_structs(inds_to_remove) = [];
-
-
-  %% now make sure there is an image struct for each image
-
-
-  %make a map from image name to image struct
-  image_names_with_struct = {image_structs.image_name};
-
-  name_to_image_struct_map = containers.Map(image_names_with_struct,...
-                                 cell(1,length(image_names_with_struct)));
-
-  for jl=1:length(image_names_with_struct)
-    name_to_image_struct_map(image_names_with_struct{jl}) = image_structs(jl);
+  %get a sample struct with all the fields we need. Remove values from all vields
+  sample_struct = image_structs(1);
+  fields = fieldnames(sample_struct);
+  for jl=1:length(fields)
+    sample_struct.(fields{jl}) = [];
   end
  
+  %make a struct array to hold the new structs for all images that were not reconstructed 
+  new_image_structs = repmat(sample_struct, 1, length(image_names)-length(image_structs)); 
+  new_structs_made = 0;
+
 
   %get the names of all the images, and make a blank struct array for them all 
   temp = dir(fullfile(scene_path, 'rgb', '*.png'));
   all_image_names = {temp.name};
-  all_image_structs = repmat(blank_struct, 1, length(all_image_names));
-
-
-  new_image_structs = repmat(blank_struct, 1, length(all_image_names) - length(image_structs));
-  num_made_image_structs = 0;
 
 
 
-  
+  %for each cluster of images, process all images in that cluster
+  %assumes image name index is correct indicator of cluster
   for jl=1:(length(all_image_names)/cluster_size)
 
-    %store the structs that will define the circle for this cluster 
+    %store the structs that were reconstructed in this cluster 
     counter = 1; 
-    defining_structs = repmat(blank_struct, 1, 3);%need 3 points to define a circle
+    defining_structs = repmat(sample_struct, 1, cluster_size);
 
     %for each image in the cluster see if it was reconstructed
     for kl=1:cluster_size
       cur_image_name = all_image_names{(jl-1)*cluster_size + kl}; 
 
       try
-        cur_image_struct = name_to_image_struct_map(cur_image_name);
+        cur_image_struct = image_structs_map(cur_image_name(1:10));
         defining_structs(counter) = cur_image_struct;
         counter = counter +1;
       catch
       end
   
     end%for kl 
-    
-    if(length(defining_structs) >= counter)
-      defining_structs(counter:end) = [];
-    end
+   
+    %remove empty structs from array 
+    defining_structs(counter:end) = [];
     
     assert(~isempty(defining_structs));
 
-    if(method == 1) 
-      pts = [defining_structs.t];
 
-      pts(2,:) = [];    
-   
-      [center_x, center_y, radius, equation] = circfit(pts(1,:), pts(2,:)); 
-    end
-
- 
+    %debug option, plots the defining structs for this cluster
     if(debug)
-
       hold off
-     
       dirs = [defining_structs.direction];
       world = [defining_structs.world_pos];
- 
       plot(world(1,:), world(3,:), 'k.', 'MarkerSize', 20);
       hold on;
-
       quiver(world(1,:),world(3,:), ...
                dirs(1,:),dirs(3,:), ...
                 'ShowArrowHead','on','Color' ,'b');
-
-
       names = {defining_structs.image_name};
-
-
       text(world(1,:), world(3,:), names);
-      %text(pts(1,:), pts(2,:), names);
       axis equal;
-
- 
       title(num2str(jl));
-%      hold off;
-%       ginput(1);
     end%if debug
  
  
- 
-     %% now do the interpolation
-     
+    %% now do the interpolation
+    % for each image in the cluster, if it was not reconstructed, interpolate
+    % position and direction
     for kl=1:cluster_size
       cur_image_name = all_image_names{(jl-1)*cluster_size + kl}; 
 
       %see if this image already has a struct 
       try
-        cur_image_struct = name_to_image_struct_map(cur_image_name);
+        cur_image_struct = image_structs_map(cur_image_name(1:10));
       catch
         %otherwise interplotate to make a new struct
         cur_index = str2double(cur_image_name(1:6));
@@ -221,7 +149,6 @@ for il=1:length(all_scenes)
         %with the closest, smaller index
         for ll=length(defining_structs):-1:1
           cur_def_struct = defining_structs(ll);
-
           cur_def_index = str2double(cur_def_struct.image_name(1:6));
 
           if(cur_def_index < cur_index)
@@ -243,7 +170,6 @@ for il=1:length(all_scenes)
         %the closest, larger index
         for ll=1:length(defining_structs)
           cur_def_struct = defining_structs(ll);
-
           cur_def_index = str2double(cur_def_struct.image_name(1:6));
 
           if(cur_def_index > cur_index)
@@ -260,107 +186,26 @@ for il=1:length(all_scenes)
           cw_index_dist = abs((12-cur_index) + cur_def_index);
         end 
 
+        %make new image struct for this image
+        new_struct = sample_struct;
+       
+        %set the new position to be the average of all the other positions in this cluster 
+        defined_worlds = [defining_structs.world_pos];
+        new_struct.world_pos = mean(defined_worlds,2);
 
+        %rotate the ccw_struct's direction vector by the given angle
+        angle = 30 * ccw_index_dist;
+        ccw_dir = ccw_struct.direction;
+        new_dir = ccw_dir;
 
-        if(method == 0)%just average position, and rotate direction vector
-
-
-          new_struct = blank_struct;
-         
-          %set the new position to be the average of all the other positions in this cluster 
-          defined_worlds = [defining_structs.world_pos];
-          new_struct.world_pos = mean(defined_worlds,2);
-
-          %rotate the ccw_struct's direction vector by the given angle
-          angle = 30 * ccw_index_dist;
-          ccw_dir = ccw_struct.direction;
-          new_dir = ccw_dir;
-
-          %https://www.siggraph.org/education/materials/HyperGraph/modeling/mod_tran/2drota.htm
-          new_dir(1) = ccw_dir(1)*cosd(angle) - ccw_dir(3)*sind(angle); 
-          new_dir(3) = ccw_dir(3)*cosd(angle) + ccw_dir(1)*sind(angle); 
-             
-          new_struct.direction = new_dir;
-          new_struct.image_name = cur_image_name;
-          new_struct.scaled_world_pos = new_struct.world_pos * scale; 
-        elseif(method == 1)%doesn't work
-
-          pointA = [];
-          angle = 0;        
-
-
-          %if(ccw_index_dist < cw_index_dist)
-          %  pointA = ccw_struct.t;
-          %  angle = 30 * ccw_index_dist;
-          %else
-            pointA = cw_struct.t;
-            angle = 30 * cw_index_dist;
-         % end
-
-
-          angle_rad = angle*pi/180;
-
-          pointA(2) = [];
-          pointC = [center_x; center_y];
-
-          %law of cosines
-          sideAB = sqrt(radius^2 + radius^2 - 2*radius*radius*cosd(angle));
-
-
-          a = (sideAB^2 - radius^2 + radius^2) / (2*radius);
-          %a = sideAB*cos(angle_rad);
-          h = sideAB*sind((180-angle)/2);
-         % h = radius*sind(180 - 2*angle);
-
-          P2 = pointA + a*(pointC - pointA)/radius;
-
-          p31 = P2 +  h*(pointC([2,1]) - pointA([2,1]))/radius; 
-          p32 = P2 -  h*(pointC([2,1]) - pointA([2,1]))/radius; 
-
-          x31 = P2(1) + h*(pointC(2) - pointA(2))/radius;
-          x32 = P2(1) - h*(pointC(2) - pointA(2))/radius;
-          y31 = P2(2) + h*(pointC(1) - pointA(1))/radius;
-          y32 = P2(2) - h*(pointC(1) - pointA(1))/radius;
-         
-
-          new_t = [x31; cw_struct.t(2)  ;y32];
-
-          %% now get new R
-
-          ccw_quat= ccw_struct.quat;
-          cw_quat = cw_struct.quat;
-    
-          f = ccw_index_dist / (ccw_index_dist + cw_index_dist);
-
-          %new_quat = quatinterp(ccw_quat_n, cw_quat_n, frac, 'slerp');
-
-          new_quat = ccw_quat;
-          new_quat = slerp(ccw_quat, cw_quat, f, 10*eps);
-
-
-          new_R = quat2rotm(new_quat');
-
-
-          new_world_pos = -new_R' * new_t;
-
-
-          vec1 = [0;0;1;1];
-          vec2 = [0;0;0;1];
-          proj = [-new_R' new_world_pos];
-          cur_vec = (proj * vec1) - (proj*vec2);
-
-          new_direction = -cur_vec;
-
-
-
-          new_struct = blank_struct;
-          new_struct.image_name = cur_image_name;
-          new_struct.t = new_t;
-          new_struct.R = new_R;
-          new_struct.direction = new_direction;
-          new_struct.quat = new_quat;
-          new_struct.world_pos = -new_R' * new_t;
-        end%if method
+        %https://www.siggraph.org/education/materials/HyperGraph/modeling/mod_tran/2drota.htm
+        new_dir(1) = ccw_dir(1)*cosd(angle) - ccw_dir(3)*sind(angle); 
+        new_dir(3) = ccw_dir(3)*cosd(angle) + ccw_dir(1)*sind(angle); 
+        
+        %update new structs fields   
+        new_struct.direction = new_dir;
+        new_struct.image_name = cur_image_name;
+        new_struct.scaled_world_pos = new_struct.world_pos * scale; 
 
         if(debug)
           plot(new_struct.world_pos(1), new_struct.world_pos(3), 'r.', 'MarkerSize', 20);
@@ -371,10 +216,11 @@ for il=1:length(all_scenes)
             'ShowArrowHead','on','Color' ,'b');
           %ginput(1);
           breakp=1;
-        end
+        end%debug
 
-        new_image_structs(num_made_image_structs+1) = new_struct;
-        num_made_image_structs= num_made_image_structs+1;
+        %put the newly made struct into the new structs array 
+        new_image_structs(new_structs_made+1) = new_struct;
+        new_structs_made= new_structs_made+1;
       end%try catch
     end%for kl
   end%for jl, each cluster
@@ -390,27 +236,19 @@ for il=1:length(all_scenes)
     plot(recon_pos(1,:), recon_pos(3,:), 'r.');
     hold on;
     plot(new_pos(1,:), new_pos(3,:), 'k.');
-  end 
+  end%debug
 
 
-
-
-
-
-  %% add the newly made structs into the image structs array, and save them
+  %% add the newly made structs into the image structs array, sort and save them
   image_structs = [image_structs new_image_structs];
-
-
   image_structs = nestedSortStruct2(image_structs, 'image_name');
-  
-  
-  save(fullfile(meta_path,RECONSTRUCTION_DIR,group_name, 'colmap_results',...
-                       model_number, 'image_structs.mat'), 'image_structs', 'scale');
 
-  image_structs = new_image_structs;
-  save(fullfile(meta_path,'labels','not_reconstructed_image_structs.mat'),...
-                       'image_structs', 'scale');
-end%for i, each scene
+  %make sure all structs were made 
+  assert(new_structs_made == (length(new_image_structs)));
+ 
+  save(fullfile(meta_path,RECONSTRUCTION_RESULTS, 'colmap_results',...
+                       model_number, 'image_structs.mat'), 'image_structs', 'scale');
+end%for il, each scene
 
 
 

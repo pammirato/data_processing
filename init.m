@@ -42,9 +42,13 @@ MISC_DIR = 'misc/';
 %holds labels and data used for labeling
 LABELING_DIR = 'labels';
 
+  HAND_LABEL_NAMES = 'images_to_hand_label.txt';
+  MISSING_BOXES_NAMES = 'images_to_hand_check_for_missing_boxes.txt';
   RAW_LABELS = 'raw_labels';
   VERIFIED_LABELS = 'verified_labels';
   LOOSE_LABELS = 'loose_labels';
+
+
   
 
     BBOXES_BY_INSTANCE = 'bounding_boxes_by_instance';
