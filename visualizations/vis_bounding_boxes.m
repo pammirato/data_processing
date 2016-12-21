@@ -15,7 +15,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
+scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
 %group_name = 'all_minus_boring';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
@@ -40,7 +40,7 @@ score_threshold = .1;
 show_scores_of_boxes = 1;
 show_class_of_boxes = 0;
 font_size = 30;
-line_width = 3;
+line_width = 1;
 
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -133,12 +133,12 @@ for i=1:length(all_scenes)
     imshow(rgb_image);
     hold on;
     try
-      %depth_image = imread(fullfile(scene_path,'high_res_depth', ...
-      %                      strcat(cur_image_name(1:8), '03.png')));
+      depth_image = imread(fullfile(scene_path,'high_res_depth', ...
+                            strcat(cur_image_name(1:8), '03.png')));
       %depth_image = imread(fullfile(meta_path,'improved_depths', ...
       %                      strcat(cur_image_name(1:8), '05.png')));
-      %h = imagesc(depth_image);
-      %set(h,'AlphaData', .5);
+      h = imagesc(depth_image);
+      set(h,'AlphaData', .5);
     catch 
     end
 
@@ -326,6 +326,9 @@ for i=1:length(all_scenes)
     elseif(move_command =='s')
         %move backward 
         next_image_name = cur_image_struct.translate_backward;
+        if(next_image_name == -1)
+          next_image_name = cur_image_name;
+        end
         cur_image_index = str2num(next_image_name(1:6));
     
     elseif(move_command =='d')
@@ -377,6 +380,11 @@ for i=1:length(all_scenes)
         cur_image_index = cur_image_index +1;
         pause(.1);
       end
+    elseif(move_command =='z')
+      %save current image with boxes
+      title('');
+      export_fig(fullfile(meta_path,'fig_imgs', cur_image_name));
+      next_image_name = cur_image_name;      
 
     elseif(move_command =='i')
         %insert a new label or replace an old one

@@ -61,7 +61,7 @@ handles.scene_pop_up_menu.String = cat(2, {'Pick a Scene'}, all_scenes);
 
 % Choose default command line output for box_editor
 handles.output = hObject;
-handles.box_change_resolution = 5;
+handles.box_change_resolution = 4;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -557,7 +557,7 @@ function save_button_Callback(hObject, eventdata, handles)
 init;
 image_names = handles.image_names;
 boxes = cell2mat(handles.bboxes);
-if(size(boxes,1) ==1)
+if(size(boxes,1) < length(handles.bboxes))
   boxes = cell2mat(handles.bboxes');
 end
 save_dir = fullfile(ROHIT_META_BASE_PATH, handles.selected_scene, ...
@@ -567,6 +567,8 @@ if(~exist(save_dir,'dir'))
 end
 save(fullfile(save_dir, handles.selected_instance),'image_names','boxes' );
                             
+%update labels by image instance
+convert_boxes_by_instance_to_image_instance(handles.selected_scene, 'verified_labels');
 
 
 % --- Executes on button press in res_up_button.
@@ -577,7 +579,7 @@ function res_up_button_Callback(hObject, eventdata, handles)
 % hObject    handle to res_up_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.box_change_resolution = min(handles.box_change_resolution+5,500);
+handles.box_change_resolution = min(handles.box_change_resolution+3,500);
 
 % Update handles structure
 guidata(hObject, handles);
@@ -590,7 +592,7 @@ function res_down_button_Callback(hObject, eventdata, handles)
 % hObject    handle to res_down_button (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-handles.box_change_resolution = max(handles.box_change_resolution-5,1);
+handles.box_change_resolution = max(handles.box_change_resolution-3,1);
 
 % Update handles structure
 guidata(hObject, handles);

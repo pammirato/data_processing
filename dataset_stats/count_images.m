@@ -18,19 +18,19 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
-group_name = 'all';
+scene_name = 'all'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_1', 'Kitchen_Living_03_1', 'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1'};%populate this 
 
-only_count_images_with_desired_objects = 0;
+only_count_images_with_desired_objects = 1;
 
-labels_to_include = 'all'; %make 'all' for every label
-label_names = {labels_to_include};
+label_to_process = 'all'; %make 'all' for every label
+label_names = {label_to_process};
 
 debug =0;
 
+label_type = 'verified_labels';
 %% SET UP GLOBAL DATA STRUCTURES
 
 %get the names of all the scenes
@@ -50,7 +50,7 @@ end
 instance_name_to_id_map = get_instance_name_to_id_map();
 %get the names of all the labels
 if(strcmp(label_to_process, 'all'))
-  label_names = keys(instance_name_to_id_map;
+  label_names = keys(instance_name_to_id_map);
 end
 
 image_count_struct = struct('total', 0);
@@ -65,25 +65,33 @@ for il=1:length(all_scenes)
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
   %get the names of images in this scene and count them
-  image_names = get_names_of_X_for_scene(scene_name, 'rgb_images');
+  image_names = get_scenes_rgb_names(scene_path);
   num_images = length(image_names);
 
-  if(only_count_images_desired_objects)
+  if(only_count_images_with_desired_objects)
     valid_image_names = {};
 
     for jl=1:length(label_names)
       %get the instance name and load its boxes for this scene
       cur_instance_name = label_names{jl};
 
-      cur_instance_boxes = load(fullfile(meta_path, LABELING_DIR, label_type, ...
-                                        BBOXES_BY_INSTANCE, strcat(cur_label_name, '.mat')));
-
+      try
+        cur_instance_boxes = load(fullfile(meta_path, LABELING_DIR, label_type, ...
+                                        BBOXES_BY_INSTANCE, strcat(cur_instance_name, '.mat')));
+      catch
+        continue;
+      end 
+    
       %get the images that see this instance in this scene
       cur_instance_image_names = cur_instance_boxes.image_names;
 
       %add any new image names to the list of image names that see at least one of
       %the desired instances
-      valid_image_names = unique(cat(2, valid_image_names, cur_instance_image_names));
+      try
+        valid_image_names = unique(cat(1, valid_image_names, cur_instance_image_names));
+      catch 
+        valid_image_names = unique(cat(2, valid_image_names, cur_instance_image_names));
+      end
     end%for jl, each label name
  
     %overwrite the number of images 

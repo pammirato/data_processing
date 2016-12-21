@@ -21,7 +21,6 @@ save_base_path = fullfile('/playpen/ammirato/data/eunbyung_data/');
 
 
 scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
-group_name = 'all';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -78,7 +77,7 @@ for il=1:length(all_scenes)
 
   image_names = get_scenes_rgb_names(scene_path);
 
-
+  save_base_path = fullfile(meta_path,'text_labels');
   save_dir = fullfile(save_base_path, scene_name);
   ann_save_path = fullfile(save_dir, 'annotations');
   if(~exist(save_dir, 'dir'))

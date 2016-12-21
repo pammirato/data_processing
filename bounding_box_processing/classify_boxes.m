@@ -1,3 +1,4 @@
+function classify_boxes(scene_name, label_type)
 % assigns a label to each bounding box indicating how difficult it may
 % for a detection system to duplicate
 %
@@ -5,11 +6,15 @@
 %
 %   [xmin ymin xmax ymax cat_id hardness ...]
 %
-
+%INPUTS:
+%         scene_name: char array of single scene name, 'all' for all scenes, 
+%                     or a cell array of char arrays, one for each desired scene
+%         label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
+%
 
 %TODO
 
-%CLEANED - yes
+%CLEANED - no 
 %TESTED - no
 
 
@@ -21,18 +26,23 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+%scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 model_number = '0';
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_1', 'Kitchen_Living_03_1', 'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1'};%populate this 
+%use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+%custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_1', 'Kitchen_Living_03_1', 'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1'};%populate this 
+
+
+
 
 
 %which instances to use
 label_to_process = 'all'; %make 'all' for every label
 label_names = {label_to_process};
 
-label_type = 'verified_labels';  %raw_labels - automatically generated labels
-                                %verified_labels - boxes looked over by human
+if(nargin <2)
+  label_type = 'verified_labels';  %raw_labels - automatically generated labels
+end                                %verified_labels - boxes looked over by human
+
 
 debug =0;
 
@@ -48,9 +58,9 @@ all_scenes = {d.name};
 
 
 %determine which scenes are to be processed 
-if(use_custom_scenes && ~isempty(custom_scenes_list))
+if(iscell(scene_name)
   %if we are using the custom list of scenes
-  all_scenes = custom_scenes_list;
+  all_scenes = scene_name;
 elseif(~strcmp(scene_name, 'all'))
   %if not using custom, or all scenes, use the one specified
   all_scenes = {scene_name};
@@ -243,7 +253,6 @@ for il=1:length(all_scenes)
 
       %get dimensions of the box just found(without occlusion filtering) 
       if(isempty(distorted_points))
-        0/0;
         box_area = Inf;
       else
         minx = min(distorted_points(1,:));
@@ -272,14 +281,14 @@ for il=1:length(all_scenes)
 
       %raw area hardness (too small?)
       %if one dimension is too small, it will be very hard to find
-      if((labeled_max_dim > .1*kImageWidth)  && (labeled_min_dim > 40))
-        raw_area_hardness = 0;
-      elseif((labeled_max_dim > .05*kImageWidth)  && (labeled_min_dim > 30))
+      if((labeled_max_dim > .2*kImageWidth)  && (labeled_min_dim > 40))
         raw_area_hardness = 1;
-      elseif((labeled_max_dim > .025*kImageWidth)  && (labeled_min_dim > 20))
+      elseif((labeled_max_dim > .1*kImageWidth)  && (labeled_min_dim > 30))
         raw_area_hardness = 2;
-      else
+      elseif((labeled_max_dim > .05*kImageWidth)  && (labeled_min_dim > 20))
         raw_area_hardness = 3;
+      else
+        raw_area_hardness = 4;
       end 
 
 
@@ -288,13 +297,13 @@ for il=1:length(all_scenes)
       % occlusion filtering, very roughly 50% of the object is occluded
       area_ratio = labeled_box_area/box_area; 
       if(area_ratio > .8)
-        ration_area_hardness = 0; 
-      elseif(area_ratio > .6)
         ration_area_hardness = 1; 
-      elseif(area_ratio > .4)
+      elseif(area_ratio > .6)
         ration_area_hardness = 2; 
-      else
+      elseif(area_ratio > .4)
         ration_area_hardness = 3; 
+      else
+        ration_area_hardness = 4; 
       end
 
 
@@ -304,13 +313,13 @@ for il=1:length(all_scenes)
       % maybe cut off on the boundary
       num_points_ratio = length(distorted_points)/ length(cur_pc.Location);
       if(num_points_ratio > .8)
-        ration_area_hardness = 0; 
-      elseif(num_points_ratio > .6)
         ration_area_hardness = 1; 
-      elseif(num_points_ratio > .4)
+      elseif(num_points_ratio > .6)
         ration_area_hardness = 2; 
-      else
+      elseif(num_points_ratio > .4)
         ration_area_hardness = 3; 
+      else
+        ration_area_hardness = 4; 
       end 
 
       %the final hardness is the max hardness of any of the three measures
@@ -333,15 +342,18 @@ for il=1:length(all_scenes)
 
     %create the struct for the boxes
     boxes = cur_instance_boxes;
-    cur_instance_boxes = struct('image_names', cell(1), ...
-                                'boxes', cell(1));
-    cur_instance_boxes.image_names = image_names;
-    cur_instance_boxes.boxes = boxes;
+    %cur_instance_boxes = struct('image_names', cell(1), ...
+    %                            'boxes', cell(1));
+    %cur_instance_boxes.image_names = image_names;
+    %cur_instance_boxes.boxes = boxes;
     %save 
-    %save(fullfile(meta_path,LABELING_DIR, label_type ...
-    %                        BBOXES_BY_INSTANCE,...
-    %                         strcat(cur_label_name, '.mat')),...
-    %                           '-struct', 'cur_instance_boxes');
+    save(fullfile(meta_path,LABELING_DIR, label_type, ...
+                            BBOXES_BY_INSTANCE,...
+                             strcat(cur_label_name, '.mat')),...
+                               'boxes' ,'image_names');
+
   end%for jl, each instance label name 
+
+  convert_boxes_by_instance_to_image_instance('Bedroom_01_1', 'verified_labels');
 end%for il, each scene_name
 

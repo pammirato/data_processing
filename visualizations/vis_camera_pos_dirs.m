@@ -20,7 +20,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
+scene_name = 'Office_04_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -31,18 +31,18 @@ view_direction = 1;%should the lines indicating camera direction be drawn?
 
 plot_type = 1; %  0 - 3D point plot 
                %  1 - 2D point plot
-save_figures = 2; % 0 - don't save
+save_figures = 0; % 0 - don't save
                   % 1 - save .fig file
                   % 2 - save .jpg image
 
 
 show_cluster_ids = 0;
+show_image_names = 0;
 
 view_figure = 1; %whether or not to make the figure(s) visible
 
 use_scaled_positions = 0;%use positions in meters, not arbitrary reconstruction coords
 
-show_image_names = 0;
 
 
 %% SET UP DATA STRUCTURES
@@ -122,9 +122,10 @@ for i=1:length(all_scenes)
   axis equal;
 
 
-  if(show_cluster_ids)
+  if(show_cluster_ids | show_image_names)
    
     cluster_ids = [image_structs.cluster_id]; 
+    image_names = {image_structs.image_name};
 
     for jl=1:length(cluster_ids)
       cur_id = num2str(cluster_ids(jl)); 
@@ -133,6 +134,9 @@ for i=1:length(all_scenes)
           text(world_poses(1,jl),world_poses(2,jl), world_poses(3,jl),cur_id);
         case 1 % make plot just 2D
           text(world_poses(1,jl),world_poses(3,jl),cur_id,'FontSize', 10);
+          if(show_image_names)
+            text(world_poses(1,jl),world_poses(3,jl),image_names{jl},'FontSize', 5);
+          end
       end
     end%for jl, each images cluster id 
   end %if show cluster ids

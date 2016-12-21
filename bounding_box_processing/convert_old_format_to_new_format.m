@@ -1,3 +1,6 @@
+%%%%  NOT NEEDED, NOT USED
+
+
 % converts bounding box labels that are organized in structs by string instance names
 % to arrays with numeric ids for each instance
 %
@@ -11,7 +14,7 @@
 %   ... and possible other numbers
 
 
-%TODO  - 
+%TODO  - delete this file 
 
 %CLEANED - yes 
 %TESTED - no
@@ -27,7 +30,7 @@ init;
 
 scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 model_number = '0';
-use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
+use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {'Kitchen_Living_01_1','Kitchen_Living_02_1','Kitchen_Living_03_1','Kitchen_Living_03_2','Kitchen_Living_04_2','Kitchen_Living_06','Kitchen_Living_08_1','Kitchen_05_1', 'Office_01_1'};%populate this 
 
 label_type = 'verified_labels';  %raw_labels - automatically generated labels

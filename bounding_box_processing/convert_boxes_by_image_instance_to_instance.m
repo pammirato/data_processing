@@ -1,3 +1,4 @@
+function [] = convert_boxes_by_image_insance_to_instance(scene_name, label_type)
 % converts bounding box labels that are organized in a fashion that has one file 
 % per image to a format that has one file per instance. It is assummed each file
 % for each image has instance labels, not class level labels
@@ -10,33 +11,54 @@
 %   cat_id is the integer ID of the category(instance or class level)
 %   hardness is some measure of difficult for detection
 %   ... and possible other numbers
+%
+%
+%
+% INPUTS:
+%     scene_name - the name of the scene(s) that the boxes are in 
+%                   - 'all' for all scenes
+%                   - {'scene1', 'scene2',...} cell array of names for multiple scenes
+%     label_type - OPTIONAL 
+%                 (default) -'raw_labels' - auto generated boxes
+%                           -'verified_labels' - human verified boxes
+%     label_loc - OPTIONAL -where the boxes are located
+%                 (default) - 'meta'  - in the meta path
+%                           - 'scene' - in the scene path 
+%
+
+
 
 
 %TODO  - is it dumb to reread boxes by image files over and over?
 
-%CLEANED - ish 
-%TESTED - ish
+%CLEANED - yes
+%TESTED - yes
 
-clearvars;
+%clearvars;
 
 %initialize contants, paths and file names, etc. 
+
 init;
 
 
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_08_2'; %make this = 'all' to run all scenes
-model_number = '0';
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
+%whether or not to run for the scenes in the custom list
+if(iscell(scene_name))
+  use_custom_scenes = 1;  custom_scenes_list = scene_name; 
+else
+  use_custom_scenes = 0;
+end
 
-label_type = 'raw_labels';  %raw_labels - automatically generated labels
-                            %verified_labels - boxes looked over by human
+%set default label_type if not inputted by user
+if(nargin <2)
+  label_type = 'raw_labels'; 
+end
 
-label_loc = 'meta';  %where are the labels located?
-                     %meta - in the meta_path
-                     %scene - in the scene path
+if(nargin <3)
+  label_loc = 'meta'; %which path to use: scene or meta 
+end
 
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -67,7 +89,6 @@ for il=1:length(all_scenes)
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
   %determine where to look for/save the labels
-  label_path = '';
   if(strcmp(label_loc, 'meta'))
     label_path = meta_path;
   else
@@ -120,18 +141,18 @@ for il=1:length(all_scenes)
     %get the current intance name and id    
     cur_instance_name = instance_names{jl};
     cur_instance_id = instance_name_to_id_map(cur_instance_name);
-    disp(cur_instance_name);%display progress
+    %disp(cur_instance_name);%display progress
 
-
+    
 
     %get the boxes and image names for just this instance
-    cur_inds = find(image_labels(:,5) == cur_instance_id);
+    cur_inds = image_labels(:,5) == cur_instance_id;
     boxes = image_labels(cur_inds,:);
     image_inds = boxes(:,end);
     boxes = boxes(:,1:end-1); %remove image index
     image_names = cell2mat(labeled_image_names(image_inds)');
     image_names(:,11:end) = repmat('.png', size(image_names,1),1);
-    image_names = mat2cell(image_names, repmat(1,1,size(image_names,1)), size(image_names,2));
+    image_names = mat2cell(image_names, ones(1,size(image_names,1)), size(image_names,2));
 
     if(isempty(image_names))
       continue; %dont save anything if the object is not present in this scene
@@ -141,4 +162,6 @@ for il=1:length(all_scenes)
     save(fullfile(save_path, strcat(cur_instance_name,'.mat')), 'image_names', 'boxes');
    end%for jl, each instance name 
 end%for i, each scene_name
+end%function
+
 

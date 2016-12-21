@@ -1,13 +1,12 @@
-
+function hand_label_images(scene_name, 
 
 
 
 %TODO -  %save boxes by instance too?
 %       - double  check to see if image already has labels
 
-
 %CLEANED - no 
-%TESTED - no
+%TESTED - ish 
 clearvars;
 
 %initialize contants, paths and file names, etc. 
@@ -23,7 +22,8 @@ custom_scenes_list = {};%populate this
 
 
 method = 1;  % 0 - non reconstructed images
-             % 1 -  missing boxes check
+             % 1 -  missing boxes check - for checking all images at the end to 
+             %improve recall
 
 
 label_type = 'verified_labels';
@@ -47,6 +47,8 @@ end
 %% MAIN LOOP
 for il=1:length(all_scenes)
  
+try%make sure last line is execuuted
+
   %% set scene specific data structures
   scene_name = all_scenes{il}
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
@@ -164,13 +166,6 @@ for il=1:length(all_scenes)
     end%while but 
    
 
-    %now save the new annotations 
-      %attempt to load the instance label file
-      %instance_annotations_file = load(fullfile(scene_path, LABELING_DIR, ...
-      %                                 BBOXES_BY_INSTANCE_DIR, ...
-      %                                  strcat(inserted_label_name, '.mat')));         
-      %                                       'bbox',  bbox)];
-
     boxes = cur_boxes;
     %save boxes by image instance
     save(fullfile(meta_path,LABELING_DIR,label_type, BBOXES_BY_IMAGE_INSTANCE, ...
@@ -190,11 +185,16 @@ for il=1:length(all_scenes)
     end
     fclose(fid_names);%close file
     
+    %convert_boxes_by_image_instance_to_instance(scene_name,label_type);
   end%for jl, each image to be labeled 
 
 
-end%for il, each scene
+  convert_boxes_by_image_instance_to_instance(scene_name,label_type);
+  catch
+  end
+  convert_boxes_by_image_instance_to_instance(scene_name,label_type);
 
+end%for il, each scene
 
 
 

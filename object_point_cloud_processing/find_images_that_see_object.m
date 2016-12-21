@@ -13,7 +13,7 @@
 init;
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_08_2'; %make this = 'all' to run all scenes
+scene_name = 'Office_01_2'; %make this = 'all' to run all scenes
 model_number = '0'; %colmap model number
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -25,7 +25,7 @@ label_names_list = {};
 method = 0; %0 - oclusion filtering, uses improved depth maps if they exist
             %1 - no ocllusion filtering
             
-occlusion_threshold = 60;  %amount in mm that point cloud can differ from depth
+occlusion_threshold = 150;  %amount in mm that point cloud can differ from depth
 include_0 = 1;
 
 
@@ -478,6 +478,10 @@ for il=1:length(all_scenes)
     %save the boxes to file 
     save(save_file_path, 'boxes');
   end%for jl, each label struct
+
+
+  %convert the labels from boxes by image instance to boxes by instance
+  convert_boxes_by_image_instance_to_instance(scene_name);
 end%for il, each scene_name
 
 

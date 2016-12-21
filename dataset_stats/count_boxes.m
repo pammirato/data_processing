@@ -69,10 +69,10 @@ for il=1:length(all_scenes)
 
   %make a struct to hold counts for each instance in this scene
   count_struct = struct();
-  hard0_sum = 0;
   hard1_sum = 0;
   hard2_sum = 0;
   hard3_sum = 0;
+  hard4_sum = 0;
   total_sum = 0;
   %% MAIN LOOP  for each label find its bounding box in each image
 
@@ -95,28 +95,29 @@ for il=1:length(all_scenes)
     %get all the boxes for this instance in a matrix
     %cur_instance_boxes =cell2mat( (cur_instance_boxes.boxes));
     cur_instance_boxes =cur_instance_boxes.boxes;
-    assert(size(cur_instance_boxes,2) > 5);
+    assert(size(cur_instance_boxes,2) > 4);
     
     %count the boxes for each hardness level and a total
-    hard0 = length(find(cur_instance_boxes(:,6) == 0)); 
-    hard1 = length(find(cur_instance_boxes(:,6) == 1)); 
-    hard2 = length(find(cur_instance_boxes(:,6) == 2)); 
-    hard3 = length(find(cur_instance_boxes(:,6) == 3)); 
+     hard1 = length(find(cur_instance_boxes(:,6) == 1)); 
+     hard2 = length(find(cur_instance_boxes(:,6) == 2)); 
+     hard3 = length(find(cur_instance_boxes(:,6) == 3)); 
+     hard4 = length(find(cur_instance_boxes(:,6) == 4)); 
     total = size(cur_instance_boxes,1);
    
     %put in the counts for this instance in this scene 
-    count_struct.(cur_label_name) = [hard0 hard1 hard2 hard3 total];
+    %count_struct.(cur_label_name) = [total];
+    count_struct.(cur_label_name) = [hard1 hard2 hard3 hard4 total];
 
     %update the running sums for this scene
-    hard0_sum = hard0_sum + hard0;
-    hard1_sum = hard1_sum + hard1;
-    hard2_sum = hard2_sum + hard2;
-    hard3_sum = hard3_sum + hard3;
+     hard1_sum = hard1_sum + hard1;
+     hard2_sum = hard2_sum + hard2;
+     hard3_sum = hard3_sum + hard3;
+     hard4_sum = hard4_sum + hard4;
     total_sum = total_sum + total;
   end%for jl, each label struct
 
   %update the global struct with counts for this scene across all instances
-  scenes_count_struct.(scene_name) = [hard0_sum hard1_sum hard2_sum hard3_sum total_sum];
+  scenes_count_struct.(scene_name) = [hard1_sum hard2_sum hard3_sum hard4_sum total_sum];
   scenes_count_struct.total = scenes_count_struct.total + total_sum;
 end%for il, each scene_name
 
