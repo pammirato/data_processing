@@ -357,3 +357,6 @@ for il=1:length(all_scenes)
   convert_boxes_by_instance_to_image_instance('Bedroom_01_1', 'verified_labels');
 end%for il, each scene_name
 
+end
+
+

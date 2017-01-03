@@ -1,3 +1,4 @@
+function [] = assign_rotate_pointers(scene_name)
 %assigns pointers in each image struct to the image structs that are 
 % clockwise and counter clockwise 
 %to it. This represents a rotation in the scene. Only structs from the same cluster 
@@ -16,10 +17,10 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
+%scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
 model_number = '0';
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
+%use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+%custom_scenes_list = {};%populate this 
 
 %% SET UP GLOBAL DATA STRUCTURES
 
@@ -31,7 +32,7 @@ all_scenes = {d.name};
 
 
 %determine which scenes are to be processed 
-if(use_custom_scenes && ~isempty(custom_scenes_list))
+if(iscell(scene_name))
   %if we are using the custom list of scenes
   all_scenes = custom_scenes_list;
 elseif(~strcmp(scene_name, 'all'))
@@ -147,5 +148,9 @@ for il=1:length(all_scenes)
   save(fullfile(meta_path, RECONSTRUCTION_RESULTS, ...
                 'colmap_results', model_number,  IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
 end%for il,  each scene
+
+end%function
+
+
 
 

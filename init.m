@@ -12,10 +12,10 @@ addpath(genpath('./'));
 %%%%%%%%%%%%%%              DIRECTORIES             %%%%%%%%%%%%%%%
 
 %directory that holds one directory per scene
-ROHIT_BASE_PATH = '/playpen/ammirato/Data/RohitData';
+ROHIT_BASE_PATH = '/home/phil/Data/RohitDataset/Data';
 
-ROHIT_META_BASE_PATH = '/playpen/ammirato/Data/RohitMetaData';
-ROHIT_METAMETA_BASE_PATH = '/playpen/ammirato/Data/RohitMetaMetaData';
+ROHIT_META_BASE_PATH = '/home/phil/Data/RohitDataset/MetaData';
+ROHIT_METAMETA_BASE_PATH = '/home/phil/Data/RohitDataset/';
 
 BIGBIRD_BASE_PATH = '/playpen/ammirato/Data/BigBIRD';
 

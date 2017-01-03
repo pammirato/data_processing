@@ -1,3 +1,4 @@
+function [] = create_depth_image_point_cloud(scene_name)
 %Creates a point cloud in world coordinates using a depth image, 
 %reconstruction image position, and scale for the reconstruction
 %
@@ -7,17 +8,17 @@
 
 %CLEANED - no
 %TESTED - no
-clearvars;
+%clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_02_2'; %make this = 'all' to run all scenes
+%scene_name = 'Kitchen_Living_02_2'; %make this = 'all' to run all scenes
 model_number = '0';
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
+%use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+%custom_scenes_list = {};%populate this 
 
 
 debug =0;
@@ -39,9 +40,9 @@ all_scenes = {d.name};
 
 
 %determine which scenes are to be processed 
-if(use_custom_scenes && ~isempty(custom_scenes_list))
+if(iscell(scene_name))
   %if we are using the custom list of scenes
-  all_scenes = custom_scenes_list;
+  all_scenes = scene_name;
 elseif(~strcmp(scene_name, 'all'))
   %if not using custom, or all scenes, use the one specified
   all_scenes = {scene_name};
@@ -282,4 +283,7 @@ for il=1:length(all_scenes)
     breakp = 1;
   end%for jl, each image name
 end%for i, each scene_name
+
+end%function
+
 

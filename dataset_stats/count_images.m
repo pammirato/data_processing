@@ -1,14 +1,24 @@
+function [] = count_images(scene_name, restrict_count)
 % Counts number of images in each scene.
 %
-% Includes options to count images only including some instances
+%INPUTS:
+%         scene_name: char array of single scene name, 'all' for all scenes, 
+%                     or a cell array of char arrays, one for each desired scene
+%         restrict_count: OPTIONAL  0(default) count all images
+%                                   1 only count images with a bounding box 
+%         label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
 %
+%OUTPUTS:
+%
+%         image_count_struct: One field per scene -> # images
+%                             One 'total' field -> # images summed over all scenes
+
 
 %TODO - categories
 
 %CLEANED - no 
 %TESTED - no
 
-clearvars;
 
 %initialize contants, paths and file names, etc. 
 
@@ -18,12 +28,15 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'all'; %make this = 'all' to run all scenes
+%scene_name = 'all'; %make this = 'all' to run all scenes
 model_number = '0';
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_1', 'Kitchen_Living_03_1', 'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1'};%populate this 
+%use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+%custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_1', 'Kitchen_Living_03_1', 'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1'};%populate this 
 
-only_count_images_with_desired_objects = 1;
+if(~exist('restrict_count'))
+  restrict_count = 0;
+end
+
 
 label_to_process = 'all'; %make 'all' for every label
 label_names = {label_to_process};
@@ -39,9 +52,9 @@ d = d(3:end);
 all_scenes = {d.name};
 
 %determine which scenes are to be processed 
-if(use_custom_scenes && ~isempty(custom_scenes_list))
+if(iscell(scene_name)
   %if we are using the custom list of scenes
-  all_scenes = custom_scenes_list;
+  all_scenes = scene_name;
 elseif(~strcmp(scene_name, 'all'))
   %if not using custom, or all scenes, use the one specified
   all_scenes = {scene_name};
@@ -68,7 +81,7 @@ for il=1:length(all_scenes)
   image_names = get_scenes_rgb_names(scene_path);
   num_images = length(image_names);
 
-  if(only_count_images_with_desired_objects)
+  if(restrict_count)
     valid_image_names = {};
 
     for jl=1:length(label_names)
@@ -102,4 +115,6 @@ for il=1:length(all_scenes)
   image_count_struct.(scene_name) = num_images;
   image_count_struct.total = image_count_struct.total + num_images;
 end%for i, each scene_name
+
+end
 

@@ -1,9 +1,19 @@
-%assigns pointers in each image sturct to the image structs that are in front and behind it, 
-%representing forward or backward movements. Takes into account  direction of camera for each
+function [] = assign_forward_back_left_right(scene_name)
+%Assigns pointers in each image sturct to the image structs 
+%that are in front and behind it, 
+%representing forward or backward movements. 
+%Takes into account  direction of camera for each
 %image, and does not assign pointers within a cluster
+%left and right movements also added
 %
-% left and right movements also added
+%INPUTS:
 %
+%     scene_name: char array of single scene name, 'all' for all scenes, 
+%                     or a cell array of char arrays, one for each desired scene
+%     label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
+%
+
+
 
 %TODO  - test
 %      - improve accuracy, consistency
@@ -12,7 +22,7 @@
 %CLEANED - ish 
 %TESTED - no
 
-clearvars;
+%clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -20,10 +30,10 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_05_1'; %make this = 'all' to run all scenes
+%scene_name = 'Kitchen_05_1'; %make this = 'all' to run all scenes
 model_number = '0';
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {} ;%populate this 
+%use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+%custom_scenes_list = {} ;%populate this 
 
 
 %whether to threshold on distance, then find the smallest angle, or 
@@ -47,9 +57,9 @@ all_scenes = {d.name};
 
 
 %determine which scenes are to be processed 
-if(use_custom_scenes && ~isempty(custom_scenes_list))
+if(iscell(scene_name))
   %if we are using the custom list of scenes
-  all_scenes = custom_scenes_list;
+  all_scenes = scene_name;
 elseif(~strcmp(scene_name, 'all'))
   %if not using custom, or all scenes, use the one specified
   all_scenes = {scene_name};
@@ -246,4 +256,4 @@ for il=1:length(all_scenes)
                 'colmap_results', model_number,  IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
 end%for il,  each scene
 
-
+end

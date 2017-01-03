@@ -1,3 +1,6 @@
+%NOT USEED
+
+
 %saves a map from a label (instance) name, to names of all images that 'see'
 % any of the reconstructed points on the object
 

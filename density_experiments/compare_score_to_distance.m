@@ -1,3 +1,5 @@
+%NOT SUPPORTED, left here since it was used for some experiments in our paper
+
 % compares detection scores for each instance and distance bewteen cameras for
 % every pair of images in the scene. Plots resutls
 %

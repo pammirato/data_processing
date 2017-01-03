@@ -1,3 +1,6 @@
+%OLD NOT NEEDED OR USED ANYMORE
+
+
 %Switches boxes from cell array to mat(numeric matrix). Probably not useful anymore,  
 % ws used to switch format
 

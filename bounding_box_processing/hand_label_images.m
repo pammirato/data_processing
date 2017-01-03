@@ -1,4 +1,38 @@
-function hand_label_images(scene_name, 
+function hand_label_images(scene_name, method, lable_type)
+% allows hand labeling of images in the given scene,
+% bounding box labels are created from two mouse clicks, and 
+% a label is typed. The images to be and labeled are read from a 
+% text file, specificed by method. After each image is labeled,
+% it is removed from the list and a new list is written to file.
+%
+% 
+%
+%INPUTS:
+%         scene_name: char array of single scene name, 'all' for all scenes, 
+%                     or a cell array of char arrays, one for each desired scene
+%          
+%         method:  0 - use the list of non recontructed images
+%                  1 - use list of all images(check for missing boxes)
+%         label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
+%
+%
+%
+%
+%USAGE:
+%      (1) Left-click twice to make a boundig box(top left corner, bottom right corner) Go to (3)
+%      (2) If one or both clicks are not left-clicks, you are done with this image. Go to (5)
+%      (3) Type a label name to the console. If it is a valid name, the box is recorded. Go to (1)
+%      (4) Enter 'q' as the label name to delete the last hand drawn box. Go to (1)
+%      (5) all boxes for this image are save to file. Load next image, Go to (1)
+%      (6) after all boxes are labeled they are converted from image instance to instance
+      
+
+
+
+
+
+
+
 
 
 
@@ -7,27 +41,26 @@ function hand_label_images(scene_name,
 
 %CLEANED - no 
 %TESTED - ish 
-clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+%scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
 
-method = 1;  % 0 - non reconstructed images
+%method = 1;  % 0 - non reconstructed images
              % 1 -  missing boxes check - for checking all images at the end to 
              %improve recall
 
-
-label_type = 'verified_labels';
-
+if(nargin < 3)
+  label_type = 'raw_labels';
+end
 %% SET UP GLOBAL DATA STRUCTURES
 
 %get the names of all the scenes
@@ -197,4 +230,4 @@ try%make sure last line is execuuted
 end%for il, each scene
 
 
-
+end %function

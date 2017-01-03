@@ -1,12 +1,21 @@
-%converts bounding box labels by instance in .mat file to .txt file
-
+function write_boxes_to_text_file(scene_name, save_base_path, label_type)
+%converts bounding box labels by image instance in .mat files to .txt files
+%
+%INPUTS:
+%         scene_name: char array of single scene name, 'all' for all scenes, 
+%                     or a cell array of char arrays, one for each desired scene
+%         save_base_path: where the .txt files will be saved
+%         label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
+%
+%
+%
 
 %CLEANED - no
 %TESTED - no
 
 %TODO  - write all boxes at once for each image (get rid of kl loop)
 
-clearvars;
+%clearvars;
 
 %initialize contants, paths and file names, etc. 
 
@@ -17,10 +26,10 @@ init;
 %% USER OPTIONS
 
 %where to save the .txt files
-save_base_path = fullfile('/playpen/ammirato/data/eunbyung_data/');
+%save_base_path = fullfile('/playpen/ammirato/data/eunbyung_data/');
 
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+%scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -35,8 +44,10 @@ scale_factor = 1; %can resize boxes for images of different resolution
 save_jpgs = 0; %whether or not to also save jpgs images 
                 %(useful if you want to scale images and boxes at once)
 
-label_type = 'verified_labels';  %raw_labels - automatically generated labels
+if(nargin > 2)
+  label_type = 'raw_labels';  %raw_labels - automatically generated labels
                             %verified_labels - boxes looked over by human
+end
 
 debug =0;
 
@@ -50,9 +61,9 @@ all_scenes = {d.name};
 
 
 %determine which scenes are to be processed 
-if(use_custom_scenes && ~isempty(custom_scenes_list))
+if(iscell(scene_name))
   %if we are using the custom list of scenes
-  all_scenes = custom_scenes_list;
+  all_scenes = scene_name;
 elseif(~strcmp(scene_name, 'all'))
   %if not using custom, or all scenes, use the one specified
   all_scenes = {scene_name};
@@ -135,4 +146,4 @@ for il=1:length(all_scenes)
   end%for jl, each image
 end%for i, each scene_name
 
-
+end

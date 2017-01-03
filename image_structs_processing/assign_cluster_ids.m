@@ -1,8 +1,20 @@
+function [] = assign_cluster_id(scene_name, cluster_size)
 % Assign cluster id to each image struct. 
 %
 % A cluster is a set of images where the only movement action needed to visit any
-% image in the cluster from an other image in the cluster is rotation. In other
+% image in the cluster from any other image in the cluster is rotation. In other
 % words a cluster is all the images at a point where the robot rotated during capture.
+%
+% Cluster ids are assigned simply by giving id=1 to the first 'cluster_size' images,
+% id=2 to the next 'cluster_size' images, and so on. Images are sorted by index(name)
+%
+%
+%INPUTS:
+%         scene_name: char array of single scene name, 'all' for all scenes, 
+%                     or a cell array of char arrays, one for each desired scene
+%         cluster_size: OPTIONAL int, 12(default),
+%                         the number of images that should be in a cluster
+
 
 %TODO  
 
@@ -18,17 +30,18 @@ init;
 %% USER OPTIONS
 
 
-scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
+%scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
 model_number = '0';
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
+%use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+%custom_scenes_list = {};%populate this 
 
 
 method = 2; %  0 - by hand, get user to draw a box around each cluster
             %  1 - image index,  just assign cluster_id = image_index
             %  2 - by cluster size, assign cluter_id = image_index mod cluster size
-
-cluster_size = 12;
+if(~exist('cluster_size', 'var'))
+  cluster_size = 12;
+end
 
 %% SET UP GLOBAL DATA STRUCTURES
 
@@ -39,7 +52,7 @@ all_scenes = {d.name};
 
 
 %determine which scenes are to be processed 
-if(use_custom_scenes && ~isempty(custom_scenes_list))
+if(iscell(scene_name))
   %if we are using the custom list of scenes
   all_scenes = custom_scenes_list;
 elseif(~strcmp(scene_name, 'all'))
@@ -209,4 +222,4 @@ for il=1:length(all_scenes)
                 model_number,  IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
 end%for il,  each scene
 
-
+end

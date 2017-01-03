@@ -1,3 +1,15 @@
+function update_instance_ids(scene_name, label_type)
+%Changes the numberic instance id label for all bounding boxes
+%to match what is in the text file instance_id_map.txt
+%
+%
+%INPUTS:
+%         scene_name: char array of single scene name, 'all' for all scenes, 
+%                     or a cell array of char arrays, one for each desired scene
+%         label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
+%
+
+
 %Updates the numeric instance id of all labels for a scene(s) using the 
 %text file instance_id_map.txt 
 
@@ -15,7 +27,7 @@ init;
 
 
 %whether or not to run for the scenes in the custom list
-scene_name = 'Kitchen_Living_08_2';
+%scene_name = 'Kitchen_Living_08_2';
 if(iscell(scene_name))
   use_custom_scenes = 1;  custom_scenes_list = scene_name; 
 else
@@ -23,7 +35,9 @@ else
 end
 
 %set default label_type if not inputted by user
-label_type = 'raw_labels'; 
+if(nargin > 1)
+  label_type = 'raw_labels'; 
+end
 
 label_loc = 'meta'; %which path to use: scene or meta 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -104,5 +118,5 @@ for il=1:length(all_scenes)
   convert_boxes_by_instance_to_image_instance(scene_name,label_type);
 end%for il,  each scene
 
-
+end
 
