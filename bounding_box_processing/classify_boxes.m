@@ -18,7 +18,7 @@ function classify_boxes(scene_name, label_type)
 %TESTED - no
 
 
-clearvars;
+%clearvars;
 %initialize contants, paths and file names, etc. 
 init;
 
@@ -329,9 +329,9 @@ for il=1:length(all_scenes)
       if(ind==1)
         num_raw = num_raw+1; 
       elseif(ind==2)
-        num_raw = num_occ+1; 
+        num_occ = num_occ+1; 
       elseif(ind==3)
-        num_raw = num_points+1; 
+        num_points = num_points+1; 
       end
 
       %add the hardness meseaure to the box 

@@ -6,7 +6,7 @@
 
 %CLEANED - no
 %TESTED - no
-clearvars;
+%clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -15,7 +15,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_10_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -272,7 +272,7 @@ for il=1:length(all_scenes)
   end
 
   %image_names = {'0006460101.png', '0006810101.png'};
-  %image_names = image_names(950:end);
+  %image_names = image_names(370:end);
   for jl= 1:length(image_names) 
     
     
@@ -549,13 +549,13 @@ for il=1:length(all_scenes)
 
 
       if(depths_loaded)
-        cur_depth_img = depth_img_map(cur_image_name);
+        kl_depth_img = depth_img_map(kl_image_name);
       else
-        cur_depth_img = imread(fullfile(scene_path, 'high_res_depth', strcat(cur_image_name(1:8), ...
+        kl_depth_img = imread(fullfile(scene_path, 'high_res_depth', strcat(kl_image_name(1:8), ...
                           '03.png')));
       end
 
-      depth_img = cur_depth_img;
+      kl_depth_img = kl_depth_img;
 
       %depth_img = depth_img_map(kl_image_name);
 
@@ -573,7 +573,7 @@ for il=1:length(all_scenes)
       
 
       %depth_vals = double(reshape(depth_imgs{jl}, 1080*1920,1));
-      depth_vals = double(reshape(depth_img, 1080*1920,1));
+      depth_vals = double(reshape(kl_depth_img, 1080*1920,1));
       pixel_pos = reshape(pixel_pos, 1080*1920,2);
 
       %remove bad depth values

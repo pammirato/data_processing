@@ -21,7 +21,7 @@ function [] = assign_cluster_id(scene_name, cluster_size)
 %CLEANED - yes 
 %TESTED - no
 
-clearvars;
+%clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;

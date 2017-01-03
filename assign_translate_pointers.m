@@ -1,18 +1,15 @@
-function [] = assign_forward_back_left_right(scene_name)
-%Assigns pointers in each image sturct to the image structs 
-%that are in front and behind it, 
-%representing forward or backward movements. 
-%Takes into account  direction of camera for each
+function assign_forward_back_left_right(scene_name)
+%assigns pointers in each image sturct to the image structs that are in front and behind it, 
+%representing forward or backward movements. Takes into account  direction of camera for each
 %image, and does not assign pointers within a cluster
-%left and right movements also added
 %
-%INPUTS:
+% left and right movements also added
 %
-%     scene_name: char array of single scene name, 'all' for all scenes, 
-%                     or a cell array of char arrays, one for each desired scene
-%     label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
 %
-
+% INPUTS:
+%     scene_name - the name of the scene(s) that the boxes are in 
+%                   - 'all' for all scenes
+%                   - {'scene1', 'scene2',...} cell array of names for multiple scenes
 
 
 %TODO  - test
@@ -24,7 +21,6 @@ function [] = assign_forward_back_left_right(scene_name)
 %CLEANED - ish 
 %TESTED - no
 
-%clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -32,10 +28,10 @@ init;
 
 %% USER OPTIONS
 
-%scene_name = 'Kitchen_05_1'; %make this = 'all' to run all scenes
+%scene_name = 'Home_14_1'; %make this = 'all' to run all scenes
 model_number = '0';
-%use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-%custom_scenes_list = {} ;%populate this 
+use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {} ;%populate this 
 
 
 %whether to threshold on distance, then find the smallest angle, or 
@@ -44,9 +40,11 @@ threshold_on_distance = 0;
 
 
 dir_angle_thresh = 10; %difference between direction of camera at images
+point_angle_thresh = 30;%angle between camera direction of first image and
+                        % the  vector from the position of the first  image to
+                        % to the position of the  other(forward,backward,etc) image 
 move_angle_thresh = 10; %maximum allowed difference between point angle and direction angle
-point_angle_thresh = 30;%angle between camera direction of org and vector from org to other point
-dist_thresh = 750;%distance threshold in mm, (must be closer than this)
+dist_thresh = 1000;%distance threshold in mm, (must be closer than this)
 
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -76,6 +74,7 @@ for il=1:length(all_scenes)
  
   %% set scene specific data structures
   scene_name = all_scenes{il};
+  disp(scene_name);
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
@@ -127,7 +126,8 @@ for il=1:length(all_scenes)
         breakp =1;
       end
 
-      %get this image's world position and direciton 
+      %get this image's world position and direction 
+      %only need 2 dimensions b/c camera height/pitch/roll does not change
       cur_world = cur_struct.world_pos*scale;
       cur_world = [cur_world(1), cur_world(3)];
       cur_dir = get_normalized_2D_vector(cur_struct.direction);
@@ -258,4 +258,4 @@ for il=1:length(all_scenes)
                 'colmap_results', model_number,  IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
 end%for il,  each scene
 
-end
+

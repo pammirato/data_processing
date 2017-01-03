@@ -1,4 +1,3 @@
-function [] = create_depth_image_point_cloud(scene_name)
 %Creates a point cloud in world coordinates using a depth image, 
 %reconstruction image position, and scale for the reconstruction
 %
@@ -8,17 +7,17 @@ function [] = create_depth_image_point_cloud(scene_name)
 
 %CLEANED - no
 %TESTED - no
-%clearvars;
+clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
 
 %% USER OPTIONS
 
-%scene_name = 'Kitchen_Living_02_2'; %make this = 'all' to run all scenes
+scene_name = 'Home_10_1'; %make this = 'all' to run all scenes
 model_number = '0';
-%use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-%custom_scenes_list = {};%populate this 
+use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {};%populate this 
 
 
 debug =0;
@@ -40,9 +39,9 @@ all_scenes = {d.name};
 
 
 %determine which scenes are to be processed 
-if(iscell(scene_name))
+if(use_custom_scenes && ~isempty(custom_scenes_list))
   %if we are using the custom list of scenes
-  all_scenes = scene_name;
+  all_scenes = custom_scenes_list;
 elseif(~strcmp(scene_name, 'all'))
   %if not using custom, or all scenes, use the one specified
   all_scenes = {scene_name};
@@ -184,8 +183,8 @@ for il=1:length(all_scenes)
   ref_dir = ref_struct.direction; 
   ref_dir = ref_dir([1 3]);
 
-  image_names = {'0000010101.jpg', '0002370101.jpg','0003110101.jpg', ...
-                '0006010101.jpg','0006380101.jpg','0008970101.jpg'};%, ...
+  image_names = {'0001040101.jpg', '0002950101.jpg','0004190101.jpg'};%, ...
+                % '0000010101.jpg', '0004380101.jpg','0005090101.jpg'};%, ...
                 %'0000920101.jpg','0002610101.jpg','0005620101.jpg'};
   %image_names = {'0009640101.png'};
   %image_names = image_names(1:20);
@@ -283,7 +282,4 @@ for il=1:length(all_scenes)
     breakp = 1;
   end%for jl, each image name
 end%for i, each scene_name
-
-end%function
-
 

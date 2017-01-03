@@ -5,7 +5,7 @@ function [instance_name_to_id_map] = get_instance_name_to_id_map()
 
   %load text file mapping from instance name to category id
   instance_name_to_id_map = containers.Map();
-  fid_bb_map = fopen(fullfile('../', ROHIT__BASE_PATH,'instance_id_map.txt'), 'rt');
+  fid_bb_map = fopen(fullfile(ROHIT_METAMETA_BASE_PATH,'instance_id_map.txt'), 'rt');
 
   line = fgetl(fid_bb_map);
   while(ischar(line))

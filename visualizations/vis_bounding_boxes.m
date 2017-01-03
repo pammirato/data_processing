@@ -15,7 +15,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_14_2'; %make this = 'all' to run all scenes
 %group_name = 'all_minus_boring';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
@@ -133,12 +133,12 @@ for i=1:length(all_scenes)
     imshow(rgb_image);
     hold on;
     try
-      depth_image = imread(fullfile(scene_path,'high_res_depth', ...
-                            strcat(cur_image_name(1:8), '03.png')));
+      %depth_image = imread(fullfile(scene_path,'high_res_depth', ...
+      %                      strcat(cur_image_name(1:8), '03.png')));
       %depth_image = imread(fullfile(meta_path,'improved_depths', ...
       %                      strcat(cur_image_name(1:8), '05.png')));
-      h = imagesc(depth_image);
-      set(h,'AlphaData', .5);
+      %h = imagesc(depth_image);
+      %set(h,'AlphaData', .5);
     catch 
     end
 

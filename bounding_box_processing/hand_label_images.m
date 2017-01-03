@@ -1,4 +1,4 @@
-function hand_label_images(scene_name, method, lable_type)
+function hand_label_images(scene_name, method, label_type)
 % allows hand labeling of images in the given scene,
 % bounding box labels are created from two mouse clicks, and 
 % a label is typed. The images to be and labeled are read from a 
@@ -11,8 +11,8 @@ function hand_label_images(scene_name, method, lable_type)
 %         scene_name: char array of single scene name, 'all' for all scenes, 
 %                     or a cell array of char arrays, one for each desired scene
 %          
-%         method:  0 - use the list of non recontructed images
-%                  1 - use list of all images(check for missing boxes)
+%         method: OPTIONAL  0 - use the list of non recontructed images
+%                           1(default) - use list of all images(check for missing boxes)
 %         label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
 %
 %
@@ -53,7 +53,12 @@ use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
+clear_all = 'clear_all';
 
+
+if(~exist('method','var'))
+  method =1;
+end
 %method = 1;  % 0 - non reconstructed images
              % 1 -  missing boxes check - for checking all images at the end to 
              %improve recall
@@ -160,7 +165,7 @@ try%make sure last line is execuuted
       valid_input = 0;
       while(~valid_input)
         %allow user to recover from mistake
-        if(inserted_label_name == 'q')
+        if(all(inserted_label_name == 'q') || strcmp(inserted_label_name,clear_all))
           valid_input = 1;
           continue;
         end
@@ -179,6 +184,10 @@ try%make sure last line is execuuted
 
       %skip this box (user made a mistake)
       if(inserted_label_name == 'q')
+        delete(drawn_rect)
+        continue;
+      elseif(strcmp(inserted_label_name,clear_all))
+        cur_boxes = []; 
         delete(drawn_rect)
         continue;
       end
