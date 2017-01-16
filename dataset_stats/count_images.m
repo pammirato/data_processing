@@ -1,4 +1,4 @@
-function [] = count_images(scene_name, restrict_count)
+function [image_count_struct] = count_images(scene_name, restrict_count)
 % Counts number of images in each scene.
 %
 %INPUTS:
@@ -52,7 +52,7 @@ d = d(3:end);
 all_scenes = {d.name};
 
 %determine which scenes are to be processed 
-if(iscell(scene_name)
+if(iscell(scene_name))
   %if we are using the custom list of scenes
   all_scenes = scene_name;
 elseif(~strcmp(scene_name, 'all'))

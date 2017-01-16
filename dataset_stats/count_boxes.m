@@ -3,7 +3,7 @@ function [scenes_count_struct, count_struct] = count_boxes(scene_name, label_typ
 %INPUTS:
 %       scene_name: char array of single scene name, 'all' for all scenes, 
 %                     or a cell array of char arrays, one for each desired scene
-%       label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
+%       label_type: OPTIONAL 'verified_labels'(default) or 'raw_labels'
 %
 %OUTPUTS
 %       scenes_count_struct: One field for each scene name -> length 5 vector
@@ -15,10 +15,10 @@ function [scenes_count_struct, count_struct] = count_boxes(scene_name, label_typ
 
 %TODO - generalize for different hardness measures
 
-%CLEANED - yes 
+%CLEANED - no 
 %TESTED - no
 
-clearvars;
+%clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -35,8 +35,8 @@ model_number = '0';%colmap model number
 label_to_process = 'all'; %make 'all' for every label
 label_names = {label_to_process};
 
-if(~exists('label_type', 'var'))
-  label_type = 'raw_labels';  %raw_labels - automatically generated labels
+if(~exist('label_type', 'var'))
+  label_type = 'verified_labels';  %raw_labels - automatically generated labels
 end                            %verified_labels - boxes looked over by human
 
 debug =0;

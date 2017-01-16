@@ -3,7 +3,7 @@ function [image_names] = get_scenes_rgb_names(scene_path)
 % just looks in rgb/ directory for .png files
 
   init;
-  temp = dir(fullfile(scene_path,RGB,'*.png'));
+  temp = dir(fullfile(scene_path,JPG_RGB,'*.jpg'));
   image_names = {temp.name}; 
 end
 

@@ -28,12 +28,12 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_03_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {'Kitchen_Living_01_1','Kitchen_Living_02_1','Kitchen_Living_03_1','Kitchen_Living_03_2','Kitchen_Living_04_2','Kitchen_Living_06','Kitchen_Living_08_1','Kitchen_05_1', 'Office_01_1'};%populate this 
 
-label_type = 'verified_labels';  %raw_labels - automatically generated labels
+label_type = 'raw_labels';  %raw_labels - automatically generated labels
                             %verified_labels - boxes looked over by human
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -104,6 +104,7 @@ for il=1:length(all_scenes)
         cur_instance_id = instance_name_to_id_map(cur_instance_name);
       catch
         disp(cur_instance_name);
+        cur_instance_id = -1;
       end
       %get the labeled bounding box, skip if it is empty(instance is not
       %present)

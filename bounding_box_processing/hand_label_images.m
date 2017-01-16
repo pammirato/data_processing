@@ -38,6 +38,7 @@ function hand_label_images(scene_name, method, label_type)
 
 %TODO -  %save boxes by instance too?
 %       - double  check to see if image already has labels
+%       - change click pattern
 
 %CLEANED - no 
 %TESTED - ish 
@@ -133,25 +134,39 @@ try%make sure last line is execuuted
       cur_boxes = load(fullfile(meta_path,LABELING_DIR,label_type, BBOXES_BY_IMAGE_INSTANCE, ...
                        strcat(cur_img_name(1:10),'.mat')));
       cur_boxes = cur_boxes.boxes;
-
+      drawn_rects = cell(1,size(cur_boxes,1));
       for kl=1:size(cur_boxes,1)
         bbox = cur_boxes(kl,:);
-        rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
-                  'LineWidth',4, 'EdgeColor','g');
-   
+        drawn_rects{kl} = rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
+                  'LineWidth',2, 'EdgeColor','g');
+  
       end%for kl
     end%if method
 
     but = [1 1];
-    
     %keep getting boxes until the user indicates they are done with the image
     %(via two right clicks)
     while(sum(but) == 2)
-
       %get two mouse clicks for top left and bottom right of box
       [x, y, but] = ginput(2);
       
-      if(sum(but)~=2)
+      if(sum(but) == 3)
+        confirm = input('Delete?(y/n): ', 's');
+        if(confirm=='y')
+          bad_inds = [];
+          for ll=1:size(cur_boxes,1)
+            if(is_point_in_box(cur_boxes(ll,:),[x(1),y(1)]))
+              bad_inds(end+1) = ll;
+            end
+          end%for ll
+          cur_boxes(bad_inds,:) = [];
+          rect = drawn_rects{bad_inds};
+          delete(rect);
+          drawn_rects(bad_inds) = [];
+        end%if confirm
+        but = [1 1];%so we stay on this image
+        continue;
+      elseif(sum(but)~=2)
         continue;
       end
 

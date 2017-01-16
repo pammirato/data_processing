@@ -1,27 +1,7 @@
-function [] = assign_forward_back_left_right(scene_name)
-%Assigns pointers in each image sturct to the image structs 
-%that are in front and behind it, 
-%representing forward or backward movements. 
-%Takes into account  direction of camera for each
-%image, and does not assign pointers within a cluster
-%left and right movements also added
-%
-%INPUTS:
-%
-%     scene_name: char array of single scene name, 'all' for all scenes, 
-%                     or a cell array of char arrays, one for each desired scene
-%     label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
-%
 
 
 
-%TODO  - test
-%      - improve accuracy, consistency
-%      - remove dependancy on cluster_ids(min dist apart)
-%      - remove redundancy - thresh on first two numbers and minimzie third
-%                          - call methond for forward, back, left, right
-
-%CLEANED - ish 
+%CLEANED - no 
 %TESTED - no
 
 %clearvars;
@@ -32,7 +12,7 @@ init;
 
 %% USER OPTIONS
 
-%scene_name = 'Kitchen_05_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_14_2'; %make this = 'all' to run all scenes
 model_number = '0';
 %use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 %custom_scenes_list = {} ;%populate this 
@@ -43,10 +23,10 @@ model_number = '0';
 threshold_on_distance = 0;
 
 
-dir_angle_thresh = 10; %difference between direction of camera at images
-move_angle_thresh = 10; %maximum allowed difference between point angle and direction angle
-point_angle_thresh = 30;%angle between camera direction of org and vector from org to other point
-dist_thresh = 950;%distance threshold in mm, (must be closer than this)
+dir_angle_thresh = 15; %difference between direction of camera at images
+move_angle_thresh = 15; %maximum allowed difference between point angle and direction angle
+point_angle_thresh = 35;%angle between camera direction of org and vector from org to other point
+dist_thresh = 1000;%distance threshold in mm, (must be closer than this)
 
 
 %% SET UP GLOBAL DATA STRUCTURES
@@ -131,7 +111,21 @@ for il=1:length(all_scenes)
       cur_world = cur_struct.world_pos*scale;
       cur_world = [cur_world(1), cur_world(3)];
       cur_dir = get_normalized_2D_vector(cur_struct.direction);
-     
+   
+      look_for_pointers = zeros(1,4); 
+      if(cur_struct.translate_forward == -1)
+        look_for_pointers(1) = 1; 
+      end
+      if(cur_struct.translate_backward == -1)
+        look_for_pointers(2) = 1; 
+      end
+      if(cur_struct.translate_left == -1)
+        look_for_pointers(3) = 1; 
+      end
+      if(cur_struct.translate_right == -1)
+        look_for_pointers(4) = 1; 
+      end
+
 
       %variables for comparisions, keeping track of best option so far             
       forward_angle = 0+move_angle_thresh;%angle between direction and point vectors
@@ -242,10 +236,18 @@ for il=1:length(all_scenes)
       end%for ll, each other point in cluster
       
       %assign the found image names to the image struct 
-      cur_struct.translate_forward = forward_name;
-      cur_struct.translate_backward = backward_name;
-      cur_struct.translate_left = left_name;
-      cur_struct.translate_right = right_name;
+      if(look_for_pointers(1))
+        cur_struct.translate_forward = forward_name;
+      end
+      if(look_for_pointers(2))
+        cur_struct.translate_backward = backward_name;
+      end
+      if(look_for_pointers(3))
+        cur_struct.translate_left = left_name;
+      end
+      if(look_for_pointers(4))
+        cur_struct.translate_right = right_name;
+      end
 
       %save the updated image struct 
       image_structs_map(cur_struct.image_name) = cur_struct;
@@ -258,4 +260,5 @@ for il=1:length(all_scenes)
                 'colmap_results', model_number,  IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
 end%for il,  each scene
 
-end
+
+

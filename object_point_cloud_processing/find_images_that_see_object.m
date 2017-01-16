@@ -13,19 +13,19 @@
 init;
 %% USER OPTIONS
 
-scene_name = 'Office_01_2'; %make this = 'all' to run all scenes
+scene_name = 'Home_04_1'; %make this = 'all' to run all scenes
 model_number = '0'; %colmap model number
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
-label_to_process = 'all'; %make 'all' for every label
+label_to_process = 'cholula_chipotle_hot_sauce'; %make 'all' for every label
 use_custom_labels = 0;
 label_names_list = {}; 
 
 method = 0; %0 - oclusion filtering, uses improved depth maps if they exist
             %1 - no ocllusion filtering
             
-occlusion_threshold = 150;  %amount in mm that point cloud can differ from depth
+occlusion_threshold = 120;  %amount in mm that point cloud can differ from depth
 include_0 = 1;
 
 
@@ -161,7 +161,9 @@ for il=1:length(all_scenes)
 
           %try to load improved depth maps if they exist 
           try
-            depth_images{jl} = imread(fullfile(meta_path, IMPROVED_DEPTH, ... 
+            %depth_images{jl} = imread(fullfile(meta_path, IMPROVED_DEPTH, ... 
+            %             strcat(rgb_name(1:8),'05.png') ));
+            depth_images{jl} = imread(fullfile(meta_path, 'improved_depths3', ... 
                          strcat(rgb_name(1:8),'05.png') ));
           catch
             depth_images{jl} = imread(fullfile(scene_path, HIGH_RES_DEPTH, ... 

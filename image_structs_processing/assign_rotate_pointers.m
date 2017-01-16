@@ -9,7 +9,7 @@ function [] = assign_rotate_pointers(scene_name)
 %CLEANED - yes 
 %TESTED - no
 
-clearvars;
+%clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;

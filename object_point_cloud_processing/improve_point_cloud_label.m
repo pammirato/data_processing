@@ -20,6 +20,12 @@ use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
+instance_name = '';
+num_images = 20;
+label_type = 'verified_labels';
+max_avg_dist = 1200;
+
+
 debug =0;
 
 
@@ -173,34 +179,41 @@ for il=1:length(all_scenes)
   end
 
 
-  %% make struct for holding the labels (bounding boxes) for each label in each image
 
 
 
 
 
-  ref_struct = image_structs_map(image_names{1});
-  ref_dir = ref_struct.direction; 
-  ref_dir = ref_dir([1 3]);
+  %%pick num_images random images that see this instance
+  
+  %load instance labels
+  instance_labels = load(fullfile(meta_path, LABELING_DIR,label_type, ...
+                        BBOXES_BY_INSTANCE, strcat(instance_name,'.mat'))); 
+  
 
-  %image_names = {'0001330101.png', '0003810101.png','0005650101.png'};%, ...
-  image_names = {'0044360101.jpg', '0045330101.jpg','0046180101.jpg'};%, ...
-                % '0000010101.jpg', '0004380101.jpg','0005090101.jpg'};%, ...
-                %'0000920101.jpg','0002610101.jpg','0005620101.jpg'};
-  %image_names = {'0009640101.png'};
-  %image_names = image_names(1:20);
-  %all_pcs = cell(1,length(image_names));
+  image_names = instance_labels.image_names;
+  boxes = instance_labels.boxes;
 
-  %image_names = image_names(1:2);
+  %shuffled_inds = randperm(length(image_names));
+  %chosen_inds = shuffled_inds(1:num_images);
+
+  %image_names = image_names(chosen_inds);
+  %boxes = boxes(chosen_inds,:);
+
+
+
   for jl= 1:length(image_names) 
 
     
     %% get the image name, position/direction info 
     cur_image_name = image_names{jl};
-    %cur_image_name = '0001050101.png';
+    %cur_image_name = strcat(cur_image_name(1:10), '.jpg');
+    try
     cur_image_struct = image_structs_map(cur_image_name);
-
-
+    catch
+    continue;
+    end
+ 
 
     disp(cur_image_name);
     %just to see how much progress is being made
@@ -218,29 +231,52 @@ for il=1:length(all_scenes)
     
     %rgb_img = rgb_images{jl};
     %depth_image = depth_images{jl};%reshape(depth_images{jl}, 1080*1920,1);
-    %rgb_img = imread(fullfile(scene_path, 'rgb',cur_image_name)); 
-    rgb_img = imread(fullfile(scene_path, 'jpg_rgb',cur_image_name)); 
+    rgb_img = imread(fullfile(scene_path, 'rgb',cur_image_name)); 
+    %rgb_img = imread(fullfile(scene_path, 'jpg_rgb',cur_image_name)); 
     %depth_image = imread(fullfile(scene_path, 'high_res_depth', ...
     %                        strcat(cur_image_name(1:8), '03.png')));
-    depth_image = imread(fullfile(meta_path, 'improved_depths3', ...
-                            strcat(cur_image_name(1:8), '05.png')));
     %depth_image = imread(fullfile(meta_path, 'improved_depths', ...
     %                        strcat(cur_image_name(1:8), '05.png')));
-    %depth_image = imread(fullfile(meta_path, 'improved_depths', ...
-    %                        strcat('11111401', '05.png')));
+    depth_image = imread(fullfile(meta_path, 'improved_depths2', ...
+                            strcat(cur_image_name(1:8), '05.png')));
 
 
-    col_pos = repmat([1:1920], 1080,1);
-    row_pos = repmat([1:1080]', 1, 1920);
-    pixel_pos = zeros(1080,1920,2);
+
+    box = boxes(jl,:);
+
+    %expand the box a bit
+    expand_amount = 50;
+    box(1) = max(1,box(1) - expand_amount);  
+    box(2) = max(1,box(2) - expand_amount);  
+    box(3) = min(1920,box(3) + expand_amount);  
+    box(4) = min(1080,box(4) + expand_amount);  
+
+    width = box(3)-box(1) + 1;
+    height = box(4) - box(2) +1; 
+
+
+    %crop rgb and depth image
+    rgb_img = rgb_img(box(2):box(4), box(1):box(3), :);
+    depth_image = depth_image(box(2):box(4), box(1):box(3));
+
+
+
+
+    col_pos = repmat([box(1):box(3)], height,1);
+    row_pos = repmat([box(2):box(4)]', 1, width);
+    pixel_pos = zeros(height,width,2);
+    %col_pos = repmat([1:1920], 1080,1);
+    %row_pos = repmat([1:1080]', 1, 1920);
+    %pixel_pos = zeros(1080,1920,2);
     pixel_pos(:,:,1) = row_pos;
     pixel_pos(:,:,2) = col_pos;
     
 
     %depth_vals = double(reshape(depth_images{jl}, 1080*1920,1));
-    depth_vals = double(reshape(depth_image, 1080*1920,1));
-    rgb_vals = reshape(rgb_img, 1080*1920,3);
-    pixel_pos = reshape(pixel_pos, 1080*1920,2);
+    depth_vals = double(reshape(depth_image, width*height,1));
+    rgb_vals = reshape(rgb_img, width*height,3);
+    pixel_pos = reshape(pixel_pos, width*height,2);
+
 
     %remove bad depth values
     bad_inds = find(depth_vals == 0);
@@ -250,6 +286,16 @@ for il=1:length(all_scenes)
     rgb_vals(bad_inds, :) = []; 
     pixel_pos(bad_inds, :) = []; 
     world_coords = zeros(size(rgb_vals));
+
+
+    if(mean(depth_vals) > max_avg_dist)
+      continue;
+    end
+
+    if(length(depth_vals) == 0)
+      continue;
+    end
+
 
     v = pixel_pos(:,1);
     u = pixel_pos(:,2);
@@ -284,7 +330,7 @@ for il=1:length(all_scenes)
 
     cur_pc = pointCloud(world_coords, 'Color',rgb_vals );
     
-    pcwrite(cur_pc, fullfile(meta_path, 'point_clouds', strcat(cur_image_name(1:10), '.ply')));
+    pcwrite(cur_pc, fullfile(meta_path, 'point_clouds2', strcat(cur_image_name(1:10), '.ply')));
     
     breakp = 1;
   end%for jl, each image name

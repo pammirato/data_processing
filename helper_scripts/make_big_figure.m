@@ -30,11 +30,11 @@ image_names = {}; %can give custom list here
 
               
 % number of rows and columns for figure
-sub_rows = 2;
-sub_cols = 2;
+sub_rows = 4;
+sub_cols = 4;
 
-background_color = 0;   % 0 = white
-                        % 1 = black
+background_color = 1;   % 1 = white
+                        % 0 = black
 
 %how much space between images in figure
 border = 50;
@@ -44,10 +44,10 @@ border = 50;
 %variables for cropping images          
 do_crop = 0;
     
-crs = 44; %crop row start
-cre = 1170;%crop row end
-ccs = 145;%column
-cce = 2145;
+crs = 0;%44; %crop row start
+cre = 0;%1170;%crop row end
+ccs = 0;%145;%column
+cce = 0;%2145;
 
 
 
@@ -76,11 +76,13 @@ num_img = length(image_names);
 
 
 %make a blank image big enough to hold all the other images
-big_img = uint8(255*ones(img_rows*sub_rows + border*(sub_rows-1), ...
+if(background_color)
+  big_img = uint8(255*ones(img_rows*sub_rows + border*(sub_rows-1), ...
                    img_cols*sub_cols + border*(sub_cols-1), 3));
-big_img = uint8(zeros(img_rows*sub_rows + border*(sub_rows-1), ...
+else
+  big_img = uint8(zeros(img_rows*sub_rows + border*(sub_rows-1), ...
                    img_cols*sub_cols + border*(sub_cols-1), 3));
-
+end
                  
 
                  
@@ -121,6 +123,6 @@ for il=1:length(image_names)
 end%for each scene
 
 %save the big image
-imwrite((big_img,  fullfile(save_path, 'big_img.jpg'));
+imwrite(big_img,  fullfile(save_path, 'rep_pics_bigw.jpg'));
 
 

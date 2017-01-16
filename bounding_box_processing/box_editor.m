@@ -21,7 +21,7 @@ function varargout = box_editor(varargin)
 %        - more memory for undo
 
 
-%% Last Modified by GUIDE v2.5 03-Sep-2016 14:05:56
+%% Last Modified by GUIDE v2.5 16-Jan-2017 14:48:33
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -388,19 +388,31 @@ all_image_names = get_scenes_rgb_names(fullfile(ROHIT_BASE_PATH, ...
                                         handles.selected_scene));
 images = cell(1,length(all_image_names));
 
-%load all the images
-%display progress to user
-tt = text(.3,.5,['Loaded Image ' num2str(0) '/' num2str(length(all_image_names))]);
 
-for il=1:length(all_image_names)
-  cur_name = all_image_names{il};
-  img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'rgb', ...
-                      strcat(cur_name(1:10), '.png')));
-  images{il} = img;
-  delete(tt);
-  tt = text(.3,.5,['Loaded Image ' num2str(il) '/' num2str(length(all_image_names))]);
-  drawnow
+load_images = questdlg('Would you like to load all images first?', 'Load', 'Yes','No','Yes');
+
+load_images = strcmp(load_images,'Yes');
+
+if(load_images)
+  %load all the images
+  %display progress to user
+  tt = text(.3,.5,['Loaded Image ' num2str(0) '/' num2str(length(all_image_names))]);
+
+  for il=1:length(all_image_names)
+    cur_name = all_image_names{il};
+    img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'rgb', ...
+                        strcat(cur_name(1:10), '.png')));
+    images{il} = img;
+    delete(tt);
+    tt = text(.3,.5,['Loaded Image ' num2str(il) '/' num2str(length(all_image_names))]);
+    drawnow
+  end
+else
+    cur_name = all_image_names{1};
+    img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'rgb', ...
+                        strcat(cur_name(1:10), '.png')));
 end
+
 
 %save all the loaded images into a map
 handles.image_map = containers.Map(all_image_names, images);
@@ -477,11 +489,15 @@ end
 
 function draw_current_image_and_box(hObject, eventdata,handles)
 %draws the current image and box on the GUI
+init;
 
 %get the current image name, and image matrix
 cur_image_name = handles.image_names{handles.cur_image_index};
 img = handles.image_map(cur_image_name);
-
+if(isempty(img))
+  img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'rgb', ...
+                        strcat(cur_image_name(1:10), '.png')));
+end
 %plot the image, then draw the box on top
 imshow(img);
 hold on;
@@ -543,6 +559,8 @@ switch keyPressed
     res_down_button_Callback(hObject, eventdata, handles)
   case 'b'
     res_up_button_Callback(hObject, eventdata, handles)
+  case 'a'
+    use_mouse_button_Callback(hObject, eventdata, handles)
 end
 
 
@@ -622,3 +640,29 @@ end
 
   
   
+
+
+% --- Executes on button press in use_mouse_button.
+function use_mouse_button_Callback(hObject, eventdata, handles)
+%Allows user to make new box by click mouse clicks
+%
+% hObject    handle to use_mouse_button (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+%get the box
+bbox = handles.bboxes{handles.cur_image_index};
+
+[x,y,but] = ginput(2)
+
+bbox(1) = x(1);
+bbox(2) = y(1);
+bbox(3) = x(2);
+bbox(4) = y(2);
+
+
+
+handles.bboxes{handles.cur_image_index} = bbox;
+
+guidata(hObject, handles);
+draw_current_image_and_box(hObject, eventdata,handles)

@@ -1,19 +1,21 @@
-function write_boxes_to_text_file(scene_name, save_base_path, label_type)
+function write_boxes_to_text_file(scene_name,  label_type)
 %converts bounding box labels by image instance in .mat files to .txt files
 %
 %INPUTS:
 %         scene_name: char array of single scene name, 'all' for all scenes, 
 %                     or a cell array of char arrays, one for each desired scene
-%         save_base_path: where the .txt files will be saved
-%         label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
+%         label_type: OPTIONAL 'verified_labels'(default) or 'raw_labels'
 %
 %
 %
+
+
 
 %CLEANED - no
 %TESTED - no
 
 %TODO  - write all boxes at once for each image (get rid of kl loop)
+%      - give option for boxes by image instance or by instance
 
 %clearvars;
 
@@ -26,8 +28,6 @@ init;
 %% USER OPTIONS
 
 %where to save the .txt files
-%save_base_path = fullfile('/playpen/ammirato/data/eunbyung_data/');
-
 
 %scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 model_number = '0';
@@ -38,14 +38,9 @@ label_to_process = 'all'; %make 'all' for every label
 label_names = {label_to_process};
 
 
-scale_factor = 1; %can resize boxes for images of different resolution
-                  %ex) for images half the size of the original, make this .5 
 
-save_jpgs = 0; %whether or not to also save jpgs images 
-                %(useful if you want to scale images and boxes at once)
-
-if(nargin > 2)
-  label_type = 'raw_labels';  %raw_labels - automatically generated labels
+if(nargin < 2)
+  label_type = 'verified_labels';  %raw_labels - automatically generated labels
                             %verified_labels - boxes looked over by human
 end
 
@@ -80,70 +75,48 @@ for il=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
-  instance_name_to_id_map = get_instance_name_to_id_map();
-  %get the names of all the labels
-  if(strcmp(label_to_process, 'all'))
-    label_names = keys(instance_name_to_id_map); 
+  % make the directory to save the text files if it does not exist
+  save_path = fullfile(scene_path,'labels','text_labels', BBOXES_BY_IMAGE_INSTANCE);
+  if(~exist(save_path, 'dir'))
+    mkdir(save_path);
   end
 
-  image_names = get_scenes_rgb_names(scene_path);
-
-  save_base_path = fullfile(meta_path,'text_labels');
-  save_dir = fullfile(save_base_path, scene_name);
-  ann_save_path = fullfile(save_dir, 'annotations');
-  if(~exist(save_dir, 'dir'))
-    mkdir(save_dir);
-    mkdir(ann_save_path);
-  end
-
-  if(save_jpgs)
-    img_save_path = fullfile(save_dir, 'rgb');
-    mkdir(img_save_path);
-  end
-  %% MAIN LOOP  for each label find its bounding box in each image
-
-  %for each image, write out the boxes and possible image
-  for jl=1:length(image_names)
-    %get the image name 
-    cur_image_name = image_names{jl};
-    %display progress
-    if(mod(jl,50) == 0)
-      disp(cur_image_name);
-    end
-
-    %load the bounding box annotations
-    cur_instance_boxes = load(fullfile(meta_path, LABELING_DIR, label_type, ...
-                         BBOXES_BY_IMAGE_INSTANCE, strcat(cur_image_name(1:10), '.mat')));
-    cur_instance_boxes = cur_instance_boxes.boxes;
-
-    %open a text file for writing
-    ann_fid = fopen(fullfile(ann_save_path, strcat(cur_image_name(1:10), '_boxes.txt')), 'wt');
-
-   
-    %write each box  
-    for kl=1:size(cur_instance_boxes,1)
-     
-      %get the current box 
-      bbox = cur_instance_boxes(kl,:);
-
-      %scale dimensions of box (not category_id or hardness measure)
-      bbox(1:4) = bbox(1:4) * scale_factor; 
+  %write format file
+  format_file = fullfile(scene_path,'labels','text_labels', 'format.txt');
+  if(~exist(format_file,'file'))
+    format_fid = fopen(format_file,'wt');
     
-      %convert vector of numbers to characters
-      bbox_string = sprintf('%d ', bbox);
-      bbox_string(end) = [];%get rid of trailing space
-      fprintf(ann_fid, '%s\n', bbox_string);
-    end%for kl, each instance name
-    %close file
-    fclose(ann_fid);
+    fprintf(format_fid, ['Boxes by image instance format:\n' ...
+                        'One File per image, one line per bounding box:\n' ...
+                        'xmin ymin xmax ymax instance_id difficulty']);
+    fprintf(format_fid, ['\n\nBoxes by instance format:\n' ...
+                        'One File per instance, one line per bounding box:\n' ...
+                        'image_name xmin ymin xmax ymax instance_id difficulty']);
+    fclose(format_fid);
+  end
 
-    %save the jpg, resize if needed
-    if(save_jpgs)
-      img = imread(fullfile(scene_path, JPG, strcat(cur_image_name(1:10), '.jpg')));
-      img = imresize(img, scale_factor);
-      imwrite(img, fullfile(img_save_path, strcat(cur_image_name(1:10), '.jpg')));
-    end
-  end%for jl, each image
+  %get the path were the .mat files are, and all the file names
+  load_path = fullfile(meta_path, LABELING_DIR, label_type, BBOXES_BY_IMAGE_INSTANCE);
+  file_names = dir(fullfile(load_path,'*.mat'));
+  file_names = {file_names.name};
+
+  for jl=1:length(file_names)
+    cur_file_name = file_names{jl};
+    mat_labels = load(fullfile(load_path,cur_file_name));
+    
+
+    %create/open text file for writing
+    %cur_fid = fopen(fullfile(save_path,strcat(cur_file_name(1:10),'.txt')), 'wt');
+    text_file_name = fullfile(save_path,strcat(cur_file_name(1:10),'.txt'));
+    dlmwrite(text_file_name,mat_labels.boxes, ' '); 
+
+    %write the labels to the file
+    %fprintf( 
+
+    %fclose(cur_fid);
+  end 
+
+
 end%for i, each scene_name
 
 end

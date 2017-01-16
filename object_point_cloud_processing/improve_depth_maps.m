@@ -15,15 +15,15 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Home_10_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_11_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 similar_point_dist_thresh = .001;
-slice_dists = [300:100:500];
+slice_dists = [300:100:200];
 dir_angle_threshs = [30:30:90];
-num_pcs_to_use = 24;
+num_pcs_to_use = 30;
 max_valid_depth = 7000;
 
 debug =0;
@@ -732,19 +732,19 @@ for il=1:length(all_scenes)
                                           sorted_global_distorted_points(1,:)); 
     pc_depth_img(pc_inds)  = double(sorted_global_dists);
 
+    pc_depth_img = uint16(pc_depth_img);
     
     
     
     
     
     
-    
-    slice_img = zeros(size(pc_depth_img));
+    slice_img = (zeros(size(pc_depth_img)));
 
     for kl=1:length(slice_dists)
       kl_dist = slice_dists(kl);
 
-      temp_img = pc_depth_img;
+      temp_img = double(pc_depth_img);
       temp_img(temp_img > kl_dist) = 0;
       %temp_mask = temp_img == 0;
       temp_mask = slice_img == 0;
@@ -772,14 +772,15 @@ for il=1:length(all_scenes)
       avg = (avg_with_zeros*(s^2)) ./ ((s^2)-num_zeros);
       avg(isnan(avg)) = 0;
       avg = avg.*to_interp2;
-      slice_img = slice_img + avg;
+      slice_img = (slice_img + avg);
       
 
     end%for kl
   
+    slice_img = uint16(slice_img);
 %    pc_depth_org1 = pc_depth_img; 
     slice_mask = slice_img == 0;
-    pc_depth_img = (pc_depth_img .* slice_mask) + slice_img;
+    pc_depth_img = uint16(double(pc_depth_img) .* slice_mask) + slice_img;
     
 %        slice_img = zeros(size(pc_depth_img));
 %
@@ -815,8 +816,9 @@ for il=1:length(all_scenes)
       %good_depth_flags = (depth_img>0) & ((depth_img<pc_depth_img) | (depth_img<2000));
       good_depth_flags = (depth_img>0) & (depth_img<pc_depth_img);
       thresh_depth = double(depth_img) .* double(good_depth_flags);
-      thresh_pc_depth = pc_depth_img .* double(~good_depth_flags);
+      thresh_pc_depth = double(pc_depth_img) .* double(~good_depth_flags);
       new_depth = uint16(thresh_depth + thresh_pc_depth);
+      xyz = new_depth;
       new_depth = regionfill(new_depth, (new_depth == 0));
 %    if(1)
 %      good_depth_flags = (depth_img > 0) & (depth_img<4500);
@@ -830,9 +832,13 @@ for il=1:length(all_scenes)
 %      new_depth = uint16(thresh_depth + thresh_pc_depth);
 %    end
 
+    imwrite(pc_depth_img, fullfile(meta_path, 'improved_depths2', ...
+              strcat(cur_image_name(1:8), '06.png')));
 
-    imwrite(new_depth, fullfile(meta_path, 'improved_depths', ...
+    imwrite(new_depth, fullfile(meta_path, 'improved_depths3', ...
               strcat(cur_image_name(1:8), '05.png')));
+    %imwrite(new_depth, fullfile(meta_path, 'improved_depths', ...
+    %          strcat(cur_image_name(1:8), '05.png')));
   end%for jl, each image name
 
 end%for i, each scene_name

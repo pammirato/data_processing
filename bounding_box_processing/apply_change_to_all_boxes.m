@@ -46,7 +46,7 @@ all_scenes = {d.name};
 
 
 %determine which scenes are to be processed 
-if(use_custom_scenes && ~isempty(custom_scenes_list))
+if(iscell(scene_name))
   %if we are using the custom list of scenes
   all_scenes = custom_scenes_list;
 elseif(~strcmp(scene_name, 'all'))

@@ -1,4 +1,4 @@
-function [] = remove_image_cluster(scene_name)
+%function [] = remove_image_cluster(scene_name)
 % removes a cluster from scene
 %
  
@@ -8,7 +8,7 @@ function [] = remove_image_cluster(scene_name)
 %CLEANED - no
 %TESTED - no
 
-clearvars;
+%clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -17,12 +17,13 @@ init;
 %% USER OPTIONS
 
 
-%scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_00_1'; %make this = 'all' to run all scenes
 model_number = '0';
 %use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 %custom_scenes_list = {};%populate this 
 
-clusters_to_remove = [46];
+
+clusters_to_remove = [19];
 
 cluster_size = 12;
 
@@ -107,7 +108,8 @@ for il=1:length(all_scenes)
   rename_directory( BBOXES_BY_IMAGE_INSTANCE,fullfile(meta_path, LABELING_DIR,...
                  'verified_labels'),org_to_new_index_map);
 
-
+  convert_boxes_by_image_instance_to_instance(scene_name, 'raw_labels');
+  convert_boxes_by_image_instance_to_instance(scene_name, 'verified_labels');
 
   %update image structs, points2d,3d
   for jl=1:length(image_structs)
@@ -149,4 +151,4 @@ for il=1:length(all_scenes)
                model_number, POINT_2D_STRUCTS_FILE), POINT_2D_STRUCTS);
 end%for il,  each scene
 
-end%function
+%end%function

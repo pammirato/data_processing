@@ -9,7 +9,7 @@ function classify_boxes(scene_name, label_type)
 %INPUTS:
 %         scene_name: char array of single scene name, 'all' for all scenes, 
 %                     or a cell array of char arrays, one for each desired scene
-%         label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
+%         label_type: OPTIONAL 'verified_labels'(default) or 'raw_labels'
 %
 
 %TODO
@@ -20,7 +20,7 @@ function classify_boxes(scene_name, label_type)
 
 %clearvars;
 %initialize contants, paths and file names, etc. 
-init;
+ init;
 
 
 
@@ -58,7 +58,7 @@ all_scenes = {d.name};
 
 
 %determine which scenes are to be processed 
-if(iscell(scene_name)
+if(iscell(scene_name))
   %if we are using the custom list of scenes
   all_scenes = scene_name;
 elseif(~strcmp(scene_name, 'all'))
@@ -131,9 +131,9 @@ for il=1:length(all_scenes)
   scale  = image_structs_file.scale;
 
   %remove image structs that were not reconstructed. These will be hand labeled
-  no_R_inds = cellfun('isempty', {image_structs.R});
-  no_R_structs = image_structs(no_R_inds);
-  image_structs = image_structs(~no_R_inds);
+  %no_R_inds = cellfun('isempty', {image_structs.R});
+  %no_R_structs = image_structs(no_R_inds);
+  %image_structs = image_structs(~no_R_inds);
 
   %get a list of all the image file names
   image_names = {image_structs.(IMAGE_NAME)};
@@ -206,61 +206,66 @@ for il=1:length(all_scenes)
       counter = counter+1;
       %get the image name, and the coressponding image struct     
       cur_image_name = image_names{kl};
+      try
       cur_image_struct = image_structs_map(cur_image_name);
-      
-      %get extrinsic parameters for this image 
-      R = cur_image_struct.(ROTATION_MATRIX);
-      t = cur_image_struct.(TRANSLATION_VECTOR);
-
-      %% get the posisiton of the object point cloud
-      cur_world_locs = cur_pc.Location;
-    
-    
-      %% now see what points the are in front of the camera
-      
-      % point cloud locations,  in homogenous coordinates
-      cur_homog_points = [cur_world_locs ones(length(cur_world_locs), 1)]';
-
-      %re-orient the point cloud to see what points are viewable by this image
-      P = [R t];
-      oriented_points = P * cur_homog_points;
-
-      %make sure z is positive, if it is negative the point is 'behind' the image
-      all_zs = oriented_points(3, :);
-      bad_inds = find(all_zs < 0);  
-      %remove the points with negative z values
-      cur_homog_points(:, bad_inds) = []; 
-      cur_world_locs(bad_inds, :) = [];
-
-
-      %% project the point cloud onto the image plane
-      distorted_points = project_points_to_image(cur_world_locs, K, R, t, distortion);
-
-      
-
-      %get rid of points that projected outside the image bounds
-      %check x values
-      bad_inds =  find(distorted_points(1,:) < 1 | distorted_points(1,:) > kImageWidth);
-      distorted_points(:, bad_inds) = [];
-      cur_world_locs(bad_inds,:) = [];
-      %check y values
-      bad_inds =  find(distorted_points(2,:) < 1 | distorted_points(2,:) > kImageHeight);
-      distorted_points(:, bad_inds) = [];
-      cur_world_locs(bad_inds,:) = [];
-
-
-      %% classify the box
-
-      %get dimensions of the box just found(without occlusion filtering) 
-      if(isempty(distorted_points))
-        box_area = Inf;
-      else
-        minx = min(distorted_points(1,:));
-        miny = min(distorted_points(2,:));
-        maxx = max(distorted_points(1,:));
-        maxy = max(distorted_points(2,:));
-        box_area = (maxx - minx) * (maxy-miny);
+      catch
+        %this image was not reconstructed
+        continue;
+        breakp=1;
       end
+      %get extrinsic parameters for this image 
+%      R = cur_image_struct.(ROTATION_MATRIX);
+%      t = cur_image_struct.(TRANSLATION_VECTOR);
+%
+%      %% get the posisiton of the object point cloud
+%      cur_world_locs = cur_pc.Location;
+%    
+%    
+%      %% now see what points the are in front of the camera
+%      
+%      % point cloud locations,  in homogenous coordinates
+%      cur_homog_points = [cur_world_locs ones(length(cur_world_locs), 1)]';
+%
+%      %re-orient the point cloud to see what points are viewable by this image
+%      P = [R t];
+%      oriented_points = P * cur_homog_points;
+%
+%      %make sure z is positive, if it is negative the point is 'behind' the image
+%      all_zs = oriented_points(3, :);
+%      bad_inds = find(all_zs < 0);  
+%      %remove the points with negative z values
+%      cur_homog_points(:, bad_inds) = []; 
+%      cur_world_locs(bad_inds, :) = [];
+%
+%
+%      %% project the point cloud onto the image plane
+%      distorted_points = project_points_to_image(cur_world_locs, K, R, t, distortion);
+%
+%      
+%
+%      %get rid of points that projected outside the image bounds
+%      %check x values
+%      bad_inds =  find(distorted_points(1,:) < 1 | distorted_points(1,:) > kImageWidth);
+%      distorted_points(:, bad_inds) = [];
+%      cur_world_locs(bad_inds,:) = [];
+%      %check y values
+%      bad_inds =  find(distorted_points(2,:) < 1 | distorted_points(2,:) > kImageHeight);
+%      distorted_points(:, bad_inds) = [];
+%      cur_world_locs(bad_inds,:) = [];
+%
+%
+%      %% classify the box
+%
+%      %get dimensions of the box just found(without occlusion filtering) 
+%      if(isempty(distorted_points))
+%        box_area = Inf;
+%      else
+%        minx = min(distorted_points(1,:));
+%        miny = min(distorted_points(2,:));
+%        maxx = max(distorted_points(1,:));
+%        maxy = max(distorted_points(2,:));
+%        box_area = (maxx - minx) * (maxy-miny);
+%      end
 
       %get the true labeled box and its dimensions 
       labeled_box = cur_instance_boxes(kl,:);
@@ -271,9 +276,9 @@ for il=1:length(all_scenes)
       %three separate measures of hardness for a box. we will calculate each separately
       %and then pick whichever indicates the highest 'hardness'. 
       raw_area_hardness = 0;%is the box small?
-      ratio_area_hardness = 0;%is the true box much smaller than
-                              % box without occlusion filtering?
-      num_points_hardness = 0;%did only a few points from the point cloud 
+%      ratio_area_hardness = 0;%is the true box much smaller than
+%                              % box without occlusion filtering?
+%      num_points_hardness = 0;%did only a few points from the point cloud 
                               %project into this image? (object is cut off)
 
 
@@ -281,58 +286,70 @@ for il=1:length(all_scenes)
 
       %raw area hardness (too small?)
       %if one dimension is too small, it will be very hard to find
-      if((labeled_max_dim > .2*kImageWidth)  && (labeled_min_dim > 40))
+      %if((labeled_max_dim > .2*kImageWidth)  && (labeled_min_dim > 40))
+      %  raw_area_hardness = 1;
+      %elseif((labeled_max_dim > .1*kImageWidth)  && (labeled_min_dim > 30))
+      %  raw_area_hardness = 2;
+      %elseif((labeled_max_dim > .05*kImageWidth)  && (labeled_min_dim > 20))
+      %  raw_area_hardness = 3;
+      %else
+      %  raw_area_hardness = 4;
+      %end 
+      if((labeled_max_dim >= 300)  && (labeled_min_dim >= 100))
         raw_area_hardness = 1;
-      elseif((labeled_max_dim > .1*kImageWidth)  && (labeled_min_dim > 30))
+      elseif((labeled_max_dim >= 200)  && (labeled_min_dim >= 75))
         raw_area_hardness = 2;
-      elseif((labeled_max_dim > .05*kImageWidth)  && (labeled_min_dim > 20))
+      elseif((labeled_max_dim >= 100)  && (labeled_min_dim >= 50))
         raw_area_hardness = 3;
-      else
+      elseif((labeled_max_dim >= 50)  && (labeled_min_dim >= 30))
         raw_area_hardness = 4;
+      else
+        raw_area_hardness = 5;
       end 
 
 
-      %ratio area hardness (kind of occlusion)
-      %if the true labeled box is only 50% the area of the box without
-      % occlusion filtering, very roughly 50% of the object is occluded
-      area_ratio = labeled_box_area/box_area; 
-      if(area_ratio > .8)
-        ration_area_hardness = 1; 
-      elseif(area_ratio > .6)
-        ration_area_hardness = 2; 
-      elseif(area_ratio > .4)
-        ration_area_hardness = 3; 
-      else
-        ration_area_hardness = 4; 
-      end
-
-
-      %num points hardness (cut off?)
-      %if only 50% of the point cloud projects into the image, 
-      %then very roughly %50 of the object is not in the image,
-      % maybe cut off on the boundary
-      num_points_ratio = length(distorted_points)/ length(cur_pc.Location);
-      if(num_points_ratio > .8)
-        ration_area_hardness = 1; 
-      elseif(num_points_ratio > .6)
-        ration_area_hardness = 2; 
-      elseif(num_points_ratio > .4)
-        ration_area_hardness = 3; 
-      else
-        ration_area_hardness = 4; 
-      end 
-
-      %the final hardness is the max hardness of any of the three measures
-      [hardness, ind]= max([raw_area_hardness, ratio_area_hardness, num_points_hardness]);
-
-
-      if(ind==1)
-        num_raw = num_raw+1; 
-      elseif(ind==2)
-        num_occ = num_occ+1; 
-      elseif(ind==3)
-        num_points = num_points+1; 
-      end
+%      %ratio area hardness (kind of occlusion)
+%      %if the true labeled box is only 50% the area of the box without
+%      % occlusion filtering, very roughly 50% of the object is occluded
+%      area_ratio = labeled_box_area/box_area; 
+%      if(area_ratio > .8)
+%        ration_area_hardness = 1; 
+%      elseif(area_ratio > .6)
+%        ration_area_hardness = 2; 
+%      elseif(area_ratio > .4)
+%        ration_area_hardness = 3; 
+%      else
+%        ration_area_hardness = 4; 
+%      end
+%
+%
+%      %num points hardness (cut off?)
+%      %if only 50% of the point cloud projects into the image, 
+%      %then very roughly %50 of the object is not in the image,
+%      % maybe cut off on the boundary
+%      num_points_ratio = length(distorted_points)/ length(cur_pc.Location);
+%      if(num_points_ratio > .8)
+%        ration_area_hardness = 1; 
+%      elseif(num_points_ratio > .6)
+%        ration_area_hardness = 2; 
+%      elseif(num_points_ratio > .4)
+%        ration_area_hardness = 3; 
+%      else
+%        ration_area_hardness = 4; 
+%      end 
+%
+%      %the final hardness is the max hardness of any of the three measures
+%      [hardness, ind]= max([raw_area_hardness, ratio_area_hardness, num_points_hardness]);
+      hardness = raw_area_hardness;
+%
+%
+%      if(ind==1)
+%        num_raw = num_raw+1; 
+%      elseif(ind==2)
+%        num_occ = num_occ+1; 
+%      elseif(ind==3)
+%        num_points = num_points+1; 
+%      end
 
       %add the hardness meseaure to the box 
       cur_instance_boxes(kl,:) = [labeled_box(1:5) hardness];
@@ -354,7 +371,7 @@ for il=1:length(all_scenes)
 
   end%for jl, each instance label name 
 
-  convert_boxes_by_instance_to_image_instance('Bedroom_01_1', 'verified_labels');
+  convert_boxes_by_instance_to_image_instance(scene_name, label_type);
 end%for il, each scene_name
 
 end

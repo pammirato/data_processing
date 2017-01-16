@@ -11,7 +11,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_02_2'; %make this = 'all' to run all scenes
+scene_name = 'Home_13_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -46,6 +46,7 @@ for il=1:length(all_scenes)
  
   %% set scene specific data structures
   scene_name = all_scenes{il};
+  disp(scene_name);
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
