@@ -1,5 +1,11 @@
+function [] = vis_bounding_boxes(scene_name)
 %shows bounding boxes by image, with many options.  Can view vatic outputted boxes,
 %results from a recognition system, or both. Also allows changing of vatic boxes. 
+%
+%INPUTS:
+%         scene_name: char array of single scene name, 'all' for all scenes, 
+%                     or a cell array of char arrays, one for each desired scene
+
 
 %TODO  - add scores to rec bboxes
 %      - add labels to rec bboxes
@@ -7,7 +13,7 @@
 
 %CLEANED - no
 %TESTED - no
-clearvars
+%clearvars
 
 %initialize contants, paths and file names, etc. 
 init;
@@ -15,7 +21,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Home_04_1'; %make this = 'all' to run all scenes
+%scene_name = 'Home_03_2'; %make this = 'all' to run all scenes
 %group_name = 'all_minus_boring';
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
@@ -55,9 +61,9 @@ all_scenes = {d.name};
 
 
 %determine which scenes are to be processed 
-if(use_custom_scenes && ~isempty(custom_scenes_list))
+if(iscell(scene_name))
   %if we are using the custom list of scenes
-  all_scenes = custom_scenes_list;
+  all_scenes = scene_name;
 elseif(~strcmp(scene_name, 'all'))
   %if not using custom, or all scenes, use the one specified
   all_scenes = {scene_name};

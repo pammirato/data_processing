@@ -1,4 +1,4 @@
-%function [] = remove_image_cluster(scene_name)
+function [] = remove_image_cluster(scene_name, clusters_to_remove)
 % removes a cluster from scene
 %
  
@@ -17,13 +17,13 @@ init;
 %% USER OPTIONS
 
 
-scene_name = 'Home_00_1'; %make this = 'all' to run all scenes
+%scene_name = 'Home_00_1'; %make this = 'all' to run all scenes
 model_number = '0';
 %use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 %custom_scenes_list = {};%populate this 
 
 
-clusters_to_remove = [19];
+%clusters_to_remove = [19];
 
 cluster_size = 12;
 

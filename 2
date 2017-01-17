@@ -8,17 +8,17 @@ function [] = make_hand_label_image_list(scene_name)
 
 %CLEANED - no 
 %TESTED - no
-%clearvars;
+clearvars;
 
 %initialize contants, paths and file names, etc. 
 init;
 
 %% USER OPTIONS
 
-%scene_name = 'Home_04_2'; %make this = 'all' to run all scenes
+scene_name = 'Home_04_2'; %make this = 'all' to run all scenes
 model_number = '0';
-%use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-%custom_scenes_list = {};%populate this 
+use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
+custom_scenes_list = {};%populate this 
 
 
 method = 1;  % 0 - non reconstructed images
@@ -34,9 +34,9 @@ d = d(3:end);
 all_scenes = {d.name};
 
 %determine which scenes are to be processed 
-if(iscell(scene_name))
+if(use_custom_scenes && ~isempty(custom_scenes_list))
   %if we are using the custom list of scenes
-  all_scenes = scene_name;
+  all_scenes = custom_scenes_list;
 elseif(~strcmp(scene_name, 'all'))
   %if not using custom, or all scenes, use the one specified
   all_scenes = {scene_name};

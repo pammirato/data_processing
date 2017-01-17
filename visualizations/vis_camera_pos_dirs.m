@@ -1,6 +1,11 @@
+function [] = vis_camera_pos_dirs(scene_name)
 %show a figure with the camera positions plotted in 3D for a scene, 
 %possibly also show a line coming from each point indicating the 
 %orientation of the camera at that point
+%
+%INPUTS:
+%         scene_name: char array of single scene name, 'all' for all scenes, 
+%                     or a cell array of char arrays, one for each desired scene
 
 
 %TODO:     - add option to plot reconstructed points, and save those figs/images
@@ -8,7 +13,7 @@
 
 %CLEANED - no
 %TESTED - no
-clearvars;
+%clearvars;
 
 
 %initialize contants, paths and file names, etc. 
@@ -20,7 +25,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Home_14_1'; %make this = 'all' to run all scenes
+%scene_name = 'Home_03_2'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -55,9 +60,9 @@ all_scenes = {d.name};
 
 
 %determine which scenes are to be processed 
-if(use_custom_scenes && ~isempty(custom_scenes_list))
+if(iscell(scene_name))
   %if we are using the custom list of scenes
-  all_scenes = custom_scenes_list;
+  all_scenes = scene_name;
 elseif(~strcmp(scene_name, 'all'))
   %if not using custom, or all scenes, use the one specified
   all_scenes = {scene_name};

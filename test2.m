@@ -10,7 +10,7 @@ cols = 5;
 counter = 1;
 
 
-html_fid = fopen(fullfile(source,'table.html'), 'wt');
+html_fid = fopen(fullfile(source,'table2.html'), 'wt');
 
 for il=1:length(image_names)
 %  img = imread(fullfile(source,image_names{il}));
@@ -18,7 +18,7 @@ for il=1:length(image_names)
 %  img = img(313:733,510:799,:);
 %  imwrite(img,fullfile(source,image_names{il}));
 
-  fprintf(html_fid, strcat('<td><img src="images/', image_names{il}, '" style="width:304px;height:228px;"></td>\n'));
+  fprintf(html_fid, strcat('<td><img src="images/', image_names{il}, '" style="width:304px;height:228px;">', image_names{il}, '</td>\n'));
 
 
 end
