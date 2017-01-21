@@ -1,4 +1,17 @@
-function switch_to_jpg(scene_name)
+function clean_boxes_max_dims(scene_name, label_type)
+% assigns a label to each bounding box indicating how difficult it may
+% for a detection system to duplicate
+%
+% It assumed boxes follow the following format:
+%
+%   [xmin ymin xmax ymax cat_id hardness ...]
+%
+%INPUTS:
+%         scene_name: char array of single scene name, 'all' for all scenes, 
+%                     or a cell array of char arrays, one for each desired scene
+%         label_type: OPTIONAL 'verified_labels'(default) or 'raw_labels'
+%
+
 %TODO
 
 %CLEANED - no 
@@ -13,19 +26,29 @@ function switch_to_jpg(scene_name)
 
 %% USER OPTIONS
 
-%scene_name = 'Home_01_1'; %make this = 'all' to run all scenes
+%scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
 model_number = '0';
 %use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 %custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_1', 'Kitchen_Living_03_1', 'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1'};%populate this 
 
 
 
-label_type = 'verified_labels';
+
 
 %which instances to use
 label_to_process = 'all'; %make 'all' for every label
 label_names = {label_to_process};
 
+if(nargin <2)
+  label_type = 'verified_labels';  %raw_labels - automatically generated labels
+end                                %verified_labels - boxes looked over by human
+
+
+debug =0;
+
+kImageWidth = 1920;
+kImageHeight = 1080;
+%% SET UP GLOBAL DATA STRUCTURES
 
 
 %get the names of all the scenes
@@ -65,79 +88,14 @@ for il=1:length(all_scenes)
 
 
 
-  %% get info about camera position for each image
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', ...
-                                'colmap_results', model_number,IMAGE_STRUCTS_FILE));
-  image_structs = image_structs_file.(IMAGE_STRUCTS);
-  scale  = image_structs_file.scale;
-
-
-  %rename image names in image structs
-  for jl=1:length(image_structs)
-    cur_struct = image_structs(jl);
-    img_name = cur_struct.image_name;
-    img_name = strcat(img_name(1:10), '.jpg');
-    cur_struct.image_name = img_name;
-
-    img_name = cur_struct.rotate_ccw;
-    if(length(img_name) > 10)
-    img_name = strcat(img_name(1:10), '.jpg');
-    cur_struct.rotate_ccw = img_name; 
-    end
-
-    img_name = cur_struct.rotate_cw;
-    if(length(img_name) > 10)
-    img_name = strcat(img_name(1:10), '.jpg');
-    cur_struct.rotate_cw = img_name; 
-    end
-
-    img_name = cur_struct.translate_forward;
-    if(length(img_name) > 10)
-    img_name = strcat(img_name(1:10), '.jpg');
-    cur_struct.translate_forward = img_name; 
-    end
-
-    img_name = cur_struct.translate_backward;
-    if(length(img_name) > 10)
-    img_name = strcat(img_name(1:10), '.jpg');
-    cur_struct.translate_backward = img_name; 
-    end
-
-    img_name = cur_struct.translate_left;
-    if(length(img_name) > 10)
-    img_name = strcat(img_name(1:10), '.jpg');
-    cur_struct.translate_left = img_name; 
-    end
-
-    img_name = cur_struct.translate_right;
-    if(length(img_name) > 10)
-    img_name = strcat(img_name(1:10), '.jpg');
-    cur_struct.translate_right = img_name; 
-    end
-
-
-
-
-    image_structs(jl) = cur_struct; 
-  end
-
-  save(fullfile(meta_path,'reconstruction_results', ...
-                 'colmap_results', model_number,IMAGE_STRUCTS_FILE),...
-                  'image_structs', 'scale');
-
-
-  
-
-
-
-
-  %rename image names in instance labels
+  %for each  instance label
   for jl=1:length(label_names)
     
     %get the name of the label
     cur_label_name = label_names{jl};
     disp(cur_label_name);%display progress
 
+                 
 
     %load the boxes for this instance                
     try
@@ -159,13 +117,34 @@ for il=1:length(all_scenes)
 
     %% for each box,image classify the box 
     for kl = 1:length(image_names) 
-      cur_name = image_names{kl};
-      cur_name = strcat(cur_name(1:10),'.jpg');
-      image_names{kl} = cur_name; 
+      %get the image name, and the coressponding image struct     
+      cur_image_name = image_names{kl};
+
+      %get the true labeled box and its dimensions 
+      box = cur_instance_boxes(kl,:);
+
+      if(box(3) > 1920 || box(4) > 1080)
+        breakp = 1;
+      end
+      box(1) = max(1,box(1));
+      box(2) = max(1,box(2));
+      box(3) = min(1920,box(3));
+      box(4) = min(1080,box(4));
+  
+      
+
+      %add the hardness meseaure to the box 
+      cur_instance_boxes(kl,:) = box;
     end%for kl, each image name
+
+    %% save the newly classified boxes for this instance label
 
     %create the struct for the boxes
     boxes = cur_instance_boxes;
+    %cur_instance_boxes = struct('image_names', cell(1), ...
+    %                            'boxes', cell(1));
+    %cur_instance_boxes.image_names = image_names;
+    %cur_instance_boxes.boxes = boxes;
     %save 
     save(fullfile(meta_path,LABELING_DIR, label_type, ...
                             BBOXES_BY_INSTANCE,...
@@ -177,5 +156,6 @@ for il=1:length(all_scenes)
   convert_boxes_by_instance_to_image_instance(scene_name, label_type);
 end%for il, each scene_name
 
+end
 
 

@@ -30,8 +30,8 @@ end
 label_loc = 'meta'; %which path to use: scene or meta 
 
 xmind = changes(1);
-xmaxd = changes(2);
-ymind = changes(3);
+xmaxd = changes(3);
+ymind = changes(2);
 ymaxd = changes(4);
 
 

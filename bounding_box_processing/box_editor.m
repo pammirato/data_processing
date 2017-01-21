@@ -655,10 +655,10 @@ bbox = handles.bboxes{handles.cur_image_index};
 
 [x,y,but] = ginput(2)
 
-bbox(1) = x(1);
-bbox(2) = y(1);
-bbox(3) = x(2);
-bbox(4) = y(2);
+bbox(1) = max(x(1), 1);
+bbox(2) = max(y(1),1);
+bbox(3) = min(x(2), 1080);
+bbox(4) = min(y(2), 1920);
 
 
 

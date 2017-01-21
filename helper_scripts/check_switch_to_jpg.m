@@ -1,4 +1,4 @@
-
+function [] = check_switch_to_jpg(scene_name)
 %TODO
 
 %CLEANED - no 
@@ -13,7 +13,7 @@
 
 %% USER OPTIONS
 
-scene_name = 'Home_04_2'; %make this = 'all' to run all scenes
+%scene_name = 'Home_05_2'; %make this = 'all' to run all scenes
 model_number = '0';
 %use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 %custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_1', 'Kitchen_Living_03_1', 'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1'};%populate this 
@@ -78,6 +78,12 @@ for il=1:length(all_scenes)
     disp('FAIL image structs');
   end
 
+  name = image_structs(1).rotate_ccw;
+  if(strcmp(name(11:end),'.jpg'))
+    disp('Pass movement');
+  else
+    disp('FAIL movement');
+  end
   
 
 

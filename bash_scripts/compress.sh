@@ -17,8 +17,10 @@ SLASH="/";
 #  convert -compress Zip $ORG_PATH$ROOM_NAME$image $COMPRESS_PATH$ROOM_NAME$image 
 #done
 
-input_dir=$1/"rgb"/
-output_dir=$1/"jpg_rgb"/
+#input_dir=$1/"rgb"/
+#output_dir=$1/"jpg_rgb"/
+input_dir=$1/"high_res_depth"/
+output_dir=$1/"jpg_high_res_depth"/
 
 rm -rf $output_dir
 mkdir -p $output_dir

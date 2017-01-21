@@ -14,15 +14,15 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Office_04_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_02_2'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-instance_name = '';
+instance_name = 'hersheys_bar';
 num_images = 20;
-label_type = 'verified_labels';
+label_type = 'raw_labels';
 max_avg_dist = 1200;
 
 
@@ -231,13 +231,13 @@ for il=1:length(all_scenes)
     
     %rgb_img = rgb_images{jl};
     %depth_image = depth_images{jl};%reshape(depth_images{jl}, 1080*1920,1);
-    rgb_img = imread(fullfile(scene_path, 'rgb',cur_image_name)); 
-    %rgb_img = imread(fullfile(scene_path, 'jpg_rgb',cur_image_name)); 
+    %rgb_img = imread(fullfile(scene_path, 'rgb',cur_image_name)); 
+    rgb_img = imread(fullfile(scene_path, 'jpg_rgb',cur_image_name)); 
     %depth_image = imread(fullfile(scene_path, 'high_res_depth', ...
     %                        strcat(cur_image_name(1:8), '03.png')));
     %depth_image = imread(fullfile(meta_path, 'improved_depths', ...
     %                        strcat(cur_image_name(1:8), '05.png')));
-    depth_image = imread(fullfile(meta_path, 'improved_depths2', ...
+    depth_image = imread(fullfile(meta_path, 'improved_depths3', ...
                             strcat(cur_image_name(1:8), '05.png')));
 
 
@@ -251,8 +251,8 @@ for il=1:length(all_scenes)
     box(3) = min(1920,box(3) + expand_amount);  
     box(4) = min(1080,box(4) + expand_amount);  
 
-    width = box(3)-box(1) + 1;
-    height = box(4) - box(2) +1; 
+    width = double(box(3)-box(1) + 1);
+    height = double(box(4) - box(2) +1); 
 
 
     %crop rgb and depth image
