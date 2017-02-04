@@ -1,8 +1,0 @@
-#!/bin/bash
-
-#for each filename get the index and write it to a text file
-for j in $(ls $1); do
-  index=`echo $j | cut -d$3 -f'2' `
-  echo $index >> $2
-done
-
