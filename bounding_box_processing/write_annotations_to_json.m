@@ -1,5 +1,6 @@
 function write_annotations_to_json(scene_name)
-%converts bounding box labels by image instance in .mat files to .txt files
+% converts bounding box labels in .mat files to .json format
+% one file per scene. See dataset website for format
 %
 %INPUTS:
 %         scene_name: char array of single scene name, 'all' for all scenes, 
@@ -10,15 +11,11 @@ function write_annotations_to_json(scene_name)
 
 
 %CLEANED - no
-%TESTED - no
+%TESTED - yes 
 
-%TODO  - write all boxes at once for each image (get rid of kl loop)
-%      - give option for boxes by image instance or by instance
 
-%clearvars;
 
 %initialize contants, paths and file names, etc. 
-
 init;
 
 

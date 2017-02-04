@@ -1,34 +1,12 @@
-clearvars;
+%NOT USED
+
+
 init_bigBIRD;
 
 
-%TODO - add   rotation
-%             alpha composition
-%             illumination
-%
-
-
-
-
-
-debug = 0;
-
 d = dir(BIGBIRD_BASE_PATH);
 object_names = {d(3:end).name};
-%object_names = {'listerine_green'};
 
-
-%load mapping from bigbird name ot category id
-%obj_cat_map = containers.Map();
-%fid_bb_map = fopen('/playpen/ammirato/Data/RohitMetaMetaData/big_bird_cat_map.txt', 'rt');
-%
-%line = fgetl(fid_bb_map);
-%while(ischar(line))
-%  line = strsplit(line);
-%  obj_cat_map(line{1}) = str2double(line{2}); 
-%  line = fgetl(fid_bb_map);
-%end
-%fclose(fid_bb_map);
 
 save_base_path = fullfile('/playpen/ammirato/Detectors/SegNet/BigBIRD');
 

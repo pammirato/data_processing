@@ -1,12 +1,12 @@
 function update_instance_ids(scene_name, label_type)
 %Changes the numberic instance id label for all bounding boxes
-%to match what is in the text file instance_id_map.txt
+%to match what is in the text file ROHIT_METAMETA_BASE_PATH/instance_id_map.txt
 %
 %
 %INPUTS:
 %         scene_name: char array of single scene name, 'all' for all scenes, 
 %                     or a cell array of char arrays, one for each desired scene
-%         label_type: OPTIONAL 'raw_labels'(default) or 'verified_labels'
+%         label_type: OPTIONAL 'verified_labels'(default) or 'raw_labels'
 %
 
 
@@ -36,7 +36,7 @@ end
 
 %set default label_type if not inputted by user
 if(nargin > 1)
-  label_type = 'raw_labels'; 
+  label_type = 'verified_labels'; 
 end
 
 label_loc = 'meta'; %which path to use: scene or meta 

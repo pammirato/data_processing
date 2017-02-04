@@ -1,10 +1,6 @@
 function clean_boxes_max_dims(scene_name, label_type)
-% assigns a label to each bounding box indicating how difficult it may
-% for a detection system to duplicate
-%
-% It assumed boxes follow the following format:
-%
-%   [xmin ymin xmax ymax cat_id hardness ...]
+% makes sure all boxesa are within image bounds. If a box is outside
+% the image bounds, the coordinates are adjusted to fit inside 
 %
 %INPUTS:
 %         scene_name: char array of single scene name, 'all' for all scenes, 

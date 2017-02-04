@@ -1,4 +1,7 @@
-%clearvars;
+%an attempt to sythesize training images with bigBird objects placed into
+% random backgrounds
+
+
 init_bigBIRD;
 
 

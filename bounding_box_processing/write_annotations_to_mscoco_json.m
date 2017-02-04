@@ -1,5 +1,7 @@
 function write_annotations_to_json(scene_name, train)
-%converts bounding box labels by image instance in .mat files to .txt files
+%converts bounding box in .mat files to .json files, in same format as MSCOCO
+%Also copies all rgb images to a central folder, and adds a prefix to their names
+%based on their scene_name. 
 %
 %INPUTS:
 %         scene_name: char array of single scene name, 'all' for all scenes, 

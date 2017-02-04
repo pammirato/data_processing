@@ -339,6 +339,7 @@ handles.cur_image_index = handles.cur_image_index -1;
 if(handles.cur_image_index < 1)
   handles.cur_image_index = length(handles.image_names);
 end
+handles.cur_img = [];
 
 guidata(hObject, handles);
 draw_current_image_and_box(hObject, eventdata,handles)
@@ -354,6 +355,7 @@ handles.cur_image_index = handles.cur_image_index +1;
 if(handles.cur_image_index > length(handles.image_names))
   handles.cur_image_index = 1;
 end
+handles.cur_img = [];
 
 guidata(hObject, handles);
 draw_current_image_and_box(hObject, eventdata,handles)
@@ -418,6 +420,7 @@ end
 handles.image_map = containers.Map(all_image_names, images);
 handles.image_width = size(img,2);
 handles.image_height = size(img,1);
+handles.cur_img = [];
 
 guidata(hObject, handles);
 
@@ -495,6 +498,9 @@ init;
 cur_image_name = handles.image_names{handles.cur_image_index};
 img = handles.image_map(cur_image_name);
 if(isempty(img))
+  img = handles.cur_img;
+end
+if(isempty(img))
   img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'jpg_rgb', ...
                         strcat(cur_image_name(1:10), '.jpg')));
 end
@@ -510,6 +516,7 @@ box_string = [num2str(handles.cur_image_index) '/' ...
                 num2str(length(handles.image_names))];
 handles.box_counter.String = box_string;
 hold off;
+handles.cur_img = img;
 guidata(hObject, handles);
 
 

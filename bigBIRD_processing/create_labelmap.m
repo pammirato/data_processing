@@ -1,16 +1,12 @@
-clearvars;
+%create a prototxt labelmap for the bigbird images
+%
+%
+% NOT USED
+
 
 init_bigBIRD;
 
-
-%TODO - add   rotation
-%             alpha composition
-%             illumination
-%
-
 output_path = fullfile('/playpen/ammirato/Detectors/ssd/caffe/data/BigBIRD/');
-
-
 
 fid_bb_map = fopen('/playpen/ammirato/Data/RohitMetaMetaData/big_bird_cat_map.txt', 'rt');
 

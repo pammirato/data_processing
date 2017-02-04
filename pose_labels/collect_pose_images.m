@@ -1,7 +1,15 @@
+function collect_pose_image(scene_name)
+% finds images with the largest bounding box for each instance in the scene
+% and saves them in meta_path/labels/pose_images
+%
+% To be used for POSE LABELS
+% not currently used
+%
+
+
 init;
 
 
-scene_name = 'Home_01_2'; %make this = 'all' to run all scenes
 %get the names of all the scenes
 d = dir(ROHIT_BASE_PATH);
 d = d(3:end);
@@ -18,7 +26,7 @@ end
 
 instance_name_to_id_map = get_instance_name_to_id_map();
 
-
+%get the names of all the instance we are interested in
 base_path = '/playpen/ammirato/Data/RohitMetaMetaData/aligned_object_point_clouds/';
 object_names = dir(fullfile(base_path,'*.ply'));
 object_names = {object_names.name};

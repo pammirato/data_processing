@@ -19,12 +19,16 @@ function hand_label_images(scene_name, method, label_type)
 %
 %
 %USAGE:
-%      (1) Left-click twice to make a boundig box(top left corner, bottom right corner) Go to (3)
-%      (2) If one or both clicks are not left-clicks, you are done with this image. Go to (5)
-%      (3) Type a label name to the console. If it is a valid name, the box is recorded. Go to (1)
-%      (4) Enter 'q' as the label name to delete the last hand drawn box. Go to (1)
-%      (5) all boxes for this image are save to file. Load next image, Go to (1)
-%      (6) after all boxes are labeled they are converted from image instance to instance
+%    (1) Left-click twice to make a bounding box(top left corner, bottom right corner) Go to (4)
+%    (2) If double right click, you are done with this image. Go to (6)
+%    (3) If double mouse wheel click, you will be asked to confirm deletetion of
+%         any boxes that contain the clicked point. After input, Go to (1)
+%    (4) Type a label name to the console. If it is a valid name, the box is recorded. 
+%        If it is not a valid name, you be asked to re-enter. 
+%        To delete the hand drawn box, Go to (5). If valid name is entered, Go to (1)
+%    (5) Enter 'q' as the label name to delete the last hand drawn box. Go to (1)
+%    (6) All boxes for this image are saved to file. Load next image, Go to (1)
+%    (7) After all boxes are labeled they are converted from image instance to instance
       
 
 
