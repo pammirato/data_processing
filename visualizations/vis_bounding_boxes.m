@@ -15,9 +15,8 @@ function [] = vis_bounding_boxes(scene_name)
 %TESTED - no
 %clearvars
 
-%initialize contants, paths and file names, etc. 
+%initialize contants, paths and file names, etc. init;
 init;
-
 
 %% USER OPTIONS
 

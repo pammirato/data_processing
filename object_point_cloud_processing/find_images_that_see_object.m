@@ -13,14 +13,14 @@
 init;
 %% USER OPTIONS
 
-scene_name = 'Home_02_2'; %make this = 'all' to run all scenes
+scene_name = 'Home_06_1'; %make this = 'all' to run all scenes
 model_number = '0'; %colmap model number
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
-label_to_process = 'progresso_new_england_clam_chowder'; %make 'all' for every label
-use_custom_labels = 0;
-label_names_list = {}; 
+label_to_process = 'red_bull'; %make 'all' for every label
+use_custom_labels = 1;
+label_names_list = {'mahatma_rice', 'softsoap_white'};
 
 method = 0; %0 - oclusion filtering, uses improved depth maps if they exist
             %1 - no ocllusion filtering
@@ -163,7 +163,7 @@ for il=1:length(all_scenes)
           try
             %depth_images{jl} = imread(fullfile(meta_path, IMPROVED_DEPTH, ... 
             %             strcat(rgb_name(1:8),'05.png') ));
-            depth_images{jl} = imread(fullfile(meta_path, 'improved_depths3', ... 
+            depth_images{jl} = imread(fullfile(meta_path, 'improved_depths', ... 
                         strcat(rgb_name(1:8),'05.png') ));
           catch
             depth_images{jl} = imread(fullfile(scene_path, HIGH_RES_DEPTH, ... 
@@ -302,7 +302,7 @@ for il=1:length(all_scenes)
         %get the depth image, if not pre-loaded read from file
         if(~depths_loaded)
           try
-            depth_image = imread(fullfile(meta_path, 'improved_depths3', ... 
+            depth_image = imread(fullfile(meta_path, 'improved_depths', ... 
                          strcat(cur_image_name(1:8),'05.png') ));
           catch
             depth_image = imread(fullfile(scene_path, 'high_res_depth', ... 

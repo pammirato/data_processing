@@ -400,8 +400,8 @@ if(load_images)
 
   for il=1:length(all_image_names)
     cur_name = all_image_names{il};
-    img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'rgb', ...
-                        strcat(cur_name(1:10), '.png')));
+    img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'jpg_rgb', ...
+                        strcat(cur_name(1:10), '.jpg')));
     images{il} = img;
     delete(tt);
     tt = text(.3,.5,['Loaded Image ' num2str(il) '/' num2str(length(all_image_names))]);
@@ -409,8 +409,8 @@ if(load_images)
   end
 else
     cur_name = all_image_names{1};
-    img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'rgb', ...
-                        strcat(cur_name(1:10), '.png')));
+    img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'jpg_rgb', ...
+                        strcat(cur_name(1:10), '.jpg')));
 end
 
 
@@ -495,8 +495,8 @@ init;
 cur_image_name = handles.image_names{handles.cur_image_index};
 img = handles.image_map(cur_image_name);
 if(isempty(img))
-  img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'rgb', ...
-                        strcat(cur_image_name(1:10), '.png')));
+  img = imread(fullfile(ROHIT_BASE_PATH,handles.selected_scene, 'jpg_rgb', ...
+                        strcat(cur_image_name(1:10), '.jpg')));
 end
 %plot the image, then draw the box on top
 imshow(img);

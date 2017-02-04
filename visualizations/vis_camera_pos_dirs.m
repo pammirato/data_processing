@@ -41,7 +41,7 @@ save_figures = 0; % 0 - don't save
                   % 2 - save .jpg image
 
 
-show_cluster_ids = 1;
+show_cluster_ids = 0;
 show_image_names = 0;
 
 view_figure = 1; %whether or not to make the figure(s) visible
@@ -162,6 +162,43 @@ for i=1:length(all_scenes)
       end%switch
       hold off;
   end%if view_direction
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%555
+%   hold on;
+%   auntJ = pcread(fullfile(meta_path,'labels','object_point_clouds',...
+%             'aunt_jemima_original_syrup.ply'));
+% 
+%   com = mean(auntJ.Location);
+%   plot(com(1),com(3), 'md');
+% 
+%   t = [-0.0391824 -0.0833807 -2.25901]';
+%   R = [-0.0188718 0.0231653 -0.999553 0 0.0940763 -0.995255 -0.0248419 0 -0.995386 -0.0945031 0.0166027 0 0 0 0 1];
+%   R = reshape(R,4,4);
+%   R = R(1:3,1:3);
+%   
+%   ppos = -R'*t;
+% 
+%   plot(-ppos(3),-ppos(1), '+g');
+% 
+%   
+%   t = [-0.643571 -0.140762 -2.24892]';
+%   R = [-0.0188718 0.0231653 -0.999554 0 0.0940763 -0.995255 -0.0248419 0 -0.995386 -0.0945031 0.0166027 0 0 0 0 1];
+%   R = reshape(R,4,4);
+%   R = R(1:3,1:3);
+%   
+%   ppos = -R'*t;
+% 
+%   plot(-ppos(3),-ppos(1), '+g');
+%   
+%   
+%   
+% 
+%   hold off;
+
+%%%%%%%%%%%%%%%%%%%%%%%555
+
 
 
   %remove axis and make background white

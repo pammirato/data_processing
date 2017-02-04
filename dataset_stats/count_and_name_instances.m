@@ -1,4 +1,4 @@
-function [scenes_count_struct] = count_and_name_instances(scene_name, label_type)
+function [scenes_count_struct, global_count_struct] = count_and_name_instances(scene_name, label_type)
 % count the number of bounding boxes in each scene. Takes into acccount the hardness measure
 %INPUTS:
 %       scene_name: char array of single scene name, 'all' for all scenes, 
@@ -62,6 +62,17 @@ end
 %make a struct to hold counts for each scene, and a total across all scenes
 scenes_count_struct = struct('total', 0);
 
+
+global_count_struct = struct('total',0);
+
+instance_name_to_id_map = get_instance_name_to_id_map();
+instance_names = keys(instance_name_to_id_map);
+for il=1:length(instance_names)
+  global_count_struct.(instance_names{il}) = 0;
+end
+
+
+
 %% MAIN LOOP
 for il=1:length(all_scenes)
  
@@ -93,7 +104,7 @@ for il=1:length(all_scenes)
       continue;
     end
     present_instances{end+1} = cur_label_name;
-
+    global_count_struct.(cur_label_name) = global_count_struct.(cur_label_name) + 1;
   end%for jl
   
   fid = fopen(fullfile(meta_path,'labels', 'present_instance_names.txt'), 'wt');
@@ -111,5 +122,6 @@ fprintf('Total boxes in %d scenes: %d\n', length(all_scenes),...
                                         scenes_count_struct.total);
 
 end
+
 
 
