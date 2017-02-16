@@ -110,7 +110,10 @@ for il=1:length(all_scenes)
   %% for each cluster, assign pointers for all points in that cluster
   for jl=0:max_cluster_id
 
-    disp(['Cluster:  ' num2str(jl)]);
+    %display progress
+    if(mod(jl,20) == 0)
+      disp(['Cluster:  ' num2str(jl)]);
+    end
 
     %get structs for this cluster 
     cur_cluster = image_structs(find([image_structs.cluster_id] == jl));

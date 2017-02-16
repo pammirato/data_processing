@@ -41,7 +41,7 @@ save_figures = 0; % 0 - don't save
                   % 2 - save .jpg image
 
 
-show_cluster_ids = 0;
+show_cluster_ids = 1;
 show_image_names = 0;
 
 view_figure = 1; %whether or not to make the figure(s) visible

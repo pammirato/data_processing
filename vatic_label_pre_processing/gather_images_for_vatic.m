@@ -20,14 +20,10 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'FB341'; %make this = 'all' to run all scenes
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {};%populate this 
+scene_name = 'Office_02_1'; %make this = 'all' to run all scenes
 
 
-label_name = 'yoda1';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
-use_custom_labels = 0;
-custom_labels_list = {'potted_plant', 'potted_plant2'};
+label_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
 
 
 max_image_dimension = 600;%how big images will be at the end
@@ -37,7 +33,7 @@ depth_crop_thresh = 2500;%distance in mm object must be to do depth crop
 label_box_size = 5;%size of box drawn on image(before crop)
 
 
-gather_method = 1;   % 0 - gather all images
+gather_method = 0;   % 0 - gather all images
                      % 1 - gather images without forward AND backward pointers. 
 
 min_gather_percent = .25; %minimum percent of images in the scene that must be gathered
@@ -45,8 +41,8 @@ min_gather_percent = .25; %minimum percent of images in the scene that must be g
 
 
 %how many images are in a sub group (each sub_group is one vatic task)
-min_images_per_dir = 20;
-maxish_images_per_dir = 50;%actual max = maxish + min
+min_images_per_dir = 30;
+maxish_images_per_dir = 70;%actual max = maxish + min
 
 
 debug = 0;
@@ -63,9 +59,9 @@ all_scenes = {d.name};
 
 
 %determine which scenes are to be processed 
-if(use_custom_scenes && ~isempty(custom_scenes_list))
+if(iscell(scene_name))
   %if we are using the custom list of scenes
-  all_scenes = custom_scenes_list;
+  all_scenes = scene_name;
 elseif(~strcmp(scene_name, 'all'))
   %if not using custom, or all scenes, use the one specified
   all_scenes = {scene_name};
@@ -83,41 +79,15 @@ for i=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
-
-  %load image_structs for all images
-  image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
-  image_structs = image_structs_file.(IMAGE_STRUCTS);
-  scale  = image_structs_file.scale;
-
-  %make this for easy access to data 
-  mat_image_structs = cell2mat(image_structs); 
-  
-  %make a map from image_name to image struct for easy saving later
-  image_structs_map = containers.Map({mat_image_structs.image_name}, image_structs);
-
-
-
-
-  %get the map to find all the images that 'see' each label
-  label_to_images_that_see_it_map = load(fullfile(meta_path,LABELING_DIR,...
-                                      DATA_FOR_LABELING_DIR, ...
-                                      LABEL_TO_IMAGES_THAT_SEE_IT_MAP_FILE));
-   
-  label_to_images_that_see_it_map = label_to_images_that_see_it_map.( ...
-                                                  LABEL_TO_IMAGES_THAT_SEE_IT_MAP);
-  
-  %get names of all labels           
-  all_labels = label_to_images_that_see_it_map.keys;
+  instance_name_to_id_map = get_instance_name_to_id_map();
+  instance_names = keys(instance_name_to_id_map); 
+ 
   
   %decide which labels to process    
-  if(use_custom_labels && ~isempty(custom_labels_list))
-    all_labels = custom_labels_list;
-  elseif(strcmp(label_name,'bigBIRD'))
-    temp = dir(fullfile(BIGBIRD_BASE_PATH));
-    temp = temp(3:end);
-    all_labels = {temp.name};
-  elseif(strcmp(label_name, 'all'))
-    all_labels = all_labels;
+  if(iscell(label_name))
+    all_labels = label_name;
+  elseif(strcmp(label_name,'all'))
+    all_labels = instance_names;
   else
     all_labels = {label_name};
   end
@@ -125,25 +95,24 @@ for i=1:length(all_scenes)
   %for each label, process  all the images that see it
   for j=1:length(all_labels) %num_labels
          
-    label_name = all_labels{j}
+    label_name = all_labels{j};
+    disp(label_name);
 
-
-
-    %get the structs with IMAGE_NAME, X, Y, DEPTH for images that see this
-    %instance
     try
-      label_structs = label_to_images_that_see_it_map(label_name);
+      instance_labels = load(fullfile(meta_path,LABELING_DIR,'raw_labels',...
+                      BBOXES_BY_INSTANCE, strcat(label_name,'.mat')));
+      
     catch
-      disp(strcat('could not find ',label_name));
+      disp(['skipping ' label_name]);
       continue;
     end
 
-    %% choose which images to gather
+    boxes = instance_labels.boxes;
+    all_image_names = instance_labels.image_names;
 
-    %get all the image names,and make a map to label structs
-    temp = cell2mat(label_structs);
-    all_image_names = {temp.(IMAGE_NAME)};
-    label_structs_map = containers.Map(all_image_names, label_structs); 
+
+
+    %% choose which images to gather
 
 
     images_to_gather = cell(1,length(all_image_names));
@@ -153,69 +122,13 @@ for i=1:length(all_scenes)
       images_to_gather = all_image_names;
     
     elseif(gather_method == 1)%only pick those withOUT forward AND back pointers
+      disp('gather method not supported');
 
-      %keep track of which image names are used
-      indices_used = zeros(1,length(all_image_names));
- 
-      %for each image, load its struct and check its pointers   
-      for k=1:length(all_image_names)
-        cur_image_name = all_image_names{k};
-  
-        %get the image struct and pointers 
-        cur_image_struct = image_structs_map(cur_image_name); 
-        forward_pointer = cur_image_struct.translate_forward;
-        backward_pointer = cur_image_struct.translate_backward;
-
-        %check if both the pointers are valid
-        try
-          %for the pointer to be valid, it must be the name 
-          %of an image the sees this label. Therefore it must
-          %be in the label structs map. 
-          temp = label_structs_map(forward_pointer);
-          temp = label_structs_map(backward_pointer); 
-
-          %if we have both pointers, skip this image
-          continue;
-        catch
-          %we want to use this image
-          indices_used(k) = 1;
-          images_to_gather{k} = cur_image_name;
-        end%try
-      end%for k, each image_name 
-
-      %clear out empty spaces in the array
-      images_to_gather = images_to_gather(~cellfun('isempty',images_to_gather));
-
-      %now make sure the minium amount of images were chosen
-      min_num_images = ceil(length(all_image_names) * min_gather_percent);
-      if(length(images_to_gather) < min_num_images)
-        %how many more images we need
-        num_extra_images = min_num_images - length(images_to_gather);
-
-        %get indices of names not used yet
-        indices_not_used = find(indices_used ==0);
-
-        %get a random selection of these not used indices
-        rand_indices = randi([1,length(indices_not_used)],[1,num_extra_images]);
-         
-        images_to_add = all_image_names(indices_not_used(rand_indices));
-      
-        %concatenate the image names
-        images_to_gather = cat(2,images_to_gather, images_to_add); 
-      end%if there aren't enough images to gather 
     else
       disp('gather method not supported');
       return;
     end
       
-
-
-
-
-
-
-
-
 
 
     %%gather the images
@@ -228,10 +141,8 @@ for i=1:length(all_scenes)
     
     %for each image
     for k=1:length(images_to_gather)
-      png_name = images_to_gather{k};
-      
-      
-      jpg_name = strcat(png_name(1:end-3),'jpg');
+      img_name = images_to_gather{k};
+      jpg_name = strcat(img_name(1:end-3),'jpg');
 
 
       %make sure the jpg file exists
@@ -243,107 +154,53 @@ for i=1:length(all_scenes)
       %read in the jpg image
       img = imread(fullfile(scene_path, JPG_RGB, jpg_name));
 
-      %get info about label in this image
-      ls = label_structs_map(png_name);
-
-      %% DEPTH CROP
-      %get the depth of the labeled point, and crop accordingly 
-      label_depth = double(ls.depth);
-     
-      %for points further away, make the crop region smaller(more zoom) 
-      crop_size = start_crop_size;
-      if(do_depth_crop && label_depth >depth_crop_thresh)
-        crop_size = crop_size*(depth_crop_thresh/label_depth);
-      end
-
-
-      %% draw the label dot
-      x_dot_min = max(1,floor(ls.(X) - label_box_size/2));
-      x_dot_max = min(size(img,2),floor(ls.(X) + label_box_size/2));
-      y_dot_min = max(1,floor(ls.(Y) - label_box_size/2));
-      y_dot_max = min(size(img,1),floor(ls.(Y) + label_box_size/2));
-
-      temp =  img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,1);
-      img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,1) = 0*ones(size(temp));
-      img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,2) = 255*ones(size(temp));
-      img(y_dot_min:y_dot_max,x_dot_min:x_dot_max,3) = zeros(size(temp));
-
-      %display image with point drawn for debugging
-      if(debug)
-        imshow(img);
-        ginput(1);
-      end
+      %get the raw bounding box
+      box = boxes(k,:);
+      %double the size of the box for image_cropping
+      width = max(box(3)-box(1), max_image_dimension/4);
+      height = max(box(4)-box(2),max_image_dimension/4);
+      box(1) = box(1) - floor(width/2);
+      box(2) = box(2) - floor(height/2);
+      box(3) = box(3) + floor(width/2);
+      box(4) = box(4) + floor(height/2);
+      
+      box(1) = max(1,box(1));
+      box(2) = max(1,box(2));
+      box(3) = min(1920,box(3));
+      box(4) = min(1080,box(4));
 
 
-      %% make it so the labeled point is in the center of the image
-      %make a larger image(4X) of white. Place the rgb img in it so
-      %the labeled point is in the center
+      crop_img = img(box(2):box(4),box(1):box(3),:);
 
-      %make big image and get center coordinates
-      display_image = uint8(255*ones(2*size(img,1),2*size(img,2),3));
-      center_pos = [size(img,1), size(img,2)];
-
-      %get original label position, and difference from desired location
-      label_pos = double([ls.y ls.x]);
-      diff_pos = center_pos - label_pos ;
-
-      %shift the entire original image by diff_pos in new image
-      start_row = 1+diff_pos(1);
-      end_row = start_row+size(img,1)-1;
-      start_col = 1+diff_pos(2);
-      end_col = start_col+size(img,2)-1;
-
-      %put the orginial image in
-      display_image(start_row:end_row,start_col:end_col,:) = img;
-
-
-      %% now crop the image around the label
-      y_crop_min = max(1,floor(start_row + label_pos(1) - (crop_size/2)));
-      y_crop_max = min(size(display_image,1),floor(start_row + label_pos(1) + (crop_size/2)));
-
-      x_crop_min = max(1,floor(start_col + label_pos(2) - (crop_size/2)));
-      x_crop_max = min(size(display_image,2),floor(start_col + label_pos(2) + (crop_size/2)));
-
-      crop_img = display_image(y_crop_min:y_crop_max,x_crop_min:x_crop_max,:);
-
-
-
-
-
-      %% now resize the image
       scale = max_image_dimension/max(size(crop_img));
       scale_img = imresize(crop_img,scale);
-
+     
+      big_img = uint8(255*ones(max_image_dimension,max_image_dimension,3));
+      big_img(1:size(scale_img,1), 1:size(scale_img,2),:) = scale_img;
+ 
       if(debug)
         imshow(scale_img);
         ginput(1);
       end
 
       %save the processed image
-      imwrite(scale_img,fullfile(meta_path, LABELING_DIR,...
+      imwrite(big_img,fullfile(meta_path, LABELING_DIR,...
                  IMAGES_FOR_LABELING_DIR, label_name,jpg_name));
 
 
       %make the transform struct to allow inverse processing
-      t_struct = struct('label_struct',ls,'centering_offset',diff_pos, ...
-                      'crop_dimensions', [x_crop_min,x_crop_max,y_crop_min,y_crop_max], ...
-                      'big_image_place', [start_row,end_row,start_col,end_col], ...
-                       'resize_scale', scale);
-
-       if(strcmp(jpg_name(1:6),'000007'))
-        breakp = 1;
-        end
+      t_struct = struct(...
+                      'large_box', box, ...
+                      'resize_scale', scale,...
+                       'scale_img_size', size(scale_img));
 
       transform_structs{k} = t_struct;
     end%for k in images_to_gather
 
     %% add in reference image
-    if(exist(fullfile(BIGBIRD_BASE_PATH,label_name,'NP1_0.jpg'),'file'))
-      ref_img = imread(fullfile(BIGBIRD_BASE_PATH,label_name,'NP1_0.jpg'));
-    else
-      ref_img = imread(fullfile(meta_path,LABELING_DIR,'reference_images', ...
+    ref_img = imread(fullfile(meta_path,LABELING_DIR,'reference_images', ...
                           strcat(label_name,'.jpg')));
-    end
+    
     ref_img = imresize(ref_img,[size(scale_img,1),size(scale_img,2)]);
 
 

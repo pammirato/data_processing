@@ -1,3 +1,4 @@
+function [] = combine_instance_vatic_outputs(scene_name)
 % combines output from multiple vatic 'videos' into one file
 % used because intially 'videos' are split up into smaller segement
 % so load on workers is not too high  
@@ -15,7 +16,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_2cm_paths'; %make this = 'all' to run all scenes
+%scene_name = 'Office_02_1'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -45,17 +46,18 @@ end
 
 %% MAIN LOOP
 
-for i=1:length(all_scenes)
+for il=1:length(all_scenes)
  
   %% set scene specific data structures
-  scene_name = all_scenes{i};
+  scene_name = all_scenes{il};
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
 
 
   %get a list of all the 'videos' outputted from vatic
-  original_file_names = get_names_of_X_for_scene(scene_name, 'instance_labels');
+  original_file_names = dir(fullfile(meta_path,LABELING_DIR,'output_boxes','*.mat'));
+  original_file_names = {original_file_names.name};
 
 
   all_label_outputs = cell(0);
@@ -69,9 +71,9 @@ for i=1:length(all_scenes)
   
 
   %% find which files need to be combined
-  for j=1:length(original_file_names)
+  for jl=1:length(original_file_names)
      
-    cur_file_name = original_file_names{j};
+    cur_file_name = original_file_names{jl};
 
     %see if this file is a sub_goup of a full_group for one instance
     % ex) chair1.mat holds all the annotations for the chair1 instance
@@ -98,7 +100,7 @@ for i=1:length(all_scenes)
       if(sum(is_digit) == length(file_suffix))
         %it is a sub-group
         %recover the group name
-        group_name = strjoin(split_file_name(1:end-1),'');
+        group_name = strjoin(split_file_name(1:end-1),'_');
       
         %put this sub-group name into the list of sub_group names for this group 
         try
@@ -128,7 +130,7 @@ for i=1:length(all_scenes)
   %% now combine the files into one file per group
 
   %make a directory to store sub group files that will be deleted
-  to_delete_dir = fullfile(scene_path,LABELING_DIR,BBOXES_BY_INSTANCE_DIR, ...
+  to_delete_dir = fullfile(meta_path,LABELING_DIR,'output_boxes', ...
                             'temp_to_delete');
   mkdir(to_delete_dir);
 
@@ -146,31 +148,31 @@ for i=1:length(all_scenes)
     end
 
     %will hold data for entire group
-    group_data = load(fullfile(scene_path,LABELING_DIR,BBOXES_BY_INSTANCE_DIR, ...
+    group_data = load(fullfile(meta_path,LABELING_DIR,'output_boxes', ...
                                  all_sub_group_names{1}));
                                
     %move first file to be deleted                       
-    movefile(fullfile(scene_path,LABELING_DIR, ... 
-                        BBOXES_BY_INSTANCE_DIR,all_sub_group_names{1}), ...
+    movefile(fullfile(meta_path,LABELING_DIR, ... 
+                        'output_boxes',all_sub_group_names{1}), ...
                fullfile(to_delete_dir,all_sub_group_names{1}));
 
     %load all the annotations for each sub_group
     for k=2:length(all_sub_group_names)
-      vatic_file = load(fullfile(scene_path,LABELING_DIR,BBOXES_BY_INSTANCE_DIR, ...
+      vatic_file = load(fullfile(meta_path,LABELING_DIR,'output_boxes', ...
                                  all_sub_group_names{k}));
 
       group_data.annotations = cat(2,group_data.annotations,vatic_file.annotations);  
     
       %could delete here but want to wait until group is saved before deleting
       %so just move for now
-      movefile(fullfile(scene_path,LABELING_DIR, ... 
-                        BBOXES_BY_INSTANCE_DIR,all_sub_group_names{k}), ...
+      movefile(fullfile(meta_path,LABELING_DIR, ... 
+                        'output_boxes',all_sub_group_names{k}), ...
                fullfile(to_delete_dir,all_sub_group_names{k}));
     end %for k, each sub group name
 
     group_data.num_frames =  length(group_data.annotations);
 
-    save(fullfile(scene_path,LABELING_DIR, BBOXES_BY_INSTANCE_DIR, ...
+    save(fullfile(meta_path,LABELING_DIR, 'output_boxes', ...
                   strcat(cur_group_name,'.mat')),'-struct','group_data');
 
 
@@ -182,5 +184,7 @@ for i=1:length(all_scenes)
   rmdir(fullfile(to_delete_dir) , 's');
 end%for i, each scene 
 
+
+end%function
 
 

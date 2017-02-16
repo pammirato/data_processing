@@ -184,7 +184,7 @@ for il=1:length(all_scenes)
 
     %save the boxes
     boxes = cur_label_array;    
-    save(fullfile(save_path,strcat(cur_image_name(1:10),'.mat')), 'boxes');
+    save(fullfile(save_path,strcat(cur_image_name(1:15),'.mat')), 'boxes');
                   
 
   end %for jl, each image

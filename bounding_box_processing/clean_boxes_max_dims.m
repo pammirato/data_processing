@@ -120,6 +120,7 @@ for il=1:length(all_scenes)
       box = cur_instance_boxes(kl,:);
 
       if(box(3) > 1920 || box(4) > 1080)
+        disp('BAD BOX')
         breakp = 1;
       end
       box(1) = max(1,box(1));

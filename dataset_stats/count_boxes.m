@@ -60,7 +60,7 @@ end
 
 
 %make a struct to hold counts for each scene, and a total across all scenes
-scenes_count_struct = struct('total', 0);
+scenes_count_struct = struct('total', zeros(1,5));
 
 %% MAIN LOOP
 for il=1:length(all_scenes)
@@ -127,7 +127,8 @@ for il=1:length(all_scenes)
 
   %update the global struct with counts for this scene across all instances
   scenes_count_struct.(scene_name) = [hard1_sum hard2_sum hard3_sum hard4_sum total_sum];
-  scenes_count_struct.total = scenes_count_struct.total + total_sum;
+  %scenes_count_struct.total = scenes_count_struct.total + total_sum;
+  scenes_count_struct.total = scenes_count_struct.total + scenes_count_struct.(scene_name);
 end%for il, each scene_name
 
 fprintf('Total boxes in %d scenes: %d\n', length(all_scenes),...

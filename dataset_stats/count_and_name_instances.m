@@ -107,7 +107,8 @@ for il=1:length(all_scenes)
     global_count_struct.(cur_label_name) = global_count_struct.(cur_label_name) + 1;
   end%for jl
   
-  fid = fopen(fullfile(meta_path,'labels', 'present_instance_names.txt'), 'wt');
+  %fid = fopen(fullfile(meta_path,'labels', 'present_instance_names.txt'), 'wt');
+  fid = fopen(fullfile(scene_path, 'present_instance_names.txt'), 'wt');
   for jl=1:length(present_instances)
     fprintf(fid, '%s\n', present_instances{jl});
   end%for jl 

@@ -123,7 +123,7 @@ for il=1:length(all_scenes)
     cur_struct = image_structs(jl);
 
     box_labels = load(fullfile(load_path,...
-                              strcat(cur_image_name(1:10), '.mat')));
+                              strcat(cur_image_name(1:15), '.mat')));
     box_labels = box_labels.boxes;
    
     fprintf(json_fid,'\t"%s":{\n', cur_image_name);
@@ -141,6 +141,27 @@ for il=1:length(all_scenes)
         end
       end%for kl
       fprintf(json_fid,'\t\t],\n');
+
+
+    if(cur_struct.rotate_ccw == -1)
+      cur_struct.rotate_ccw = '';
+    end
+    if(cur_struct.rotate_cw == -1)
+      cur_struct.rotate_cw = '';
+    end
+    if(cur_struct.translate_forward == -1)
+      cur_struct.translate_forward = '';
+    end
+    if(cur_struct.translate_backward == -1)
+      cur_struct.translate_backward = '';
+    end
+    if(cur_struct.translate_left == -1)
+      cur_struct.translate_left = '';
+    end
+    if(cur_struct.translate_right == -1)
+      cur_struct.translate_right = '';
+    end
+
 
     %write movement pointers
     fprintf(json_fid, '\t\t"rotate_ccw":"%s",\n', cur_struct.rotate_ccw);

@@ -1,3 +1,4 @@
+function [] = change_vatic_label_frame_names(scene_name)
 %changes frame name in turk annotation structs to names that match image names in rgb directory 
 
 
@@ -9,7 +10,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_2cm_paths'; %make this = 'all' to run all scenes
+%scene_name = 'Office_02_1'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -39,46 +40,66 @@ end
 
 %% MAIN LOOP
 
-for i=1:length(all_scenes)
+for il=1:length(all_scenes)
  
   %% set scene specific data structures
-  scene_name = all_scenes{i};
+  scene_name = all_scenes{il};
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path =fullfile(ROHIT_META_BASE_PATH, scene_name);
 
+  %get a list of all the instances in the scene
+  instance_name_to_id_map = get_instance_name_to_id_map();
+  instance_names = keys(instance_name_to_id_map); 
 
-  instance_names = get_names_of_X_for_scene(scene_name,'instance_labels');
+  output_boxes_path = fullfile(meta_path,LABELING_DIR,'output_boxes');
+  output_boxes_names = dir(fullfile(output_boxes_path,'*.mat'));
+  output_boxes_names = {output_boxes_names.name};
 
-  for j=1:length(instance_names)
-    i_name = instance_names{j};
-
-    i_mat = load(fullfile(scene_path,LABELING_DIR,BBOXES_BY_INSTANCE_DIR,i_name));
+  frame_count = 0;
 
 
-    image_names = get_names_of_X_for_scene(scene_name,'images_for_labeling', i_name(1:end-4));
+  for jl=1:length(output_boxes_names)
+    i_name = output_boxes_names{jl};
+    
+    suffix_start = strfind(i_name,'_');
+    suffix_start = suffix_start(end);
+    instance_name = i_name(1:(suffix_start-1));
+
+    i_mat = load(fullfile(output_boxes_path,i_name));
+
+
+    image_names = dir(fullfile(meta_path,LABELING_DIR,IMAGES_FOR_LABELING_DIR,...
+                  i_name(1:end-4),'*.jpg'));
+    image_names = {image_names.name};
+                
 
 
     annotations = i_mat.annotations;
-
+    
     for k=1:length(annotations)
         ann = annotations{k};
-
-        cur_name = image_names{ann.frame + 1}; 
+        assert(ann.frame ~= 0);
+        
+        cur_name = image_names{ann.frame+1}; 
+        
+        
 
         %ann.frame = str2num(cur_name(1:10));
-        ann.frame = strcat(cur_name(1:10),'.png');
+        %ann.frame = strcat(cur_name(1:10),'.png');
+        ann.frame = cur_name;
 
         annotations{k} = ann;
     end%for k, each annotation
+    frame_count = frame_count +i_mat.num_frames;
 
     i_mat.annotations = annotations;
 
-    save(fullfile(scene_path,LABELING_DIR,BBOXES_BY_INSTANCE_DIR,i_name),'-struct','i_mat');
+    save(fullfile(output_boxes_path,i_name),'-struct','i_mat');
 
   end%for j ,each instance 
 end%for i,  each scene
 
 
-
+end%function
 
 

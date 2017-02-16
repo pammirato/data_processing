@@ -1,3 +1,4 @@
+function [] = transform_vatic_output(scene_name)
 %transforms bounding boxes from vatic tool to be in original image units
 %images are transformed before being uploaded to vatic, so the 
 %boxes need to be transformed inversely to fit the original images 
@@ -11,7 +12,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'SN208_2cm_paths'; %make this = 'all' to run all scenes
+%scene_name = 'Office_02_1'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
@@ -50,20 +51,23 @@ for i=1:length(all_scenes)
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
 
-  %get names of all instances that were labeled in the scene
-  instace_label_names = get_names_of_X_for_scene(scene_name, 'instance_labels');
+  %get names of all instet_names_of_X_for_scene(scene_name, 'instance_labels');
+  instance_label_names = dir(fullfile(meta_path,LABELING_DIR,'output_boxes','*.mat'));
+  instance_label_names = {instance_label_names.name};
 
 
-  for j=1:length(instace_label_names)
+  for j=1:length(instance_label_names)
       %% load info for this label
-      cur_name = instace_label_names{j};
-      label_name = cur_name(1:end-4)
+      cur_name = instance_label_names{j};
+      label_name = cur_name(1:end-4);
+      disp(label_name);
       
-      cur_instance_labels = load(fullfile(scene_path,LABELING_DIR, ...
-                                  BBOXES_BY_INSTANCE_DIR,cur_name));
+      cur_instance_labels = load(fullfile(meta_path,LABELING_DIR, ...
+                                 'output_boxes',cur_name));
       
       %get a  map from image name to a struct describing the transform it took
-      transform_map = load(fullfile(meta_path,LABELING_DIR,DATA_FOR_LABELING_DIR,label_name,'transform_map.mat'));
+      transform_map = load(fullfile(meta_path,LABELING_DIR,DATA_FOR_LABELING_DIR,...
+                              label_name,'transform_map.mat'));
       transform_map = transform_map.transform_map;
       
      
@@ -85,38 +89,35 @@ for i=1:length(all_scenes)
           ts = transform_map(image_name);
           catch
             indices_to_remove(end+1) = k;
+            disp('REMOVIONG IND??');
+            assert(0);
             continue;
           end
 
 
-          label_struct = ts.label_struct;
-          centering_offset = ts.centering_offset;
-          crop_dimensions = ts.crop_dimensions;
-          big_image_place = ts.big_image_place;
-          resize_scale = ts.resize_scale;
-
-
+          large_box = double(ts.large_box);
+          resize_scale = double(ts.resize_scale);
+          scale_image_size = ts.scale_img_size;
+          
           %% resize the box
-          bbox = bbox * (1/resize_scale);
+          bbox = double(double(bbox) * (1/resize_scale));
 
           %% unapply the crop
-          xcrop_min = int64(crop_dimensions(1));
-          ycrop_min = int64(crop_dimensions(3));
+          bbox(1) = floor(bbox(1) + large_box(1));
+          bbox(2) = floor(bbox(2) + large_box(2));
+          bbox(3) = ceil(bbox(3) + large_box(1));
+          bbox(4) = ceil(bbox(4) + large_box(2));
 
-          bbox(1) = bbox(1) + xcrop_min;
-          bbox(2) = bbox(2) + ycrop_min;
-          bbox(3) = bbox(3) + xcrop_min;
-          bbox(4) = bbox(4) + ycrop_min;
-
-
-          %% unapply centering the label in the center of a big image
-          start_row = big_image_place(1);
-          start_col = big_image_place(3);
-
-          bbox(1) = max(1,bbox(1) - start_col);
-          bbox(2) = max(1,bbox(2) - start_row);
-          bbox(3) = max(1,bbox(3) - start_col);
-          bbox(4) = max(1,bbox(4) - start_row);
+          bbox(1) = max(1,bbox(1));
+          bbox(2) = max(1,bbox(2));
+          bbox(3) = min(1920,bbox(3));
+          bbox(4) = min(1080,bbox(4));
+          
+          
+%           assert(bbox(1) >0);
+%           assert(bbox(2) >0);
+%           assert(bbox(3) <=1920);
+%           assert(bbox(4) <=1080);
           
           %% debug vis
           if(debug)
@@ -149,11 +150,14 @@ for i=1:length(all_scenes)
       cur_instance_labels.annotations = annotations;
      
       %save this instance 
-      save(fullfile(scene_path,LABELING_DIR, BBOXES_BY_INSTANCE_DIR,...
+      save(fullfile(meta_path,LABELING_DIR, 'output_boxes',...
              cur_name), '-struct','cur_instance_labels');
 
  end%for j, each 
 end%for i, each scene
+
+
+end%function
 
 
 
