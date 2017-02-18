@@ -10,7 +10,7 @@ init;
 %% USER OPTIONS
 %'Home_05_1',
 scene_name = {  ...
-              'Office_01_1', 'Office_01_2'}; %make this = 'all' to run all scenes
+              'Home_05_1'}; %make this = 'all' to run all scenes
 model_number = '0';
 
 
