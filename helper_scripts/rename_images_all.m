@@ -18,7 +18,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Home_09_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_18_1'; %make this = 'all' to run all scenes
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
