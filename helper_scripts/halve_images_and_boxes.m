@@ -4,7 +4,7 @@
 %TODO -get rid of image structs map. Just use indexes. (Make it sorted?)
 
 
-%clearvars;
+clearvars;
 
 %initialize contants, paths and file names, etc. 
 
@@ -14,10 +14,9 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Bedroom_01_1'; %make this = 'all' to run all scenes
-group_name = 'all';
+scene_name = 'Home_14_1'; %make this = 'all' to run all scenes
 model_number = '0';
-use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
+use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 %custom_scenes_list = {'Bedroom_01_1', 'Kitchen_Living_01_1', 'Kitchen_Living_02_1', 'Kitchen_Living_03_1', 'Kitchen_Living_04_2', 'Kitchen_05_1', 'Kitchen_Living_06', 'Office_01_1'};%populate this 
 custom_scenes_list = {'Kitchen_Living_03_2', 'Kitchen_Living_08_1'};%populate this 
 
@@ -112,6 +111,7 @@ for il=1:length(all_scenes)
 
   %for each point cloud
 %  image_names = image_names(640:end);
+  count = 0;
   for jl=1:length(image_names)
     
     cur_image_name = image_names{jl};
@@ -120,32 +120,25 @@ for il=1:length(all_scenes)
     end
 
     cur_instance_boxes = load(fullfile(meta_path, 'labels', 'verified_labels', ...
-                         'bounding_boxes_by_image_instance', strcat(cur_image_name(1:10), '.mat')));
+                         'bounding_boxes_by_image_instance', strcat(cur_image_name(1:15), '.mat')));
 
-    ann_fid = fopen(fullfile(ann_save_path, strcat(cur_image_name(1:10), '_boxes.txt')), 'wt');
+    ann_fid = fopen(fullfile(ann_save_path, strcat(cur_image_name(1:15), '_boxes.txt')), 'wt');
 
-    instance_names = fieldnames(cur_instance_boxes); 
-
-    for kl=1:length(instance_names)
-      kl_name = instance_names{kl};
-      bbox = cur_instance_boxes.(kl_name);
-
+    %instance_names = fieldnames(cur_instance_boxes); 
+    boxes = cur_instance_boxes.boxes;
+    
+    for kl=1:size(boxes,1)
+      
+      bbox = boxes(kl,:);
+      cat_id = bbox(5);
      
 
-      if(isempty(bbox) || (bbox(5) >2))
+      if(isempty(bbox) || (bbox(6) >4))
         continue;
       end
-      try
-        cat_id = obj_cat_map(kl_name);
-      catch
-        continue;
-      end
-
-
-      %bbox = floor(bbox ./2);
-      %bbox(1) = max(bbox(1), 1);
-      %bbox(2) = max(bbox(2), 1);
-
+      
+      count = count +1;
+      
       fprintf(ann_fid, '%d %d %d %d %d\n', cat_id, bbox(1), bbox(2),bbox(3),bbox(4));
 
     end%for kl, each instance name
@@ -155,10 +148,11 @@ for il=1:length(all_scenes)
 
 
     %img = imread(fullfile(scene_path, 'jpg_rgb', strcat(cur_image_name(1:10), '.jpg')));
-    img = imread(fullfile(scene_path, 'rgb', cur_image_name));
+    img = imread(fullfile(scene_path, 'jpg_rgb', cur_image_name));
     %img = imresize(img, .5);
 
-    imwrite(img, fullfile(img_save_path, strcat(cur_image_name(1:10), '.jpg')));
+    imwrite(img, fullfile(img_save_path, strcat(cur_image_name(1:15), '.jpg')));
   end%for jl, each image
+  disp(count)
 end%for i, each scene_name
 

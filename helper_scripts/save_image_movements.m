@@ -4,7 +4,7 @@
 %TODO -get rid of image structs map. Just use indexes. (Make it sorted?)
 
 
-%clearvars;
+clearvars;
 
 %initialize contants, paths and file names, etc. 
 
@@ -14,11 +14,11 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Kitchen_Living_08_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_14_1'; %make this = 'all' to run all scenes
 group_name = 'all';
 %group_name = 'all_minus_boring';
 model_number = '0';
-use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
+use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {'Kitchen_Living_02_1','Kitchen_Living_08_1','Kitchen_05_1','Bedroom_01_1','Office_01_1'};%populate this 
 %custom_scenes_list = {'Kitchen_Living_01_1','Kitchen_Living_03_1','Kitchen_Living_03_2','Kitchen_Living_04_2','Kitchen_Living_06'};%populate this 
 
@@ -99,7 +99,7 @@ for il=1:length(all_scenes)
   end
 
   %load image_structs for all images
-  image_structs_file =  load(fullfile(meta_path,'reconstruction_results', group_name, ...
+  image_structs_file =  load(fullfile(meta_path,'reconstruction_results',...
                                 'colmap_results', model_number,IMAGE_STRUCTS_FILE));
   image_structs = image_structs_file.(IMAGE_STRUCTS);
   scale  = image_structs_file.scale;
@@ -126,7 +126,7 @@ for il=1:length(all_scenes)
     cur_image_name = image_names{jl};
 
     cur_struct = image_structs_map(cur_image_name);
-    cur_image_index = str2double(cur_image_name(1:6)); 
+   % cur_image_index = str2double(cur_image_name(1:6)); 
 
     f_name = cur_struct.translate_forward;
     b_name = cur_struct.translate_backward;
@@ -136,37 +136,37 @@ for il=1:length(all_scenes)
     ccw_name = cur_struct.rotate_ccw;
 
 
-    ann_fid = fopen(fullfile(move_save_path, strcat(cur_image_name(1:10), '_moves.txt')), 'wt');
+    ann_fid = fopen(fullfile(move_save_path, strcat(cur_image_name(1:15), '_moves.txt')), 'wt');
 
     if(f_name == -1)
       fprintf(ann_fid,'%d %d\n', 1, -1);
     else
-      fprintf(ann_fid,'%d %d\n', 1, str2double(f_name(1:6)));
+      fprintf(ann_fid,'%d %d\n', 1, str2double(f_name(6:11)));
     end 
     if(b_name == -1)
       fprintf(ann_fid,'%d %d\n', 2, -1);
     else
-      fprintf(ann_fid,'%d %d\n', 2, str2double(b_name(1:6)));
+      fprintf(ann_fid,'%d %d\n', 2, str2double(b_name(6:11)));
     end 
     if(l_name == -1)
       fprintf(ann_fid,'%d %d\n', 3, -1);
     else
-      fprintf(ann_fid,'%d %d\n', 3, str2double(l_name(1:6)));
+      fprintf(ann_fid,'%d %d\n', 3, str2double(l_name(6:11)));
     end 
     if(r_name == -1)
       fprintf(ann_fid,'%d %d\n', 4, -1);
     else
-      fprintf(ann_fid,'%d %d\n', 4, str2double(r_name(1:6)));
+      fprintf(ann_fid,'%d %d\n', 4, str2double(r_name(6:11)));
     end 
     if(cw_name == -1)
       fprintf(ann_fid,'%d %d\n', 5, -1);
     else
-      fprintf(ann_fid,'%d %d\n', 5, str2double(cw_name(1:6)));
+      fprintf(ann_fid,'%d %d\n', 5, str2double(cw_name(6:11)));
     end 
     if(ccw_name == -1)
       fprintf(ann_fid,'%d %d\n', 6, -1);
     else
-      fprintf(ann_fid,'%d %d\n', 6, str2double(ccw_name(1:6)));
+      fprintf(ann_fid,'%d %d\n', 6, str2double(ccw_name(6:11)));
     end 
 
 

@@ -8,7 +8,7 @@ function  [all_names] = get_names_of_X_for_scene(scene_name, items, items2)
 
   switch items
     case 'rgb_images'%return names of all RGB images
-      temp = dir(fullfile(ROHIT_BASE_PATH,scene_name,RGB,'*.png'));
+      temp = dir(fullfile(ROHIT_BASE_PATH,scene_name,JPG_RGB,'*.jpg'));
       all_names = {temp.name}; 
     case 'instance_labels'%return names of all instance label files
       temp = dir(fullfile(ROHIT_META_BASE_PATH,scene_name, ...
