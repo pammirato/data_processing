@@ -18,8 +18,9 @@ scene_name = 'Home_14_1'; %make this = 'all' to run all scenes
 group_name = 'all';
 %group_name = 'all_minus_boring';
 model_number = '0';
-use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
-custom_scenes_list = {'Kitchen_Living_02_1','Kitchen_Living_08_1','Kitchen_05_1','Bedroom_01_1','Office_01_1'};%populate this 
+use_custom_scenes = 1;%whether or not to run for the scenes in the custom list
+custom_scenes_list  = {'Home_01_1', 'Home_01_2', 'Home_02_1', 'Home_03_1', 'Home_03_2', 'Home_04_1', 'Home_04_2', 'Home_05_1', 'Home_05_2', 'Home_06_1', 'Home_08_1', 'Home_14_1', 'Home_14_2', 'Office_01_1'};
+ 
 %custom_scenes_list = {'Kitchen_Living_01_1','Kitchen_Living_03_1','Kitchen_Living_03_2','Kitchen_Living_04_2','Kitchen_Living_06'};%populate this 
 
 
@@ -88,6 +89,8 @@ for il=1:length(all_scenes)
   scene_name = all_scenes{il};
   scene_path =fullfile(ROHIT_BASE_PATH, scene_name);
   meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
+  disp(scene_name);
+
 
   save_base_path = fullfile('/playpen/ammirato/Data/Eunbyung_Data/', scene_name);
   if(~exist(save_base_path, 'dir'))
