@@ -122,7 +122,7 @@ for il=1:length(all_scenes)
     cur_image_name = labeled_image_names{jl};
     cur_file = load(fullfile(label_path, LABELING_DIR, label_type,...
                       BBOXES_BY_IMAGE_INSTANCE, ...
-                      strcat(cur_image_name(1:15), '.mat'))); 
+                      strcat(cur_image_name(1:10), '.mat'))); 
 
     boxes = cur_file.boxes;
     %add the image index to the box for now
@@ -151,7 +151,7 @@ for il=1:length(all_scenes)
     image_inds = boxes(:,end);
     boxes = boxes(:,1:end-1); %remove image index
     image_names = cell2mat(labeled_image_names(image_inds)');
-    image_names(:,16:end) = repmat('.jpg', size(image_names,1),1);
+    image_names(:,11:end) = repmat('.jpg', size(image_names,1),1);
     image_names = mat2cell(image_names, ones(1,size(image_names,1)), size(image_names,2));
 
     if(isempty(image_names))

@@ -134,7 +134,7 @@ for i=1:length(all_scenes)
 
 %display stuff
     hold off;
-    rgb_image = imread(fullfile(scene_path,JPG_RGB,[cur_image_name(1:15) '.jpg']));
+    rgb_image = imread(fullfile(scene_path,JPG_RGB,[cur_image_name(1:10) '.jpg']));
     imshow(rgb_image);
     hold on;
     try
@@ -163,7 +163,7 @@ for i=1:length(all_scenes)
       %                     'instance_label_structs', strcat(cur_image_name(1:10),'.mat')));
       vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
                            label_type,'bounding_boxes_by_image_instance', ...
-                             strcat(cur_image_name(1:15),'.mat')));
+                             strcat(cur_image_name(1:10),'.mat')));
       vatic_bboxes = vatic_bboxes.boxes;
       catch
         vatic_bboxes = [];

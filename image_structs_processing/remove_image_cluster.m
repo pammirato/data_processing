@@ -97,29 +97,39 @@ for il=1:length(all_scenes)
 
 
   %rename all directories
+  disp('renaming rgb...');
   rename_directory(RGB,scene_path,org_to_new_index_map);
+  disp('renaming jpg_rgb...');
   rename_directory(JPG_RGB,scene_path,org_to_new_index_map);
+  disp('renaming raw depth...');
   rename_directory(RAW_DEPTH,scene_path,org_to_new_index_map);
 
   try
+  disp('renaming high res depth...');
     rename_directory(HIGH_RES_DEPTH,scene_path,org_to_new_index_map);
   catch
     disp('no high res depth!');
   end
 
   try  
+  disp('renaming improved depths...');
     rename_directory(IMPROVED_DEPTH,meta_path,org_to_new_index_map);
   catch
     disp('no improved depths');
   end
-  rename_directory(BBOXES_BY_IMAGE_INSTANCE,fullfile(meta_path, LABELING_DIR,...
-                 'raw_labels'),org_to_new_index_map);
+%  disp('renaming raw labels...');
+%  rename_directory(BBOXES_BY_IMAGE_INSTANCE,fullfile(meta_path, LABELING_DIR,...
+%                 'raw_labels'),org_to_new_index_map);
+  disp('renaming verified_labels...');
   rename_directory( BBOXES_BY_IMAGE_INSTANCE,fullfile(meta_path, LABELING_DIR,...
                  'verified_labels'),org_to_new_index_map);
 
-  convert_boxes_by_image_instance_to_instance(scene_name, 'raw_labels');
+%  disp('converting raw_labels...');
+%  convert_boxes_by_image_instance_to_instance(scene_name, 'raw_labels');
+  disp('converting verified_labels...');
   convert_boxes_by_image_instance_to_instance(scene_name, 'verified_labels');
 
+  disp('renaming image_structs...');
   %update image structs, points2d,3d
   for jl=1:length(image_structs)
     cur_struct = image_structs(jl);
@@ -131,6 +141,7 @@ for il=1:length(all_scenes)
   end%for jl, each image_struct 
 
 
+  disp('renaming points2d...');
   bad_inds = [];
   %update points2d
   for jl=1:length(p2d_structs)
