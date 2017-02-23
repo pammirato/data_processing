@@ -125,7 +125,7 @@ try%make sure last line is execuuted
 
     cur_img_name = image_names{jl};
 
-    rgb_img = imread(fullfile(scene_path, JPG_RGB, strcat(cur_img_name(1:15), '.jpg')));
+    rgb_img = imread(fullfile(scene_path, JPG_RGB, strcat(cur_img_name(1:10), '.jpg')));
 
     hold off;
     imshow(rgb_img); 
@@ -136,13 +136,17 @@ try%make sure last line is execuuted
       cur_boxes = [];  
     elseif(method == 1)
       cur_boxes = load(fullfile(meta_path,LABELING_DIR,label_type, BBOXES_BY_IMAGE_INSTANCE, ...
-                       strcat(cur_img_name(1:15),'.mat')));
+                       strcat(cur_img_name(1:10),'.mat')));
       cur_boxes = cur_boxes.boxes;
       drawn_rects = cell(1,size(cur_boxes,1));
       for kl=1:size(cur_boxes,1)
         bbox = cur_boxes(kl,:);
         drawn_rects{kl} = rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
                   'LineWidth',2, 'EdgeColor','g');
+
+        %t = text(bbox(1), bbox(2)-20,num2str(bbox(5)),  ...
+        %                            'FontSize',20, 'Color','white');
+        %t.BackgroundColor = 'red';
   
       end%for kl
     end%if method
@@ -230,7 +234,7 @@ try%make sure last line is execuuted
     boxes = cur_boxes;
     %save boxes by image instance
     save(fullfile(meta_path,LABELING_DIR,label_type, BBOXES_BY_IMAGE_INSTANCE, ...
-                       strcat(cur_img_name(1:15),'.mat')), 'boxes');
+                       strcat(cur_img_name(1:10),'.mat')), 'boxes');
 
 
 
