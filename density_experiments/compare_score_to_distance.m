@@ -199,10 +199,11 @@ for i=1:length(all_scenes)
   end%for jl
   %legend(all_instance_names);
   
-  line([300/bin_size 300/bin_size], [0 max(avg_score_diff_per_dist(:))]);
+  line([300/bin_size 300/bin_size], [0 1]);% max(avg_score_diff_per_dist(:))]);
 %   xlabel('binned distance between cameras(2cm)')
 %   ylabel('avg score difference');
   axis([0 100 0 1]);
+  set(gca,'XTickLabel',{'0','100','200'});
   hold off;
   
 %   saveas(f, fullfile('/playpen/ammirato/Pictures/icra_2016_figures/', ...
@@ -222,7 +223,7 @@ for i=1:length(all_scenes)
 end%for each scene
 
   
-xl =xlabel('Binned Distance Between Cameras(2cm)');
+xl =xlabel('Distance Between Cameras (cm)');
 yl = ylabel('Absolute Difference in Detection Score');
 set(xl,'Position', [-10 -.15]);
 set(yl, 'Position', [-150 1.1]);
@@ -234,4 +235,10 @@ set(tt, 'Position', [-10 2.45]);
 % 
 % figure;
 % plot(1:length(global_avg_diff), global_avg_diff);
+
+set(f,'Units','Inches');
+pos = get(f,'Position');
+set(f,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+print(f,'/playpen/ammirato/Pictures/icra_2016_figures/a_density_plot2.pdf','-dpdf','-r0')
+
 

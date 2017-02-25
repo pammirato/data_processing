@@ -25,18 +25,18 @@ forward_acc = [0.30,0.29,0.29,0.29,0.29;...
 
 our_acc_improve = (our_acc(:,2:end) - our_acc(:,1:end-1)) ./ our_acc(:,1:end-1);
 our_acc_improve2 = (our_acc - repmat(our_acc(:,1),1,size(our_acc,2))) ./ ...
-                              repmat(our_acc(:,1),1,size(our_acc,2));
+                              repmat(our_acc(:,1),1,size(our_acc,2)) * 100;
 
 
 rand_acc_improve = (rand_acc(:,2:end) - rand_acc(:,1:end-1)) ./ rand_acc(:,1:end-1);
 rand_acc_improve2 = (rand_acc - repmat(rand_acc(:,1),1,size(rand_acc,2))) ./ ...
-                              repmat(rand_acc(:,1),1,size(rand_acc,2));
+                              repmat(rand_acc(:,1),1,size(rand_acc,2)) *100;
 
 
 
 forward_acc_improve = (forward_acc(:,2:end) - forward_acc(:,1:end-1)) ./ forward_acc(:,1:end-1);
 forward_acc_improve2 = (forward_acc - repmat(forward_acc(:,1),1,size(forward_acc,2))) ./ ...
-                              repmat(forward_acc(:,1),1,size(forward_acc,2));
+                              repmat(forward_acc(:,1),1,size(forward_acc,2)) *100;
 
 
 
@@ -102,6 +102,12 @@ hold off;
 %print('/playpen/ammirato/Pictures/icra_2016_figures/ab_active_plot.jpg');
 %saveas(f, '/playpen/ammirato/Pictures/icra_2016_figures/ab_active_plot.jpg');
 saveas(f, '/playpen/ammirato/Pictures/icra_2016_figures/ac_active_plot.jpg');
+
+
+set(f,'Units','Inches');
+pos = get(f,'Position');
+set(f,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+print(f,'/playpen/ammirato/Pictures/icra_2016_figures/active_plot.pdf','-dpdf','-r0')
 
 
 

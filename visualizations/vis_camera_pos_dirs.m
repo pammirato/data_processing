@@ -86,7 +86,8 @@ for i=1:length(all_scenes)
   %file that has postions and other meta data for each image 
   try
     %image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
-    image_structs_file =  load(fullfile(meta_path,'reconstruction_results',group_name, 'colmap_results',model_number,IMAGE_STRUCTS_FILE));
+    %image_structs_file =  load(fullfile(meta_path,'reconstruction_results',group_name, 'colmap_results',model_number,IMAGE_STRUCTS_FILE));
+    image_structs_file =  load(fullfile(meta_path,'reconstruction_results', 'colmap_results',model_number,IMAGE_STRUCTS_FILE));
   catch
     disp(strcat('No image structs file: ', scene_name));
     continue;
@@ -117,16 +118,6 @@ for i=1:length(all_scenes)
 
   ax(i) = subplot(2,2,i);
 
-  % plot positions 
-  switch plot_type
-    case 0 %use 3D plot
-      plot3(world_poses(1,:),world_poses(2,:), world_poses(3,:),'r.');
-    case 1 % make plot just 2D
-      plot(world_poses(1,:),world_poses(3,:),'r.');
-  end 
-
-  %makes plot prettier
-  axis equal;
 
   %plot direction arrows if option is set
   if(view_direction)
@@ -144,6 +135,18 @@ for i=1:length(all_scenes)
       end%switch
       hold off;
   end%if view_direction
+  
+  hold on;
+  % plot positions 
+  switch plot_type
+    case 0 %use 3D plot
+      plot3(world_poses(1,:),world_poses(2,:), world_poses(3,:),'r.');
+    case 1 % make plot just 2D
+      plot(world_poses(1,:),world_poses(3,:),'r.','MarkerSize',3);
+  end 
+
+  %makes plot prettier
+  axis equal;
 
   %% save stuff
 
@@ -184,6 +187,34 @@ for i=1:length(all_scenes)
   if(~view_figure)
     close(positions_plot_fig)
   end
+
 end%for each scene
 
+
+title(ax(1),'RGBD Scenes v2');
+title(ax(2),'NYUD2');
+title(ax(3),'Ours');
+title(ax(4),'Ours');
+
+set(ax(1),'XTickLabel','');
+set(ax(2),'XTickLabel','');
+set(ax(3),'XTickLabel','');
+set(ax(4),'XTickLabel','');
+set(ax(1),'YTickLabel','');
+set(ax(2),'YTickLabel','');
+set(ax(3),'YTickLabel','');
+set(ax(4),'YTickLabel','');
+
+set(f,'Color',[1,1,1]);
+
+text(-17,22.6,'Camera Positions and Directions', 'FontSize', 15)
+
+set(f,'Position',[675   546   674   548]);
+
+
+
+set(f,'Units','Inches');
+pos = get(f,'Position');
+set(f,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
+print(f,'/playpen/ammirato/Pictures/icra_2016_figures/a_cam_poses.pdf','-dpdf','-r0')
 
