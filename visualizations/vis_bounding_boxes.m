@@ -134,7 +134,7 @@ for i=1:length(all_scenes)
 
 %display stuff
     hold off;
-    rgb_image = imread(fullfile(scene_path,JPG_RGB,[cur_image_name(1:10) '.jpg']));
+    rgb_image = imread(fullfile(scene_path,JPG_RGB,[cur_image_name(1:15) '.jpg']));
     imshow(rgb_image);
     hold on;
     try
@@ -144,8 +144,8 @@ for i=1:length(all_scenes)
       %                      strcat(cur_image_name(1:13), '03.png')));
       depth_image = imread(fullfile(meta_path,'improved_depths', ...
                             strcat(cur_image_name(1:13), '05.png')));
-      h = imagesc(depth_image);
-      set(h,'AlphaData', .5);
+      %h = imagesc(depth_image);
+      %set(h,'AlphaData', .5);
     catch 
       disp('no depth');
     end
@@ -163,7 +163,7 @@ for i=1:length(all_scenes)
       %                     'instance_label_structs', strcat(cur_image_name(1:10),'.mat')));
       vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
                            label_type,'bounding_boxes_by_image_instance', ...
-                             strcat(cur_image_name(1:10),'.mat')));
+                             strcat(cur_image_name(1:15),'.mat')));
       vatic_bboxes = vatic_bboxes.boxes;
       catch
         vatic_bboxes = [];
@@ -201,6 +201,9 @@ for i=1:length(all_scenes)
 
         bbox = double(vatic_bboxes(kl,:));
 
+        if(bbox(5) ~=5)
+          continue;
+        end
         rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
                      'LineWidth',line_width, 'EdgeColor','r');
         %t = text(bbox(1), bbox(2)-font_size,num2str(bbox(5)),  ...

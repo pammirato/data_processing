@@ -36,7 +36,7 @@ view_direction = 1;%should the lines indicating camera direction be drawn?
 
 plot_type = 1; %  0 - 3D point plot 
                %  1 - 2D point plot
-save_figures = 0; % 0 - don't save
+save_figures = 2; % 0 - don't save
                   % 1 - save .fig file
                   % 2 - save .jpg image
 
@@ -44,7 +44,7 @@ save_figures = 0; % 0 - don't save
 show_cluster_ids = 0;
 show_image_names = 0;
 
-view_figure = 1; %whether or not to make the figure(s) visible
+view_figure = 0; %whether or not to make the figure(s) visible
 
 use_scaled_positions = 0;%use positions in meters, not arbitrary reconstruction coords
 
@@ -84,9 +84,9 @@ for i=1:length(all_scenes)
 
   %file that has postions and other meta data for each image 
   try
-    %image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
-    image_structs_file =  load(fullfile(meta_path,RECONSTRUCTION_RESULTS,...
-                              'colmap_results',model_number,IMAGE_STRUCTS_FILE));
+    image_structs_file =  load(fullfile(scene_path,IMAGE_STRUCTS_FILE));
+    %image_structs_file =  load(fullfile(meta_path,RECONSTRUCTION_RESULTS,...
+    %                          'colmap_results',model_number,IMAGE_STRUCTS_FILE));
   catch
     disp(strcat('No image structs file: ', scene_name));
     continue;
@@ -114,6 +114,21 @@ for i=1:length(all_scenes)
   %% plot  sutff 
 
 %  ax(i) = subplot(2,2,i);
+  %plot direction arrows if option is set
+  if(view_direction)
+      hold on;
+
+      switch plot_type
+        case 0 %3D plot
+          quiver3(world_poses(1,:),world_poses(2,:),world_poses(3,:), ...
+             directions(1,:),directions(2,:),directions(3,:), ...
+             'ShowArrowHead','off','Color' ,'b');
+        case 1  %2D plot
+          quiver(world_poses(1,:),world_poses(3,:), ...
+             directions(1,:),directions(3,:), ...
+             'ShowArrowHead','on','Color' ,'b');
+      end%switch
+  end%if view_direction
 
   % plot positions 
   switch plot_type
@@ -146,22 +161,6 @@ for i=1:length(all_scenes)
     end%for jl, each images cluster id 
   end %if show cluster ids
 
-  %plot direction arrows if option is set
-  if(view_direction)
-      hold on;
-
-      switch plot_type
-        case 0 %3D plot
-          quiver3(world_poses(1,:),world_poses(2,:),world_poses(3,:), ...
-             directions(1,:),directions(2,:),directions(3,:), ...
-             'ShowArrowHead','off','Color' ,'b');
-        case 1  %2D plot
-          quiver(world_poses(1,:),world_poses(3,:), ...
-             directions(1,:),directions(3,:), ...
-             'ShowArrowHead','on','Color' ,'b');
-      end%switch
-      hold off;
-  end%if view_direction
 
 
 
@@ -245,6 +244,8 @@ for i=1:length(all_scenes)
   if(~view_figure)
     close(positions_plot_fig)
   end
+
+  hold off;
 end%for each scene
 
 
