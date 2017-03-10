@@ -13,19 +13,19 @@
 init;
 %% USER OPTIONS
 
-scene_name = 'Home_06_1'; %make this = 'all' to run all scenes
+scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
 model_number = '0'; %colmap model number
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
-label_to_process = 'red_bull'; %make 'all' for every label
-use_custom_labels = 1;
+label_to_process = 'all'; %make 'all' for every label
+use_custom_labels = 0;
 label_names_list = {'mahatma_rice', 'softsoap_white'};
 
 method = 0; %0 - oclusion filtering, uses improved depth maps if they exist
             %1 - no ocllusion filtering
             
-occlusion_threshold = 100;  %amount in mm that point cloud can differ from depth
+occlusion_threshold = 500;  %amount in mm that point cloud can differ from depth
 include_0 = 1;
 
 
@@ -189,7 +189,8 @@ for il=1:length(all_scenes)
 
 
   %% MAIN LOOP  for each label find its bounding box in each image
-
+all_image_names = image_names;
+image_names = image_names(2824:end);
   %for each point cloud
   for jl=1:length(label_names)
       
@@ -211,6 +212,8 @@ for il=1:length(all_scenes)
     %really just for debugging
     found_image_names = cell(1,length(image_names));
 
+
+    
     %% for each image, determine if it 'sees' this object(point cloud) 
     for kl = 1:length(image_names) 
       
@@ -425,6 +428,7 @@ for il=1:length(all_scenes)
     mkdir(save_path);
   end
 
+  image_names = all_image_names;
   %save all the label structs
   for jl=1:length(label_structs)
 

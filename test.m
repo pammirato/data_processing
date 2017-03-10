@@ -1,39 +1,54 @@
-scenes = {'Home_01_1', 'Home_01_2', 'Home_02_1', 'Home_02_2', 'Home_03_1', 'Home_03_2', 'Home_04_1', 'Home_04_2', 'Home_05_1', 'Home_05_2', 'Home_06_1', 'Home_08_1', 'Home_08_2', 'Home_14_1', 'Home_14_2', 'Office_01_1', 'Office_01_2'};
+for jl=1:length(label_structs)
+
+    %get the next label struct and corresponding image name
+    cur_struct = label_structs(jl);
+    if(strcmp(cur_struct.image_name, ''))
+      cur_struct.image_name = image_names{jl};
+    end
+    cur_image_name = cur_struct.image_name;
+    cur_struct = rmfield(cur_struct,'image_name');
+
+    %name the file to save the data for this image in
+    save_file_path=fullfile(save_path, strcat(cur_image_name(1:10), '.mat'));
+
+    %convert the label struct to ouput format, array of vectors
+    %one vector per labels, [xmin, ymin, xmax, ymax, cat_id, hardness]
+    cur_fields = fieldnames(cur_struct);
+    boxes = cell(0);
+    %lood through all instance names in the label struct
+    for kl=1:length(cur_fields)
+      %get id of this instance name
+      inst_id = instance_name_to_id_map(cur_fields{kl});
+      temp = cur_struct.(cur_fields{kl});
+      if(isempty(temp))
+        continue; %there is no label for this instance
+      end
+      boxes{end+1} = [temp inst_id 0];
+    end%for kl
+    boxes = cell2mat(boxes');
 
 
-scene_name = scenes(1:end)';
-
-
-%get the names of all the scenes
-d = dir(ROHIT_BASE_PATH);
-d = d(3:end);
-all_scenes = {d.name};
-
-
-%determine which scenes are to be processed 
-if(iscell(scene_name))
-  %if we are using the custom list of scenes
-  all_scenes = scene_name;
-elseif(~strcmp(scene_name, 'all'))
-  %if not using custom, or all scenes, use the one specified
-  all_scenes = {scene_name};
-end
-
-
-
-%% MAIN LOOP
-
-for il=1:length(all_scenes)
- 
-  %% set scene specific data structures
-  scene_name = all_scenes{il};
-  scene_path = fullfile(ROHIT_BASE_PATH, scene_name);
-  meta_path = fullfile(ROHIT_META_BASE_PATH, scene_name);
-
-  a = dir(fullfile(scene_path,'high_res_depth'));
-  b = dir(fullfile(scene_path,'jpg_rgb'));
-
-  assert(length(a) == length(b));
-  disp(length(a));
-
-end
+    %check for pre-existing labels, only overwrite newly generated labels
+    if(exist(save_file_path, 'file'))
+      prev_boxes = load(save_file_path);
+      prev_boxes = prev_boxes.boxes; 
+      if(~isempty(prev_boxes))
+        inds_to_remove = zeros(1,size(boxes,1));
+        for kl=1:size(boxes,1)
+          inst_id = boxes(kl,5);
+          prev_box_ind = find(prev_boxes(:,5) == inst_id);
+          if(isempty(prev_box_ind))
+            continue;
+          end
+          prev_boxes(prev_box_ind,:) = boxes(kl,:);
+          inds_to_remove(kl) = 1; 
+        end%for kl, each new box 
+        boxes(find(inds_to_remove),:) = [];
+        boxes = cat(1,boxes,prev_boxes);
+      end
+    end%if labels already exist
+    
+    boxes = double(boxes); %save space?
+    %save the boxes to file 
+    save(save_file_path, 'boxes');
+end%for jl, each label struct

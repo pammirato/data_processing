@@ -28,7 +28,7 @@ label_type = 'verified_labels';
 
 
 %OPTIONS for ground truth bounding boxes
-show_vatic_output = 1; %
+show_vatic_output = 0; %
 vatic_label_to_show = 'all'; 
 use_custom_vatic_labels = 0;
 custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
@@ -38,7 +38,7 @@ custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 show_recognition_output = 1;
 recognition_system_name = 'ssd_bigBIRD';
 show_instance_not_class = 1;
-recognition_label_to_show = 'crystal_hot_sauce';
+recognition_label_to_show = 'coca_cola';
 use_custom_recognition_labels = 0;
 custom_recognition_labels = {};
 score_threshold = .1;
@@ -201,9 +201,9 @@ for i=1:length(all_scenes)
 
         bbox = double(vatic_bboxes(kl,:));
 
-        if(bbox(5) ~=5)
-          continue;
-        end
+        %if(bbox(5) ~=5)
+        %  continue;
+        %end
         rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ...
                      'LineWidth',line_width, 'EdgeColor','r');
         %t = text(bbox(1), bbox(2)-font_size,num2str(bbox(5)),  ...
