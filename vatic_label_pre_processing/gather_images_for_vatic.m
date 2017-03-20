@@ -20,7 +20,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Office_02_1'; %make this = 'all' to run all scenes
+scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
 
 
 label_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
@@ -110,7 +110,25 @@ for i=1:length(all_scenes)
     boxes = instance_labels.boxes;
     all_image_names = instance_labels.image_names;
 
+    
+    %remove all images before 2823
+    keep_start = 1;
+    for jl=1:length(all_image_names)
+      cur_name  = all_image_names{jl};
+      cur_index = str2double(cur_name(1:6));
+      if(cur_index > 2823)
+        break;
+      end
+      keep_start = keep_start+1;
+    end
 
+    all_image_names = all_image_names(keep_start:end);
+    
+    
+    if(isempty(all_image_names))
+      disp(['2823ing ' label_name]);
+      continue;
+    end
 
     %% choose which images to gather
 

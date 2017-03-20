@@ -10,7 +10,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Office_02_1'; %make this = 'all' to run all scenes
+scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
 max_image_dimension=600;
 %% SET UP GLOBAL DATA STRUCTURES
 

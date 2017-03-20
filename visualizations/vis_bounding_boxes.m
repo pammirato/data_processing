@@ -28,7 +28,7 @@ label_type = 'verified_labels';
 
 
 %OPTIONS for ground truth bounding boxes
-show_vatic_output = 0; %
+show_vatic_output = 1; %
 vatic_label_to_show = 'all'; 
 use_custom_vatic_labels = 0;
 custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
@@ -318,21 +318,21 @@ for i=1:length(all_scenes)
         if(next_image_name == -1)
           next_image_name = cur_image_name;
         end
-        cur_image_index = str2num(next_image_name(6:11));
+        cur_image_index = str2num(next_image_name(1:6));
     elseif(move_command =='y')
         %move left
         next_image_name = cur_image_struct.translate_left;
         if(next_image_name == -1)
           next_image_name = cur_image_name;
         end
-        cur_image_index = str2num(next_image_name(6:11));
+        cur_image_index = str2num(next_image_name(1:6));
     elseif(move_command =='u')
         %move right 
         next_image_name = cur_image_struct.translate_right;
         if(next_image_name == -1)
           next_image_name = cur_image_name;
         end
-        cur_image_index = str2num(next_image_name(6:11));
+        cur_image_index = str2num(next_image_name(1:6));
 
     elseif(move_command =='s')
         %move backward 
@@ -340,16 +340,16 @@ for i=1:length(all_scenes)
         if(next_image_name == -1)
           next_image_name = cur_image_name;
         end
-        cur_image_index = str2num(next_image_name(6:11));
+        cur_image_index = str2num(next_image_name(1:6));
     
     elseif(move_command =='d')
         %rotate clockwise
         next_image_name = cur_image_struct.rotate_cw;
-        cur_image_index = str2num(next_image_name(6:11));
+        cur_image_index = str2num(next_image_name(1:6));
     elseif(move_command =='a')
         %rotate counter clockwise 
         next_image_name = cur_image_struct.rotate_ccw;
-        cur_image_index = str2num(next_image_name(6:11));
+        cur_image_index = str2num(next_image_name(1:6));
 
     elseif(move_command =='n')
         %go forward one image 
