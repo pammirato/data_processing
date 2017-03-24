@@ -85,7 +85,7 @@ for il=1:length(image_names)
 end%for each scene
 
 %print(fullfile(save_path, 'agg_img.jpg'), '-djpeg');
-saveas(f, fullfile(save_path, 'a_common_instances.jpg'));
+saveas(f, fullfile(save_path, 'a_common_instances2.jpg'));
 
 %for il=1:length(ax)
 %  pos = get(ax(il), 'Position');
