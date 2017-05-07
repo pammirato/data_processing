@@ -25,7 +25,7 @@ use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 label_type = 'verified_labels';
-
+long_image_names = 1; %whether image names are 10 chars or 15
 
 %OPTIONS for ground truth bounding boxes
 show_vatic_output = 1; %
@@ -38,7 +38,7 @@ custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 show_recognition_output = 1;
 recognition_system_name = 'ssd_bigBIRD';
 show_instance_not_class = 1;
-recognition_label_to_show = 'coca_cola';
+recognition_label_to_show = '';
 use_custom_recognition_labels = 0;
 custom_recognition_labels = {};
 score_threshold = .1;
@@ -47,6 +47,7 @@ show_class_of_boxes = 1;
 font_size = 30;
 line_width = 3;
 
+image_name_counter = 0;
 
 %% SET UP GLOBAL DATA STRUCTURES
 
@@ -134,7 +135,11 @@ for i=1:length(all_scenes)
 
 %display stuff
     hold off;
-    rgb_image = imread(fullfile(scene_path,JPG_RGB,[cur_image_name(1:15) '.jpg']));
+    if(long_image_names)
+        rgb_image = imread(fullfile(scene_path,JPG_RGB,[cur_image_name(1:15) '.jpg']));
+    else
+        rgb_image = imread(fullfile(scene_path,JPG_RGB,[cur_image_name(1:10) '.jpg']));
+    end
     imshow(rgb_image);
     hold on;
     try
@@ -142,8 +147,8 @@ for i=1:length(all_scenes)
       %                      strcat(cur_image_name(1:8), '03.jpg')));
       %depth_image = imread(fullfile(scene_path,'high_res_depth', ...
       %                      strcat(cur_image_name(1:13), '03.png')));
-      depth_image = imread(fullfile(meta_path,'improved_depths', ...
-                            strcat(cur_image_name(1:13), '05.png')));
+      %depth_image = imread(fullfile(meta_path,'improved_depths', ...
+      %                      strcat(cur_image_name(1:13), '05.png')));
       %h = imagesc(depth_image);
       %set(h,'AlphaData', .5);
     catch 
@@ -226,19 +231,33 @@ for i=1:length(all_scenes)
 
       if(show_instance_not_class)
         try
-        recognition_bboxes = load(fullfile(meta_path,RECOGNITION_DIR, ...
+        if(long_image_names)
+            recognition_bboxes = load(fullfile(meta_path,RECOGNITION_DIR, ...
                                           recognition_system_name , ...
                                           BBOXES_BY_IMAGE_INSTANCE_DIR, ...
                                    strcat(cur_image_name(1:15), '.mat')));
+        else
+            recognition_bboxes = load(fullfile(meta_path,RECOGNITION_DIR, ...
+                                          recognition_system_name , ...
+                                          BBOXES_BY_IMAGE_INSTANCE_DIR, ...
+                                   strcat(cur_image_name(1:10), '.mat')));
+        end
         catch
           recognition_bboxes = struct();
         end
       else
         try
-        recognition_bboxes = load(fullfile(meta_path,RECOGNITION_DIR, ...
-                                          recognition_system_name , ...
+            if(long_image_names)
+                recognition_bboxes = load(fullfile(meta_path,RECOGNITION_DIR, ...
+                                              recognition_system_name , ...
                                           BBOXES_BY_IMAGE_CLASS_DIR, ...
                                     strcat(cur_image_name(1:15), '.mat')));
+            else
+                recognition_bboxes = load(fullfile(meta_path,RECOGNITION_DIR, ...
+                                              recognition_system_name , ...
+                                          BBOXES_BY_IMAGE_CLASS_DIR, ...
+                                    strcat(cur_image_name(1:10), '.mat')));
+            end
         catch
           recognition_bboxes = struct();
         end
@@ -318,38 +337,61 @@ for i=1:length(all_scenes)
         if(next_image_name == -1)
           next_image_name = cur_image_name;
         end
-        cur_image_index = str2num(next_image_name(1:6));
+        if(long_image_names)
+            cur_image_index = str2num(next_image_name(6:11));
+        else
+            cur_image_index = str2num(next_image_name(6:11));
+        end
     elseif(move_command =='y')
         %move left
         next_image_name = cur_image_struct.translate_left;
         if(next_image_name == -1)
           next_image_name = cur_image_name;
         end
-        cur_image_index = str2num(next_image_name(1:6));
+        if(long_image_names)
+            cur_image_index = str2num(next_image_name(6:11));
+        else
+            cur_image_index = str2num(next_image_name(6:11));
+        end
     elseif(move_command =='u')
         %move right 
         next_image_name = cur_image_struct.translate_right;
         if(next_image_name == -1)
           next_image_name = cur_image_name;
         end
-        cur_image_index = str2num(next_image_name(1:6));
-
+        if(long_image_names)
+            cur_image_index = str2num(next_image_name(6:11));
+        else
+            cur_image_index = str2num(next_image_name(6:11));
+        end
     elseif(move_command =='s')
         %move backward 
         next_image_name = cur_image_struct.translate_backward;
         if(next_image_name == -1)
           next_image_name = cur_image_name;
         end
-        cur_image_index = str2num(next_image_name(1:6));
+        if(long_image_names)
+            cur_image_index = str2num(next_image_name(6:11));
+        else
+            cur_image_index = str2num(next_image_name(6:11));
+        end
     
     elseif(move_command =='d')
         %rotate clockwise
         next_image_name = cur_image_struct.rotate_cw;
-        cur_image_index = str2num(next_image_name(1:6));
+        if(long_image_names)
+            cur_image_index = str2num(next_image_name(6:11));
+        else
+            cur_image_index = str2num(next_image_name(6:11));
+        end
     elseif(move_command =='a')
         %rotate counter clockwise 
         next_image_name = cur_image_struct.rotate_ccw;
-        cur_image_index = str2num(next_image_name(1:6));
+        if(long_image_names)
+            cur_image_index = str2num(next_image_name(6:11));
+        else
+            cur_image_index = str2num(next_image_name(6:11));
+        end
 
     elseif(move_command =='n')
         %go forward one image 
@@ -375,10 +417,20 @@ for i=1:length(all_scenes)
         %move forward 100 images
         %saveas(f, fullfile('/playpen/ammirato/Pictures/icra_2016_figures/', ...
         %  strcat(cur_image_name(1:10), recognition_label_to_show, '.png'))); 
+        title('');
         set(gcf,'inverthardcopy','off');
 
-        print(fullfile('/playpen/ammirato/Pictures/icra_2016_figures/images_to_agg', ...
-          strcat(cur_image_name(1:15), recognition_label_to_show, '.png')), '-dpng'); 
+        if(long_image_names)
+            print(fullfile('/playpen/ammirato/Pictures/icra_2016_figures/images_to_agg', ...
+              strcat(num2str(image_name_counter),'_', cur_image_name(1:15),...
+                             recognition_label_to_show, '.png')), '-dpng');
+        else
+            print(fullfile('/playpen/ammirato/Pictures/icra_2016_figures/images_to_agg', ...
+              strcat(num2str(image_name_counter),'_', cur_image_name(1:15),...
+                             recognition_label_to_show, '.png')), '-dpng');
+        end
+                   
+        image_name_counter = image_name_counter + 1;
 
     elseif(move_command =='v')
       %play a video of X images
@@ -460,11 +512,14 @@ for i=1:length(all_scenes)
         %update bbox by image instance annotations 
         %add the bbox to the current boxes
         vatic_bboxes.(inserted_label_name) = bbox; 
-         
-        save(fullfile(scene_path,LABELING_DIR,BBOXES_BY_IMAGE_INSTANCE_DIR, ...
-                           strcat(cur_image_name(1:15),'.mat')), '-struct', 'vatic_bboxes');
 
-
+        if(long_image_names) 
+            save(fullfile(scene_path,LABELING_DIR,BBOXES_BY_IMAGE_INSTANCE_DIR, ...
+                               strcat(cur_image_name(1:15),'.mat')), '-struct', 'vatic_bboxes');
+        else
+            save(fullfile(scene_path,LABELING_DIR,BBOXES_BY_IMAGE_INSTANCE_DIR, ...
+                               strcat(cur_image_name(1:10),'.mat')), '-struct', 'vatic_bboxes');
+        end
 
 
         
