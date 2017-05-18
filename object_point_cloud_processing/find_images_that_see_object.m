@@ -13,19 +13,19 @@
 init;
 %% USER OPTIONS
 
-scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_16_1'; %make this = 'all' to run all scenes
 model_number = '0'; %colmap model number
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 label_to_process = 'all'; %make 'all' for every label
 use_custom_labels = 0;
-label_names_list = {'mahatma_rice', 'softsoap_white'};
+label_names_list = {'honey_bunches_of_oats_with_almonds', 'cholula_chipotle_hot_sauce', 'tapatio_hot_sauce', 'herhseys_bar'};
 
 method = 0; %0 - oclusion filtering, uses improved depth maps if they exist
             %1 - no ocllusion filtering
             
-occlusion_threshold = 500;  %amount in mm that point cloud can differ from depth
+occlusion_threshold = 1000;  %amount in mm that point cloud can differ from depth
 include_0 = 1;
 
 
@@ -190,7 +190,7 @@ for il=1:length(all_scenes)
 
   %% MAIN LOOP  for each label find its bounding box in each image
 all_image_names = image_names;
-image_names = image_names(2824:end);
+%image_names = image_names(2824:end);
   %for each point cloud
   for jl=1:length(label_names)
       

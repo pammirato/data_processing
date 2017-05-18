@@ -143,6 +143,9 @@ for il=1:length(all_scenes)
     cur_instance_id = instance_name_to_id_map(cur_instance_name);
     %disp(cur_instance_name);%display progress
 
+    if isempty(image_labels)
+      continue
+    end
     
 
     %get the boxes and image names for just this instance

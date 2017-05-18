@@ -12,7 +12,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Home_12_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_10_1'; %make this = 'all' to run all scenes
 model_number = '0';
 %use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 %custom_scenes_list = {} ;%populate this 
@@ -20,13 +20,13 @@ model_number = '0';
 
 %whether to threshold on distance, then find the smallest angle, or 
 %           threshold on angle, then find the smallest distance
-threshold_on_distance = 0;
+threshold_on_distance = 1;
 
 
 dir_angle_thresh = 15; %difference between direction of camera at images
 move_angle_thresh = 15; %maximum allowed difference between point angle and direction angle
 point_angle_thresh = 35;%angle between camera direction of org and vector from org to other point
-dist_thresh = 1000;%distance threshold in mm, (must be closer than this)
+dist_thresh = 600;%distance threshold in mm, (must be closer than this)
 
 
 %% SET UP GLOBAL DATA STRUCTURES

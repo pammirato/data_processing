@@ -20,7 +20,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Office_03_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_16_1'; %make this = 'all' to run all scenes
 
 
 label_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do bigBIRD stuff
@@ -29,7 +29,6 @@ label_name = 'all';%make this 'all' to do it for all labels, 'bigBIRD' to do big
 max_image_dimension = 600;%how big images will be at the end
 start_crop_size = 400;%how big of a square to crop around labeled point
 do_depth_crop = 1;%whether or not to adjust crop size based on depth to labeled point
-depth_crop_thresh = 2500;%distance in mm object must be to do depth crop
 label_box_size = 5;%size of box drawn on image(before crop)
 
 
@@ -111,24 +110,24 @@ for i=1:length(all_scenes)
     all_image_names = instance_labels.image_names;
 
     
-    %remove all images before 2823
-    keep_start = 1;
-    for jl=1:length(all_image_names)
-      cur_name  = all_image_names{jl};
-      cur_index = str2double(cur_name(1:6));
-      if(cur_index > 2823)
-        break;
-      end
-      keep_start = keep_start+1;
-    end
-
-    all_image_names = all_image_names(keep_start:end);
-    
-    
-    if(isempty(all_image_names))
-      disp(['2823ing ' label_name]);
-      continue;
-    end
+%    %remove all images before 2823
+%    keep_start = 1;
+%    for jl=1:length(all_image_names)
+%      cur_name  = all_image_names{jl};
+%      cur_index = str2double(cur_name(1:6));
+%      if(cur_index > 2823)
+%        break;
+%      end
+%      keep_start = keep_start+1;
+%    end
+%
+%    all_image_names = all_image_names(keep_start:end);
+%    
+%    
+%    if(isempty(all_image_names))
+%      disp(['2823ing ' label_name]);
+%      continue;
+%    end
 
     %% choose which images to gather
 
@@ -219,7 +218,7 @@ for i=1:length(all_scenes)
     ref_img = imread(fullfile(meta_path,LABELING_DIR,'reference_images', ...
                           strcat(label_name,'.jpg')));
     
-    ref_img = imresize(ref_img,[size(scale_img,1),size(scale_img,2)]);
+    %ref_img = imresize(ref_img,[size(scale_img,1),size(scale_img,2)]);
 
 
 

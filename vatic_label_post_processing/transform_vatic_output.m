@@ -83,10 +83,42 @@ for i=1:length(all_scenes)
           bbox = [ann.xtl, ann.ytl, ann.xbr, ann.ybr];
           image_name = ann.frame;
           
+%           if(strcmp(label_name,'coca_cola_glass_bottle'))
+%             bbox = double(bbox) * (600/408.0);
+%           elseif(strcmp(label_name,'advil_liqui_gels'))
+%             bbox = double(bbox) * (600/566.0);
+%           elseif(strcmp(label_name,'crest_complete_minty_fresh'))
+%             bbox = double(bbox) * (600/451.0);
+%           elseif(strcmp(label_name,'hersheys_bar'))
+%             bbox = double(bbox) * (600/556.0);
+%           elseif(strcmp(label_name,'listerine_green'))
+%             bbox = double(bbox) * (600/554.0);
+%           elseif(strcmp(label_name,'nature_valley_sweet_and_salty_nut_almond'))
+%             bbox = double(bbox) * (600/540.0);
+%           elseif(strcmp(label_name,'nature_valley_sweet_and_salty_nut_cashew'))
+%             bbox = double(bbox) * (600/566.0);
+%           elseif(strcmp(label_name,'nature_valley_sweet_and_salty_nut_peanut'))
+%             bbox = double(bbox) * (600/563.0);
+%           elseif(strcmp(label_name,'nature_valley_sweet_and_salty_nut_roasted_mix_nut'))
+%             bbox = double(bbox) * (600/543.0);
+%           elseif(strcmp(label_name,'pepto_bismol'))
+%             bbox = double(bbox) * (600/574.0);
+%           elseif(strcmp(label_name,'pringles_bbq'))
+%             bbox = double(bbox) * (600/600.0);
+%           elseif(strcmp(label_name,'red_bull'))
+%             bbox = double(bbox) * (600/520.0);
+%           elseif(strcmp(label_name,'softsoap_white'))
+%             bbox = double(bbox) * (600/422.0);
+%           elseif(strcmp(label_name,'spongebob_squarepants_fruit_snaks'))
+%             bbox = double(bbox) * (600/582.0);
+%           elseif(strcmp(label_name,'vo5_tea_therapy_healthful_green_tea_smoothing_shampoo'))
+%             bbox = double(bbox) * (600/278.0);
+%           end
+          
           
           %% apply transformation to box
           try
-          ts = transform_map(image_name);
+            ts = transform_map(image_name);
           catch
             indices_to_remove(end+1) = k;
             disp('REMOVIONG IND??');
@@ -101,6 +133,11 @@ for i=1:length(all_scenes)
           
           %% resize the box
           bbox = double(double(bbox) * (1/resize_scale));
+          %bbox(1) = bbox(1) * scale_image_size(2) / (large_box(3)-large_box(1));
+          %bbox(3) = bbox(3) * scale_image_size(2) / (large_box(3)-large_box(1));
+          %bbox(2) = bbox(2) * scale_image_size(1) / (large_box(4)-large_box(2));
+          %bbox(4) = bbox(4) * scale_image_size(1) / (large_box(4)-large_box(2));
+
 
           %% unapply the crop
           bbox(1) = floor(bbox(1) + large_box(1));

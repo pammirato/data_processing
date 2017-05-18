@@ -110,6 +110,7 @@ for il=1:length(all_scenes)
     assert(length(image_names) == size(cur_instance_boxes,1));
 
     
+    bad_inds = [];
 
     %% for each box,image classify the box 
     for kl = 1:length(image_names) 
@@ -132,8 +133,17 @@ for il=1:length(all_scenes)
 
       %add the hardness meseaure to the box 
       cur_instance_boxes(kl,:) = box;
+
+      width = box(3)-box(1);
+      height = box(4)-box(2);
+      if (width<2 || height<2)
+        bad_inds(end+1) = kl;
+      end
+
     end%for kl, each image name
 
+    cur_instance_boxes(bad_inds,:) = [];
+    image_names(bad_inds) = [];
     %% save the newly classified boxes for this instance label
 
     %create the struct for the boxes

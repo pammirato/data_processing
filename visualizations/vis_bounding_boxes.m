@@ -25,7 +25,9 @@ use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 label_type = 'verified_labels';
-long_image_names = 1; %whether image names are 10 chars or 15
+%label_type = 'raw_labels';
+
+long_image_names = 0; %whether image names are 10 chars or 15
 
 %OPTIONS for ground truth bounding boxes
 show_vatic_output = 1; %
@@ -35,7 +37,7 @@ custom_vatic_labels = {'chair1','chair2','chair3','chair4','chair5','chair6'};
 
 
 %options for FAST-RCNN bounding boxes
-show_recognition_output = 1;
+show_recognition_output = 0;
 recognition_system_name = 'ssd_bigBIRD';
 show_instance_not_class = 1;
 recognition_label_to_show = '';
@@ -146,6 +148,8 @@ for i=1:length(all_scenes)
       %depth_image = imread(fullfile(scene_path,'jpg_high_res_depth', ...
       %                      strcat(cur_image_name(1:8), '03.jpg')));
       %depth_image = imread(fullfile(scene_path,'high_res_depth', ...
+      %                      strcat(cur_image_name(1:8), '03.png')));
+      %depth_image = imread(fullfile(scene_path,'high_res_depth', ...
       %                      strcat(cur_image_name(1:13), '03.png')));
       %depth_image = imread(fullfile(meta_path,'improved_depths', ...
       %                      strcat(cur_image_name(1:13), '05.png')));
@@ -166,9 +170,15 @@ for i=1:length(all_scenes)
       %                    BBOXES_BY_IMAGE_INSTANCE_DIR, strcat(cur_image_name(1:10),'.mat')));
       %vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
       %                     'instance_label_structs', strcat(cur_image_name(1:10),'.mat')));
-      vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
-                           label_type,'bounding_boxes_by_image_instance', ...
-                             strcat(cur_image_name(1:15),'.mat')));
+      if(long_image_names)
+        vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
+                               label_type,'bounding_boxes_by_image_instance', ...
+                                 strcat(cur_image_name(1:15),'.mat')));
+      else
+        vatic_bboxes = load(fullfile(meta_path,LABELING_DIR, ...
+                               label_type,'bounding_boxes_by_image_instance', ...
+                                 strcat(cur_image_name(1:10),'.mat')));
+      end
       vatic_bboxes = vatic_bboxes.boxes;
       catch
         vatic_bboxes = [];
@@ -340,7 +350,7 @@ for i=1:length(all_scenes)
         if(long_image_names)
             cur_image_index = str2num(next_image_name(6:11));
         else
-            cur_image_index = str2num(next_image_name(6:11));
+            cur_image_index = str2num(next_image_name(1:6));
         end
     elseif(move_command =='y')
         %move left
@@ -351,7 +361,7 @@ for i=1:length(all_scenes)
         if(long_image_names)
             cur_image_index = str2num(next_image_name(6:11));
         else
-            cur_image_index = str2num(next_image_name(6:11));
+            cur_image_index = str2num(next_image_name(1:6));
         end
     elseif(move_command =='u')
         %move right 
@@ -362,7 +372,7 @@ for i=1:length(all_scenes)
         if(long_image_names)
             cur_image_index = str2num(next_image_name(6:11));
         else
-            cur_image_index = str2num(next_image_name(6:11));
+            cur_image_index = str2num(next_image_name(1:6));
         end
     elseif(move_command =='s')
         %move backward 
@@ -373,7 +383,7 @@ for i=1:length(all_scenes)
         if(long_image_names)
             cur_image_index = str2num(next_image_name(6:11));
         else
-            cur_image_index = str2num(next_image_name(6:11));
+            cur_image_index = str2num(next_image_name(1:6));
         end
     
     elseif(move_command =='d')
@@ -382,7 +392,7 @@ for i=1:length(all_scenes)
         if(long_image_names)
             cur_image_index = str2num(next_image_name(6:11));
         else
-            cur_image_index = str2num(next_image_name(6:11));
+            cur_image_index = str2num(next_image_name(1:6));
         end
     elseif(move_command =='a')
         %rotate counter clockwise 
@@ -390,7 +400,7 @@ for i=1:length(all_scenes)
         if(long_image_names)
             cur_image_index = str2num(next_image_name(6:11));
         else
-            cur_image_index = str2num(next_image_name(6:11));
+            cur_image_index = str2num(next_image_name(1:6));
         end
 
     elseif(move_command =='n')

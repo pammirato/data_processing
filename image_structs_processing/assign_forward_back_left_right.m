@@ -46,7 +46,7 @@ threshold_on_distance = 0;
 dir_angle_thresh = 10; %difference between direction of camera at images
 move_angle_thresh = 10; %maximum allowed difference between point angle and direction angle
 point_angle_thresh = 30;%angle between camera direction of org and vector from org to other point
-dist_thresh = 950;%distance threshold in mm, (must be closer than this)
+dist_thresh = 750;%distance threshold in mm, (must be closer than this)
 
 
 %% SET UP GLOBAL DATA STRUCTURES
