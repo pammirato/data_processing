@@ -23,6 +23,8 @@ min_illum_intensity = .1;
 max_illum_intensity = 1;
 
 
+scene_name = 'Gen_003_2'
+scene_prefix = '20032'
 
 
 
@@ -31,16 +33,20 @@ debug = 0;
 d = dir(BIGBIRD_BASE_PATH);
 object_names = {d(3:end).name};
 
-back_base_path = '/playpen/ammirato/Data/BigBirdCompositeData/';
+%back_base_path = '/playpen/ammirato/Data/BigBirdCompositeData/';
+back_base_path = '/playpen/ammirato/Data/sygen_data/other_data/';
 
 
-back_img_path = fullfile(back_base_path,'background_images');%holds background images
-label_meta_output_path = fullfile(back_base_path,'composite_metadata');
-back_composite_path = fullfile(back_base_path,'composite_images');
+%back_img_path = fullfile(back_base_path,'background_images');%holds background images
+back_img_path = fullfile(back_base_path,'uw_scenes_background_images');%holds background images
+label_meta_output_path = fullfile(back_base_path,'bb_2_matlab_render4cnn_composite/anns/');
+%back_composite_path = fullfile(back_base_path,'composite_images');
+back_composite_path = fullfile(back_base_path,'bb_2_matlab_render4cnn_composite/images/');
 background_image_names = dir(back_img_path);
 background_image_names = {background_image_names(3:end).name};
 
-
+mkdir(label_meta_output_path)
+mkdir(back_composite_path)
 
 kernels = cell(1,16);
 for il=1:sqrt(length(kernels))
@@ -74,16 +80,22 @@ end
 
 %load mapping from bigbird name ot category id
 obj_cat_map = containers.Map();
-fid_bb_map = fopen('/playpen/ammirato/Data/RohitMetaMetaData/big_bird_cat_map.txt', 'rt');
+%fid_bb_map = fopen('/playpen/ammirato/Data/RohitMetaMetaData/big_bird_cat_map.txt', 'rt');
+%fid_bb_map = fopen('/playpen/ammirato/Data/not_similar_instance_to_id.txt', 'rt');
+fid_bb_map = fopen('/playpen/ammirato/Data/objs_to_use_for_synthetic.txt', 'rt');
+
+object_names = {};
 
 line = fgetl(fid_bb_map);
 while(ischar(line))
   line = strsplit(line);
   obj_cat_map(line{1}) = str2double(line{2}); 
+  object_names{end+1} = line{1};
   line = fgetl(fid_bb_map);
 end
 fclose(fid_bb_map);
 
+disp(object_names)
 
 
 bbox_pose_labels = zeros(length(background_image_names),8);
@@ -94,6 +106,7 @@ meta_data = zeros(length(background_image_names), 25);
 
 object_inds = [];
 
+annotations = []
 
 for il=1:length(background_image_names)
 
@@ -102,11 +115,14 @@ for il=1:length(background_image_names)
   cur_back_image_name = background_image_names{il};
 
   ext_ind = strfind(cur_back_image_name, '.');
-  cur_composite_base_name = cur_back_image_name(1:ext_ind-1);
+  cur_composite_base_name =   strcat(scene_prefix , sprintf('%06d', il) ,  ...
+                                '00', '06.jpg'); 
+
+  %cur_composite_base_name = cur_back_image_name(1:ext_ind-1);
   cur_label_filename = strcat(cur_composite_base_name, '.txt');
-  cur_meta_filename = strcat(cur_composite_base_name, '_meta.txt');
+  %cur_meta_filename = strcat(cur_composite_base_name, '_meta.txt');
   fid_label = fopen(fullfile(label_meta_output_path, cur_label_filename), 'wt');
-  fid_meta = fopen(fullfile(label_meta_output_path, cur_meta_filename), 'wt');
+  %fid_meta = fopen(fullfile(label_meta_output_path, cur_meta_filename), 'wt');
 
 
   back_img = imread(fullfile(back_img_path, cur_back_image_name));
@@ -129,7 +145,7 @@ for il=1:length(background_image_names)
   
 
   %pick how many objects to put in this image
-  num_inds_to_use = randi(min(3,length(object_inds)), 1,1);
+  num_inds_to_use = randi(min(6,length(object_inds)), 1,1);
   inds_to_use = object_inds(1:num_inds_to_use);
  
   %remove the objects to be used from consideration for future images 
@@ -138,11 +154,8 @@ for il=1:length(background_image_names)
   %get the names of objects to put in the current background image
   cur_bird_names = object_names(inds_to_use);
 
-
   %hold the bounding box for each object
   cur_bboxes = zeros(length(cur_bird_names), 4); 
-
-
 
   %for each object chosen, put in the image with random parameters
   for jl=1:length(cur_bird_names)
@@ -160,21 +173,24 @@ for il=1:length(background_image_names)
                             strcat('NP',num2str(cam_ind), '_', num2str(pose_angle), '.jpg')));
 
     %load the object mask for the chosen image
-    object_mask = imread(fullfile(BIGBIRD_BASE_PATH, cur_bb_name, 'masks', ...
+    if rand() > .8
+        object_mask = imread(fullfile(BIGBIRD_BASE_PATH, cur_bb_name, 'new_masks', ...
                         strcat('NP',num2str(cam_ind), '_', num2str(pose_angle), '_mask.pbm')));
-
+        object_mask = ~object_mask;
+    else
+        object_mask = imread(fullfile(BIGBIRD_BASE_PATH, cur_bb_name, 'graphcut_masks', ...
+                        strcat('NP',num2str(cam_ind), '_', num2str(pose_angle), '_mask.pbm')));
+        object_mask = ~object_mask;
+    end
 
     %object_img = imresize(object_img, [size(back_img,1), size(back_img,2)]);
     %object_mask = imresize(object_mask, [size(object_img,1), size(object_img,2)]);
 
 
-    
-
-
     %% center object in image, and then rotate to simulate camera roll
    
     %find the indices of the mask and the bounding box
-    [I, J] = find(object_mask(:,:) == 0);
+    [I, J] = find(object_mask(:,:) > 0);
     min_row = min(I);
     min_col = min(J);
     max_row = max(I);
@@ -195,7 +211,6 @@ for il=1:length(background_image_names)
     object_img = imrotate(object_img, roll_angle, 'crop');
     object_mask  = imrotate(~object_mask, roll_angle, 'crop');
     object_mask = ~object_mask;
-
 
 
 
@@ -267,7 +282,7 @@ for il=1:length(background_image_names)
     bbox_width = max_col - min_col;
     max_dim = max(bbox_height, bbox_width);
     %make sure object is between .1 and .5 the length of the image
-    min_scale = .05*max(size(object_img)) / max_dim;
+    min_scale = .09*max(size(object_img)) / max_dim;
     max_scale = .3*max(size(object_img)) / max_dim;
     scale = min_scale + (max_scale-min_scale)*rand(1,1);
     %scale = rand(1,1)*1.5 + .3;
@@ -313,11 +328,6 @@ for il=1:length(background_image_names)
       temp_img(start_row:end_row, start_col:end_col,:) = masked_object_img;
       masked_object_img =uint8(temp_img);
     end% if scale
-
-
-
-
-
 
 
 
@@ -486,15 +496,15 @@ for il=1:length(background_image_names)
     back_img = imfilter(back_img,kernels{kernel_ind2});
 
 
-    %write out the label and meta data info
+    %%write out the label and meta data info
     fprintf(fid_label, '%d %d %d %d %d %d\n', cat_id, min_col, min_row, max_col,...
                                                max_row, pose_angle);
-    fprintf(fid_meta, '%d %d %d %d %d %d %d %d %d %d %d %d\n',...
-                        cat_id, img_to_use, kernel_ind, kernel_ind2,  erode_size, ...
-                        scale, tl_row, tl_col, roll_angle, ...
-                        radius, brightness_scale);
-                        %min_illum_radius, max_illum_radius, min_illum_intensity, ...
-                        %max_illum_intensity,centerX, centerY,
+    %fprintf(fid_meta, '%d %d %d %d %d %d %d %d %d %d %d %d\n',...
+    %                    cat_id, img_to_use, kernel_ind, kernel_ind2,  erode_size, ...
+    %                    scale, tl_row, tl_col, roll_angle, ...
+    %                    radius, brightness_scale);
+    %                    %min_illum_radius, max_illum_radius, min_illum_intensity, ...
+    %                    %max_illum_intensity,centerX, centerY,
   end%for jl, each big bird object
 
 
@@ -510,7 +520,7 @@ for il=1:length(background_image_names)
     ginput(1); 
   end
   fclose(fid_label);
-  fclose(fid_meta);
+  %fclose(fid_meta);
 end%for il, each background image
 
 

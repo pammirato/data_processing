@@ -19,7 +19,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Home_09_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_013_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -65,6 +65,7 @@ for il=1:length(all_scenes)
 
   %get all the image ids, and make a map from image id to image struct
   image_ids = {image_structs.image_id};
+  image_ids = image_ids(~cellfun('isempty',image_ids));%lose empyt elements
   image_id_to_struct_map = containers.Map(image_ids,cell(1,length(image_ids)));
   for jl=1:length(image_ids)
     image_id_to_struct_map(image_ids{jl}) = image_structs(jl);
@@ -139,8 +140,12 @@ for il=1:length(all_scenes)
         continue;
       end
 
-      %% find the point2d in this image that matches the point3d 
-      p2d = image_name_to_p2d_map(image_struct.image_name);
+      try
+          %% find the point2d in this image that matches the point3d 
+          p2d = image_name_to_p2d_map(image_struct.image_name);
+      catch
+        continue;
+      end
 
       %get all the x,y,and p2d id values for this image
       xs = p2d(1:3:end);
@@ -149,6 +154,9 @@ for il=1:length(all_scenes)
 
       %find the index for the point 3d we are using
       p3index = find(p3ids == point3d_to_use.id);
+      if(isempty(p3index))
+        continue;
+      end
       p3index = p3index(1);
       p3id = p3ids(p3index);
     
@@ -157,8 +165,10 @@ for il=1:length(all_scenes)
       y = max(1,floor(ys(p3index)));
 
       %get the depth 
+      %depth_img = imread(fullfile(scene_path,HIGH_RES_DEPTH, ...
+      %                strcat(image_struct.image_name(1:8),'03.png')));
       depth_img = imread(fullfile(scene_path,HIGH_RES_DEPTH, ...
-                      strcat(image_struct.image_name(1:8),'03.png')));
+                      strcat(image_struct.image_name(1:13),'03.png')));
 
       depths(kl) = depth_img(y,x);
 

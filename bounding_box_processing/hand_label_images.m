@@ -135,6 +135,7 @@ try%make sure last line is execuuted
     if(method == 0)
       cur_boxes = [];  
     elseif(method == 1)
+      try
       cur_boxes = load(fullfile(meta_path,LABELING_DIR,label_type, BBOXES_BY_IMAGE_INSTANCE, ...
                        strcat(cur_img_name(1:10),'.mat')));
       cur_boxes = cur_boxes.boxes;
@@ -149,6 +150,9 @@ try%make sure last line is execuuted
         %t.BackgroundColor = 'red';
   
       end%for kl
+      catch
+        cur_boxes = [];
+      end
     end%if method
 
     but = [1 1];

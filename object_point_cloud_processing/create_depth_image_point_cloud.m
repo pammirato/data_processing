@@ -14,7 +14,7 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Home_01_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_013_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -185,7 +185,8 @@ for il=1:length(all_scenes)
 
   %image_names = {'0001330101.png', '0003810101.png','0005650101.png'};%, ...
   %image_names = {'0044360101.jpg', '0045330101.jpg','0046180101.jpg'};%, ...
-  image_names = {'0000010101.jpg', '0001840101.jpg','0003630101.jpg'};%, ...
+  %image_names = {'0000010101.jpg', '0001840101.jpg','0003630101.jpg'};%, ...
+  image_names = {'001310000010101.jpg', '001310000280101.jpg','001310001710101.jpg'};%, ...
                 % '0000010101.jpg', '0004380101.jpg','0005090101.jpg'};%, ...
                 %'0000920101.jpg','0002610101.jpg','0005620101.jpg'};
   %image_names = {'0009640101.png'};
@@ -223,8 +224,10 @@ for il=1:length(all_scenes)
     rgb_img = imread(fullfile(scene_path, 'jpg_rgb',cur_image_name)); 
     %depth_image = imread(fullfile(scene_path, 'jpg_high_res_depth', ...
     %                        strcat(cur_image_name(1:8), '03.jpg')));
+    %depth_image = imread(fullfile(scene_path, 'high_res_depth', ...
+    %                        strcat(cur_image_name(1:8), '03.png')));
     depth_image = imread(fullfile(scene_path, 'high_res_depth', ...
-                            strcat(cur_image_name(1:8), '03.png')));
+                            strcat(cur_image_name(1:13), '03.png')));
     %depth_image = imread(fullfile(meta_path, 'improved_depths3', ...
     %                        strcat(cur_image_name(1:8), '05.png')));
     %depth_image = imread(fullfile(meta_path, 'improved_depths', ...
@@ -287,7 +290,7 @@ for il=1:length(all_scenes)
 
     cur_pc = pointCloud(world_coords, 'Color',rgb_vals );
     
-    pcwrite(cur_pc, fullfile(meta_path, 'point_clouds', strcat(cur_image_name(1:10), '.ply')));
+    pcwrite(cur_pc, fullfile(meta_path, 'point_clouds', strcat(cur_image_name(1:15), '.ply')));
     
     breakp = 1;
   end%for jl, each image name

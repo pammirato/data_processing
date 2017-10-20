@@ -1,4 +1,4 @@
-function [] = remove_image_cluster(scene_name)
+function [] = rename_all_to_15(scene_name)
 % removes a cluster from scene
 %
  
@@ -79,11 +79,11 @@ for il=1:length(all_scenes)
 
 
 
-  point2ds_file =  load(fullfile(meta_path, RECONSTRUCTION_RESULTS, ...
-                                'colmap_results', ...
-                                model_number, POINT_2D_STRUCTS_FILE));
-
-  p2d_structs = point2ds_file.point_2d_structs;
+%  point2ds_file =  load(fullfile(meta_path, RECONSTRUCTION_RESULTS, ...
+%                                'colmap_results', ...
+%                                model_number, POINT_2D_STRUCTS_FILE));
+%
+%  p2d_structs = point2ds_file.point_2d_structs;
 
 
   %make new names
@@ -103,37 +103,37 @@ for il=1:length(all_scenes)
   end%for jl, each original image name
 
 
-  %rename all directories
-  disp('Renaming rgb ...');
-  rename_directory(RGB,fullfile(meta_path,'raw_data'),org_to_new_index_map);
-  
-  disp('Renaming jpg_rgb ...');
-  rename_directory(JPG_RGB,scene_path,org_to_new_index_map);
-  
-  disp('Renaming raw_depth ...');
-  rename_directory(RAW_DEPTH,fullfile(meta_path,'raw_data'),org_to_new_index_map);
-
-  try
-    disp('Renaming high res depth ...');
-    rename_directory(HIGH_RES_DEPTH,scene_path,org_to_new_index_map);
-  catch
-    disp('no high res depth!');
-    
-  end
-
-  try
-    disp('Renaming improved depth ...');
-    rename_directory(IMPROVED_DEPTH,meta_path,org_to_new_index_map);
-  catch
-    disp('no improved depths');
-  end
-  
-  disp('Renaming raw_labels ...');
-  rename_directory(BBOXES_BY_IMAGE_INSTANCE,fullfile(meta_path, LABELING_DIR,...
-                 'raw_labels'),org_to_new_index_map);
-  disp('Renaming verified labels ...');
-  rename_directory( BBOXES_BY_IMAGE_INSTANCE,fullfile(meta_path, LABELING_DIR,...
-                 'verified_labels'),org_to_new_index_map);
+ %rename all directories
+% disp('Renaming rgb ...');
+% rename_directory(RGB,fullfile(meta_path,'raw_data'),org_to_new_index_map);
+% 
+% disp('Renaming jpg_rgb ...');
+% rename_directory(JPG_RGB,scene_path,org_to_new_index_map);
+% 
+% disp('Renaming raw_depth ...');
+% rename_directory(RAW_DEPTH,fullfile(meta_path,'raw_data'),org_to_new_index_map);
+%
+% try
+%   disp('Renaming high res depth ...');
+%   rename_directory(HIGH_RES_DEPTH,scene_path,org_to_new_index_map);
+% catch
+%   disp('no high res depth!');
+%   
+% end
+%
+% try
+%   disp('Renaming improved depth ...');
+%   rename_directory(IMPROVED_DEPTH,meta_path,org_to_new_index_map);
+% catch
+%   disp('no improved depths');
+% end
+% 
+% disp('Renaming raw_labels ...');
+% rename_directory(BBOXES_BY_IMAGE_INSTANCE,fullfile(meta_path, LABELING_DIR,...
+%                'raw_labels'),org_to_new_index_map);
+ disp('Renaming verified labels ...');
+ rename_directory( BBOXES_BY_IMAGE_INSTANCE,fullfile(meta_path, LABELING_DIR,...
+                'verified_labels'),org_to_new_index_map);
 
   disp('Converting Boxes ...');             
   %convert_boxes_by_image_instance_to_instance(scene_name, 'raw_labels');
@@ -150,38 +150,38 @@ for il=1:length(all_scenes)
     image_structs(jl) = cur_struct; 
   end%for jl, each image_struct  
 
-  disp('Renaming point 2d structs ...');
-  bad_inds = [];
-  %update points2d
-  for jl=1:length(p2d_structs)
-    cur_struct = p2d_structs(jl);
-    cur_name = cur_struct.image_name;
-    try
-      new_index_s = org_to_new_index_map(cur_name(1:6));
-    catch
-      bad_inds(end+1) = jl;
-      continue;
-    end
-    new_name = strcat(new_index_s, cur_name(7:end));
-    cur_struct.image_name = new_name;
-    p2d_structs(jl) = cur_struct; 
-  end%for jl, each image_struct 
-
-  %remove structs from the deletec cluster
-  p2d_structs(bad_inds) = [];
-  
-  point_2d_structs = p2d_structs;
+%  disp('Renaming point 2d structs ...');
+%  bad_inds = [];
+%  %update points2d
+%  for jl=1:length(p2d_structs)
+%    cur_struct = p2d_structs(jl);
+%    cur_name = cur_struct.image_name;
+%    try
+%      new_index_s = org_to_new_index_map(cur_name(1:6));
+%    catch
+%      bad_inds(end+1) = jl;
+%      continue;
+%    end
+%    new_name = strcat(new_index_s, cur_name(7:end));
+%    cur_struct.image_name = new_name;
+%    p2d_structs(jl) = cur_struct; 
+%  end%for jl, each image_struct 
+%
+%  %remove structs from the deletec cluster
+%  p2d_structs(bad_inds) = [];
+%  
+%  point_2d_structs = p2d_structs;
 
   %save the update image structs  
   save(fullfile(meta_path, RECONSTRUCTION_RESULTS, 'colmap_results', ...
                 model_number,  IMAGE_STRUCTS_FILE), IMAGE_STRUCTS, SCALE);
   
-  save(fullfile(meta_path, RECONSTRUCTION_RESULTS,'colmap_results',...
-               model_number, POINT_2D_STRUCTS_FILE), POINT_2D_STRUCTS);
-
-  disp('Assigning movement pointers ...');
-  assign_rotate_pointers(scene_name);
-  assign_forward_back_left_right(scene_name);
+%  save(fullfile(meta_path, RECONSTRUCTION_RESULTS,'colmap_results',...
+%               model_number, POINT_2D_STRUCTS_FILE), POINT_2D_STRUCTS);
+%
+%  disp('Assigning movement pointers ...');
+%  assign_rotate_pointers(scene_name);
+%  assign_forward_back_left_right(scene_name);
   
   disp('Writing json ...');
   write_annotations_to_json(scene_name);

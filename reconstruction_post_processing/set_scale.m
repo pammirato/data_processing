@@ -11,13 +11,13 @@ init;
 
 %% USER OPTIONS
 
-scene_name = 'Home_09_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_013_1'; %make this = 'all' to run all scenes
 model_number = '0';
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 
-scale = 615;
+scale = 850;
 
 %% SET UP GLOBAL DATA STRUCTURES
 

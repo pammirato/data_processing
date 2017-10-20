@@ -25,7 +25,7 @@ use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
 
 label_type = 'verified_labels';
-%label_type = 'raw_labels';
+label_type = 'raw_labels';
 
 long_image_names = 0; %whether image names are 10 chars or 15
 

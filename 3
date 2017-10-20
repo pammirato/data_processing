@@ -521,31 +521,31 @@ if(isempty(img))
 end
 %plot the image, then draw the box on top
 bbox = handles.bboxes{handles.cur_image_index};
-width = (bbox(3)-bbox(1));
-height = (bbox(4)-bbox(2));
-large_box = [bbox(1) - 2*width, bbox(2)-2*height, bbox(3)+2*width, bbox(4)+2*height];
-large_box(1) = max(1,large_box(1));
-large_box(2) = max(1,large_box(2));
-large_box(3) = min(1920,large_box(3));
-large_box(4) = min(1080,large_box(4));
+%width = (bbox(3)-bbox(1));
+%height = (bbox(4)-bbox(2));
+%large_box = [bbox(1) - 2*width, bbox(2)-2*height, bbox(3)+2*width, bbox(4)+2*height];
+%large_box(1) = max(1,large_box(1));
+%large_box(2) = max(1,large_box(2));
+%large_box(3) = min(1080,large_box(3));
+%large_box(4) = min(1920,large_box(4));
+%
+%new_bbox = [bbox(1)-large_box(1),bbox(2)-large_box(2),bbox(3)-large_box(1),bbox(4)-large_box(2)];
 
-new_bbox = [bbox(1)-large_box(1),bbox(2)-large_box(2),bbox(3)-large_box(1),bbox(4)-large_box(2)];
-
-%imshow(img);
-imshow(img(large_box(2):large_box(4), large_box(1):large_box(3),:));
+imshow(img);
+%imshow(img(large_box(2):large_box(4), large_box(1):large_box(3),:));
 hold on;
-%rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ... 
-%                     'LineWidth',2, 'EdgeColor','r');
-rectangle('Position',[new_bbox(1) new_bbox(2) (new_bbox(3)-new_bbox(1)) (new_bbox(4)-new_bbox(2))], ... 
+rectangle('Position',[bbox(1) bbox(2) (bbox(3)-bbox(1)) (bbox(4)-bbox(2))], ... 
                      'LineWidth',2, 'EdgeColor','r');
-                 
+%rectangle('Position',[new_bbox(1) new_bbox(2) (new_bbox(3)-new_bbox(1)) (new_bbox(4)-new_bbox(2))], ... 
+%                     'LineWidth',2, 'EdgeColor','r');
+                  
 %indicate what box this is (i.e. box 3 of 100) 
 box_string = [num2str(handles.cur_image_index) '/' ...
                 num2str(length(handles.image_names))];
 handles.box_counter.String = box_string;
 %handles.large_box = large_box;
 hold off;
-%handles.cur_img = img;
+handles.cur_img = img;
 guidata(hObject, handles);
 
 
@@ -701,7 +701,7 @@ bbox(2) = max(y(1),1);
 bbox(3) = min(x(2), 1080);
 bbox(4) = min(y(2), 1920);
 
-bbox = convert_cropped_box_to_real_box(handles.large_box,bbox);
+%bbox = convert_cropped_box_to_real_box(handles.large_box,bbox);
 handles.bboxes{handles.cur_image_index} = bbox;
 
 guidata(hObject, handles);

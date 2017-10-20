@@ -13,7 +13,7 @@
 init;
 %% USER OPTIONS
 
-scene_name = 'Home_16_1'; %make this = 'all' to run all scenes
+scene_name = 'Home_11_2'; %make this = 'all' to run all scenes
 model_number = '0'; %colmap model number
 use_custom_scenes = 0;%whether or not to run for the scenes in the custom list
 custom_scenes_list = {};%populate this 
@@ -25,7 +25,7 @@ label_names_list = {'honey_bunches_of_oats_with_almonds', 'cholula_chipotle_hot_
 method = 0; %0 - oclusion filtering, uses improved depth maps if they exist
             %1 - no ocllusion filtering
             
-occlusion_threshold = 1000;  %amount in mm that point cloud can differ from depth
+occlusion_threshold = 500;  %amount in mm that point cloud can differ from depth
 include_0 = 1;
 
 
